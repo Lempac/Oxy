@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_server', function (Blueprint $table) {
-            $table->string('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('server_id');
 
 
             $table->foreign('server_id')->references('id')->on('servers');
-            $table->foreign('user_id')->references('email')->on('users');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
     /**
