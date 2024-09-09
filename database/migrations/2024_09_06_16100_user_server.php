@@ -11,21 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('messages', function (Blueprint $table) {
-            $table->id();
-            $table->string('text');
-            $table->timestamps();
-            
-            $table->foreign('User_id')->references('id')->on('users');
-            $table->foreign('Channel_id')->references('id')->on('channels');
+        Schema::create('user_server', function (Blueprint $table) {
+            $table->string('user_id');
+            $table->unsignedBigInteger('server_id');
+
+
+            $table->foreign('server_id')->references('id')->on('servers');
+            $table->foreign('user_id')->references('email')->on('users');
         });
     }
-
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('messages');
+        //
     }
 };
