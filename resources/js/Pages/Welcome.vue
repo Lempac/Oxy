@@ -247,28 +247,28 @@ const submitRegister = () => {
     <!-- Login popup modal -->
     <Transition>
         <div v-if="showLoginPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md">
-            <h2 class="text-xl font-semibold mb-4 text-black" >Log in</h2>
+            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md  dark:bg-slate-900">
+            <h2 class="text-xl font-semibold mb-4 text-black dark:text-white" >Log in</h2>
             <form @submit.prevent="submitLogin">
                 <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-black">Email</label>
+                    <label for="email" class="block text-sm font-medium text-black dark:text-white">Email</label>
                     <input
                         id="email"
                         type="email"
                         v-model="form.email"
                         required
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black"
+                        class="mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black dark:bg-slate-700 dark:text-white"
                     />
                 </div>
 
                 <div class="mb-4">
-                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-white">Password</label>
                     <input
                         id="password"
                         type="password"
                         v-model="form.password"
                         required
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        class="mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
                     />
                 </div>
 
@@ -279,7 +279,7 @@ const submitRegister = () => {
                         v-model="form.remember"
                         class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                     />
-                    <label for="remember" class="ml-2 block text-sm text-gray-900">Remember me</label>
+                    <label for="remember" class="ml-2 block text-sm text-gray-900 dark:text-white opacity-70 ">Remember me</label>
                 </div>
 
                 <div class="flex justify-between items-center">
@@ -290,26 +290,26 @@ const submitRegister = () => {
                     <button @click="closeLoginPopup" class="text-red-500">Cancel</button>
                 </div>
             </form>
-            <button @click="switchR"  class="text-black" style="text-decoration: underline; font-size: 15px; padding-top:20px ;">Create an account?</button>
+            <button @click="switchR"  class="text-black dark:text-white" style="text-decoration: underline; font-size: 15px; padding-top:20px ;">Create an account?</button>
         </div>
     </div>
     </Transition>
     <!-- Register  -->
     <Transition>
         <div v-if="showRegisterPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md">
-                <h2 class="text-xl font-semibold mb-4 text-black">Register</h2>
+            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md dark:bg-slate-900">
+                <h2 class="text-xl font-semibold mb-4 text-black dark:text-white">Register</h2>
 
                 <form @submit.prevent="submitRegister">
                     <!-- Name Input -->
                     <div class="mb-4">
-                        <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-white">Name</label>
                         <input
                             id="name"
                             type="text"
                             v-model="form.name"
                             required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
                         />
                         <!-- Error for name -->
                         <span v-if="form.errors.name" class="text-red-500 text-sm">{{ form.errors.name }}</span>
@@ -317,13 +317,13 @@ const submitRegister = () => {
 
                     <!-- Email Input -->
                     <div class="mb-4">
-                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-white">Email</label>
                         <input
                             id="email"
                             type="email"
                             v-model="form.email"
                             required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
                         />
                         <!-- Error for email -->
                         <span v-if="form.errors.email" class="text-red-500 text-sm">{{ form.errors.email }}</span>
@@ -331,13 +331,13 @@ const submitRegister = () => {
 
                     <!-- Password Input -->
                     <div class="mb-4">
-                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-white">Password</label>
                         <input
                             id="password"
                             type="password"
                             v-model="form.password"
                             required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
                         />
                         <!-- Error for password -->
                         <span v-if="form.errors.password" class="text-red-500 text-sm">{{ form.errors.password }}</span>
@@ -345,13 +345,13 @@ const submitRegister = () => {
 
                     <!-- Password Confirmation Input -->
                     <div class="mb-4">
-                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-white">Confirm Password</label>
                         <input
                             id="password_confirmation"
                             type="password"
                             v-model="form.password_confirmation"
                             required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
                         />
                         <!-- Error for password_confirmation -->
                         <span v-if="form.errors.password_confirmation" class="text-red-500 text-sm">{{ form.errors.password_confirmation }}</span>
@@ -367,7 +367,7 @@ const submitRegister = () => {
                         </button>
                     </div>
                 </form>
-                <button @click="switchL"  class="text-black" style="text-decoration: underline; font-size: 15px; padding-top:20px ;">Already have an account?</button>
+                <button @click="switchL"  class="text-black dark:text-white" style="text-decoration: underline; font-size: 15px; padding-top:20px ;">Already have an account?</button>
             </div>
         </div>
     </Transition>
