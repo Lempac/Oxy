@@ -4,12 +4,8 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-//redirect to welcome page, idk
-Route::get('/', function () {
-    return redirect('/welcome');
-});
 
-Route::get('/welcome', function () {
+Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
