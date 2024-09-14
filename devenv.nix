@@ -10,6 +10,12 @@
   # https://devenv.sh/languages/
   # languages.rust.enable = true;
     languages.php.enable = true;
+    languages.php.version = "8.3";
+    languages.php.extensions = [ "xdebug" ];
+    languages.php.ini = "xdebug.mode = debug";
+#        xdebug.discover_client_host = 1
+#        xdebug.client_host = 127.0.0.1
+#    '';
     languages.javascript.enable = true;
     languages.javascript.package = pkgs.nodejs_20;
   # https://devenv.sh/processes/
@@ -32,16 +38,16 @@
 #    echo hello from $GREET
 #  '';
 
-  enterShell = ''
-    hello
-    git --version
-  '';
+#  enterShell = ''
+#    hello
+#    git --version
+#  '';
 
   # https://devenv.sh/tests/
-  enterTest = ''
-    echo "Running tests"
-    git --version | grep --color=auto "${pkgs.git.version}"
-  '';
+#  enterTest = ''
+#    echo "Running tests"
+#    git --version | grep --color=auto "${pkgs.git.version}"
+#  '';
 
   # https://devenv.sh/pre-commit-hooks/
   # pre-commit.hooks.shellcheck.enable = true;
