@@ -11,7 +11,7 @@
   # languages.rust.enable = true;
     languages.php.enable = true;
     languages.php.version = "8.3";
-    languages.php.extensions = [ "xdebug" ];
+    languages.php.extensions = [ "xdebug" "pdo_mysql" ];
     languages.php.ini = "xdebug.mode = debug";
 #        xdebug.discover_client_host = 1
 #        xdebug.client_host = 127.0.0.1
