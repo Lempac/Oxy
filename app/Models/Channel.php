@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Validation\Rules\Enum;
 
 class Channel extends Model
 {
@@ -15,6 +14,7 @@ class Channel extends Model
     protected $fillable = [
         'name',
         'type',
+        'server_id',
     ];
 
     public function messages() : HasMany

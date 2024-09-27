@@ -1,4 +1,4 @@
-import { Config } from 'ziggy-js';
+import {Config} from 'ziggy-js';
 
 // export interface Messages
 
@@ -6,6 +6,22 @@ export interface Server {
     id: number;
     name: string;
     description: string;
+}
+
+enum MessageType {
+    Text,
+    Image
+}
+
+export interface Message {
+    type: MessageType,
+    data: string | null,
+    user_id: int,
+}
+
+export interface Call {
+    start_at: Date,
+    end_at: Date
 }
 
 export interface User {
