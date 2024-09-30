@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -47,9 +48,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function servers(): MorphToMany
+    public function servers(): BelongsToMany
     {
-        return $this->morphToMany(Server::class, 'servers');
+        return $this->belongsToMany(Server::class);
     }
 
     public function messages(): HasMany
