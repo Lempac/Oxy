@@ -2,7 +2,7 @@
 
 {
   # https://devenv.sh/basics/
-  env.GREET = "devenv";
+  dotenv.enable = true;
 
   # https://devenv.sh/packages/
   packages = [ pkgs.git ];
@@ -34,10 +34,10 @@
     services.mysql.enable = true;
     services.mysql.ensureUsers = [
         {
-            name = "laravel";
-            password = "laravel123";
+            name = config.env.DB_USERNAME;
+            password = config.env.DB_PASSWORD;
             ensurePermissions = {
-              "laravel.*" = "ALL PRIVILEGES";
+              "${config.env.DB_DATABASE}.*" = "ALL PRIVILEGES";
             };
         }
     ];
