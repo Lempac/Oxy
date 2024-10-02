@@ -16,6 +16,7 @@ class Server extends Model
     protected $fillable = [
         'name',
         'description',
+        'icon',
     ];
 
     public function users(): BelongsToMany
