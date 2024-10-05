@@ -1,8 +1,8 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
-  # https://devenv.sh/basics/
-  dotenv.enable = true;
+  # https://devenv.sh/basic                     s/
+  #dotenv.enable = true;
 
   # https://devenv.sh/packages/
   packages = [ pkgs.git ];
@@ -24,7 +24,7 @@
         xdebug.discover_client_host = 1
         xdebug.client_host = 127.0.0.1
     '';
-    languages.javascript.enable = true;
+    languages.javascript.enable = true  ;
     languages.javascript.package = pkgs.nodejs_20;
   # https://devenv.sh/processes/
   # processes.cargo-watch.exec = "cargo-watch";
@@ -34,10 +34,10 @@
     services.mysql.enable = true;
     services.mysql.ensureUsers = [
         {
-            name = config.env.DB_USERNAME;
-            password = config.env.DB_PASSWORD;
+            name = "laravel";
+            password = "laravel123";
             ensurePermissions = {
-              "${config.env.DB_DATABASE}.*" = "ALL PRIVILEGES";
+              "laravel.*" = "ALL PRIVILEGES";
             };
         }
     ];
@@ -47,14 +47,13 @@
 #  '';
 
 #  enterShell = ''
-#    hello
+#    echo $APP_ENV
 #    git --version
 #  '';
 
   # https://devenv.sh/tests/
 #  enterTest = ''
-#    echo "Running tests"
-#    git --version | grep --color=auto "${pkgs.git.version}"
+#    set APP_ENV=testing
 #  '';
 
   # https://devenv.sh/pre-commit-hooks/
