@@ -1,8 +1,8 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
-  # https://devenv.sh/basics/
-  env.GREET = "devenv";
+  # https://devenv.sh/basic                     s/
+  #dotenv.enable = true;
 
   # https://devenv.sh/packages/
   packages = [ pkgs.git ];
@@ -11,12 +11,20 @@
   # languages.rust.enable = true;
     languages.php.enable = true;
     languages.php.version = "8.3";
-    languages.php.extensions = [ "xdebug" ];
-    languages.php.ini = "xdebug.mode = debug";
+#    languages.php.package = pkgs.php.buildEnv {
+#      extensions = { all, enabled }: with all; enabled ++ [ xdebug mysql ];
+#      extraConfig = ''
+#        xdebug.mode = debug
 #        xdebug.discover_client_host = 1
 #        xdebug.client_host = 127.0.0.1
-#    '';
-    languages.javascript.enable = true;
+#      '';
+#    };
+    languages.php.extensions = [ "xdebug" "pdo_mysql" ];
+    languages.php.ini = ''xdebug.mode = debug
+        xdebug.discover_client_host = 1
+        xdebug.client_host = 127.0.0.1
+    '';
+    languages.javascript.enable = true  ;
     languages.javascript.package = pkgs.nodejs_20;
   # https://devenv.sh/processes/
   # processes.cargo-watch.exec = "cargo-watch";
@@ -39,14 +47,13 @@
 #  '';
 
 #  enterShell = ''
-#    hello
+#    echo $APP_ENV
 #    git --version
 #  '';
 
   # https://devenv.sh/tests/
 #  enterTest = ''
-#    echo "Running tests"
-#    git --version | grep --color=auto "${pkgs.git.version}"
+#    set APP_ENV=testing
 #  '';
 
   # https://devenv.sh/pre-commit-hooks/

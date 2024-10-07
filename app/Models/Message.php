@@ -11,7 +11,10 @@ class Message extends Model
     use HasFactory;
 
     protected $fillable = [
-        'text',
+        'type',
+        'data',
+        'user_id',
+        'channel_id',
     ];
 
     public function channel() : BelongsTo

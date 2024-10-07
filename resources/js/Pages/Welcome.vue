@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import {Head, Link, useForm} from '@inertiajs/vue3';
 import { ref } from 'vue'; // Import ref for reactivity
-
-defineProps<{
-    laravelVersion: string;
-    phpVersion: string;
-}>();
 
 // Reactive state for showing/hiding the login popup
 const showLoginPopup = ref(false);
