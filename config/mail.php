@@ -22,7 +22,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may configure all of the mailers used by your application plus
-    | their respective settings. Several examples have been configured for
+    | their respective Settings. Several examples have been configured for
     | you and you are free to add your own as your application requires.
     |
     | Laravel supports a variety of mail "transport" drivers that can be used
