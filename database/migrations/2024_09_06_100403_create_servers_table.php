@@ -15,7 +15,9 @@ return new class extends Migration {
             $table->string('name');
             $table->string('description');
             $table->string('icon');
+            $table->unsignedBigInteger('created_by');
 
+            $table->foreign('created_by')->references('id')->on('users');
             $table->timestamps();
         });
     }
