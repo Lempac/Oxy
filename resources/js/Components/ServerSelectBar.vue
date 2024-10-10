@@ -7,7 +7,7 @@ import NavLink from "@/Components/NavLink.vue";
 </script>
 
 <template>
-    <div class="navbar bg-base-100 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+    <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
         <div class="navbar-start">
             <Link :href="route('dashboard')">
                 <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200"/>
@@ -15,7 +15,7 @@ import NavLink from "@/Components/NavLink.vue";
         </div>
         <div v-for="server in $page.props.auth.servers" :key="server.id" class="navbar-center">
             <div class="hidden space-x-8 sm:-my-px sm:ms-5 sm:flex">
-                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
+                <NavLink :href="`/${server.name}`" :active="route().current('dashboard')">
                     <div class="tooltip tooltip-bottom" :data-tip="server.name">
                         <div class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
@@ -45,7 +45,6 @@ import NavLink from "@/Components/NavLink.vue";
                     tabindex="0"
                     class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
                     <li><a><DropdownLink :href="route('profile.edit')"> Profile </DropdownLink></a></li>
-                    <li><a><DropdownLink href=""> Settings </DropdownLink></a></li>
                     <li><a><DropdownLink :href="route('logout')" method="post" as="button"> Log Out </DropdownLink></a></li>
                 </ul>
             </div>
