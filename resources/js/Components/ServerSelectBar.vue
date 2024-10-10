@@ -14,19 +14,16 @@ import NavLink from "@/Components/NavLink.vue";
             </Link>
         </div>
         <div v-for="server in $page.props.auth.servers" :key="server.id" class="navbar-center">
-            <div class="hidden space-x-8 sm:-my-px sm:ms-5 sm:flex">
-                <NavLink :href="`/${server.name}`" :active="route().current('dashboard')">
+            <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
+                <Link :href="`/${server.name}`" :active="route().current('dashboard')">
                     <div class="tooltip tooltip-bottom" :data-tip="server.name">
                         <div class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
-                                <img
-                                    alt="Server"
-                                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s" />
+                                <img alt="Server" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s" />
                             </div>
                         </div>
                     </div>
-
-                </NavLink>
+                </Link>
             </div>
         </div>
         <div class="navbar-end gap-2">
