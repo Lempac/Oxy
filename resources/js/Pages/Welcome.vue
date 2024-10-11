@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {Head, Link, useForm} from '@inertiajs/vue3';
-import { ref } from 'vue'; // Import ref for reactivity
+import {ref} from 'vue'; // Import ref for reactivity
 
 // Reactive state for showing/hiding the login popup
 const showLoginPopup = ref(false);
@@ -55,7 +55,6 @@ const submitRegister = () => {
     form.post(route('register'), {
         onFinish: () => {
             form.reset('password', 'password_confirmation');
-
         },
         onError: () => {
             // Handle errors (e.g., display them below the respective fields)
@@ -74,12 +73,12 @@ window.Echo.channel('testChannel')
     <Head title="Welcome"></Head>
     <body>
     <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
-      <img
-        id="background"
-        class="absolute h-full w-full object-cover"
-        src="/images/background.svg"
-        alt=""
-      />
+        <img
+            id="background"
+            class="absolute h-full w-full object-cover"
+            src="/images/background.svg"
+            alt=""
+        />
         <div
             class="relative min-h-screen flex flex-col items-center justify-center selection:bg-[#285aff] selection:text-white">
             <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
@@ -93,7 +92,7 @@ window.Echo.channel('testChannel')
                                 fill="none"
                             >
 
-                                <image href="/images/oxy.jpg"  x="-10" y="-19" height="110" width="110"/>
+                                <image href="/images/oxy.jpg" x="-10" y="-19" height="110" width="110"/>
                             </svg>
                         </a>
                     </div>
@@ -104,7 +103,7 @@ window.Echo.channel('testChannel')
                             :href="route('home')"
                             class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#285aff] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
                         >
-                            Dashboard
+                            Home
                         </Link>
 
                         <template v-else>
@@ -126,7 +125,6 @@ window.Echo.channel('testChannel')
                         </template>
                     </nav>
                 </header>
-
                 <!-- Main content -->
                 <main class="mt-6">
                     <h1 style="color: aliceblue; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 70px;">
@@ -136,7 +134,6 @@ window.Echo.channel('testChannel')
                         Scroll down to see what we offer
                     </h2>
                     <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
-
                         <a
                             id="docs-card"
                             class="mt-[100px] col-span-full gap-7 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#285aff] lg:p-10 lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#285aff]"
@@ -153,7 +150,6 @@ window.Echo.channel('testChannel')
                                     class="hidden aspect-video h-full w-full flex-1 rounded-[10px] object-left-top object-cover drop-shadow-[0px_4px_34px_rgba(0,0,0,0.25)] dark:block"
                                 />
                             </div>
-
                             <div class="relative flex items-center gap-6 lg:items-end">
                                 <div id="docs-card-content" class="flex items-start gap-6 lg:flex-col">
                                     <div
@@ -165,10 +161,9 @@ window.Echo.channel('testChannel')
                                             width="24"
                                             height="24"
                                         >
-                                            <image href="/images/message.jpg"  width="24" height="24"/>
+                                            <image href="/images/message.jpg" width="24" height="24"/>
                                         </svg>
                                     </div>
-
                                     <div class="pt-3 sm:pt-5 lg:pt-0">
                                         <h2 class="text-xl font-semibold text-black dark:text-white">Messaging</h2>
                                         <p class="mt-4 text-sm/relaxed">
@@ -180,7 +175,6 @@ window.Echo.channel('testChannel')
                             </div>
                         </a>
                         <!-- End of messages -->
-
                         <a
                             class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#285aff] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#285aff]"
                         >
@@ -196,17 +190,14 @@ window.Echo.channel('testChannel')
                                     <image href="/images/co2.jpg" width="24" height="24"/>
                                 </svg>
                             </div>
-
                             <div class="pt-3 sm:pt-5">
                                 <h2 class="text-xl font-semibold text-black dark:text-white">Servers</h2>
-
                                 <p class="mt-4 text-sm/relaxed">
                                     Creating serves lets you easy communicate with multiple people and work with several
                                     projects at the same time.
                                 </p>
                             </div>
                         </a>
-
                         <div
                             class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800"
                         >
@@ -222,10 +213,8 @@ window.Echo.channel('testChannel')
                                     <image href="/images/kanban.jpg" width="24" height="24"/>
                                 </svg>
                             </div>
-
                             <div class="pt-3 sm:pt-5">
                                 <h2 class="text-xl font-semibold text-black dark:text-white">Kanban board</h2>
-
                                 <p class="mt-4 text-sm/relaxed">
                                     Our
                                     <a
@@ -240,16 +229,13 @@ window.Echo.channel('testChannel')
                         </div>
                     </div>
                 </main>
-
-
                 <!-- Footer -->
                 <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-                    © 2024 Oxygen
+                    © {{ new Date().getFullYear() }} Oxygen
                 </footer>
             </div>
         </div>
     </div>
-
     <!-- Login popup modal -->
     <Transition>
         <div v-if="showLoginPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -267,7 +253,6 @@ window.Echo.channel('testChannel')
                         />
                         <span v-if="form.errors.email" class="text-red-500 text-sm">{{ form.errors.email }}</span>
                     </div>
-
                     <div class="mb-4">
                         <label for="password"
                                class="block text-sm font-medium text-gray-700 dark:text-white">Password</label>
@@ -280,7 +265,6 @@ window.Echo.channel('testChannel')
                         />
                         <span v-if="form.errors.password" class="text-red-500 text-sm">{{ form.errors.password }}</span>
                     </div>
-
                     <div class="mb-4 flex items-center">
                         <input
                             id="remember"
@@ -291,7 +275,6 @@ window.Echo.channel('testChannel')
                         <label for="remember" class="ml-2 block text-sm text-gray-900 dark:text-white opacity-70 ">Remember
                             me</label>
                     </div>
-
                     <div class="flex justify-between items-center">
                         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md ">
                             Log in
@@ -311,7 +294,6 @@ window.Echo.channel('testChannel')
         <div v-if="showRegisterPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div class="bg-white p-8 rounded shadow-lg w-full max-w-md dark:bg-slate-900">
                 <h2 class="text-xl font-semibold mb-4 text-black dark:text-white">Register</h2>
-
                 <form @submit.prevent="submitRegister">
                     <!-- Name Input -->
                     <div class="mb-4">
@@ -326,7 +308,6 @@ window.Echo.channel('testChannel')
                         <!-- Error for name -->
                         <span v-if="form.errors.name" class="text-red-500 text-sm">{{ form.errors.name }}</span>
                     </div>
-
                     <!-- Email Input -->
                     <div class="mb-4">
                         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-white">Email</label>
@@ -340,7 +321,6 @@ window.Echo.channel('testChannel')
                         <!-- Error for email -->
                         <span v-if="form.errors.email" class="text-red-500 text-sm">{{ form.errors.email }}</span>
                     </div>
-
                     <!-- Password Input -->
                     <div class="mb-4">
                         <label for="password"
@@ -355,7 +335,6 @@ window.Echo.channel('testChannel')
                         <!-- Error for password -->
                         <span v-if="form.errors.password" class="text-red-500 text-sm">{{ form.errors.password }}</span>
                     </div>
-
                     <!-- Password Confirmation Input -->
                     <div class="mb-4">
                         <label for="password_confirmation"
@@ -371,7 +350,6 @@ window.Echo.channel('testChannel')
                         <span v-if="form.errors.password_confirmation"
                               class="text-red-500 text-sm">{{ form.errors.password_confirmation }}</span>
                     </div>
-
                     <!-- Submit and Cancel Buttons -->
                     <div class="flex justify-between items-center">
                         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md"
@@ -389,35 +367,34 @@ window.Echo.channel('testChannel')
             </div>
         </div>
     </Transition>
-</body>
+    </body>
 </template>
 
 <style scoped>
 
 body {
-  animation: fadeInAnimation ease 3s;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
+    animation: fadeIn ease 2s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
 }
 
-@keyframes fadeInAnimation {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 /* We will explain what these classes do next! */
 .v-enter-active,
 .v-leave-active {
-  transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease;
 }
 
 .v-enter-from,
 .v-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 </style>
