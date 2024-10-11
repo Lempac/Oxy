@@ -11,7 +11,6 @@ import TextSelectBar from "@/Components/TextSelectBar.vue";
             <ServerSelectBar></ServerSelectBar>
             <ChannelSelectBar></ChannelSelectBar>
             <TextSelectBar></TextSelectBar>
-
             <!-- Page Content -->
             <main>
                 <slot/>

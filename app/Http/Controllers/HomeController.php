@@ -21,6 +21,7 @@ class HomeController extends Controller
             'selected_server' => Server::find($server),
             'selected_channel' => Channel::find($channel),
             'selected_message' => Message::find($message),
+            'servers' => Server::all(),
             'channels' => Server::find($server)?->channels,
             'messages' => is_null($channel) ? null : Message::findMany(['channel_id' => $channel])
         ]);

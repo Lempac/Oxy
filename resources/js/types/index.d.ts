@@ -54,6 +54,7 @@ export interface Call {
 
 export interface User {
     id: number;
+    icon: string;
     name: string;
     email: string;
     email_verified_at?: string;
