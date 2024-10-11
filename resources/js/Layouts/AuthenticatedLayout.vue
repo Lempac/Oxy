@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import ServerSelectBar from "@/Components/ServerSelectBar.vue";
 import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
 import TextSelectBar from "@/Components/TextSelectBar.vue";
@@ -7,6 +8,8 @@ import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
 import Dropdown from "@/Components/Dropdown.vue";
 import NavLink from "@/Components/NavLink.vue";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+
+const showingNavigationDropdown = ref(false);
 
 </script>
 
