@@ -63,24 +63,24 @@ const submitRegister = () => {
     });
 };
 </script>
-
+<!-- Welcome page-->
 <template>
-    <Head title="Welcome">
-    </Head>
+    <Head title="Welcome"></Head>
+    <body>
     <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
-        <img
-            id="background"
-            class="absolute h-full w-full object-cover"
-            src="/images/background.svg"
-            alt=""
-        />
+      <img
+        id="background"
+        class="absolute h-full w-full object-cover"
+        src="/images/background.svg"
+        alt=""
+      />
         <div
             class="relative min-h-screen flex flex-col items-center justify-center selection:bg-[#285aff] selection:text-white">
             <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
                 <!-- Header -->
                 <header class="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
                     <div class="flex lg:justify-center lg:col-start-2">
-                        <a href="/welcome" class="block">
+                        <a href="/" class="block">
                             <svg
                                 class="h-40 w-40 rounded-full lg:h-20 lg:w-20 object-cover"
                                 viewBox="0 0 62 65"
@@ -95,7 +95,7 @@ const submitRegister = () => {
                     <nav class="-mx-3 flex flex-1 justify-end">
                         <Link
                             v-if="$page.props.auth.user"
-                            :href="route('dashboard')"
+                            :href="route('home')"
                             class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#285aff] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
                         >
                             Dashboard
@@ -383,5 +383,35 @@ const submitRegister = () => {
             </div>
         </div>
     </Transition>
-
+</body>
 </template>
+
+<style scoped>
+
+body {
+  animation: fadeInAnimation ease 3s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* We will explain what these classes do next! */
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+</style>
