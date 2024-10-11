@@ -62,6 +62,12 @@ const submitRegister = () => {
         }
     });
 };
+
+window.Echo.channel('testChannel')
+    .listen('test', (e: any) => {
+        console.log(e)
+    })
+
 </script>
 <!-- Welcome page-->
 <template>
