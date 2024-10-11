@@ -31,9 +31,15 @@ class DatabaseSeeder extends Seeder
             });
         });
 
-//        User::factory()->create([
-//            'name' => 'Test User',
-//            'email' => 'test@example.com',
-//        ]);
+        User::factory()->hasAttached($servers->random(2))->create([
+            'name' => 'Test User',
+            'email' => 'test@test.test',
+        ])->each(function ($user) {
+            $user->servers->each(function ($server) use ($user) {
+                $server->channels->random(2)->each(function ($channel) use ($user) {
+                    Message::factory(10)->for($channel)->for($user)->create();
+                });
+            });
+        });
     }
 }
