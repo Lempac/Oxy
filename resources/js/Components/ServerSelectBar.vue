@@ -8,13 +8,13 @@ import DropdownLink from "@/Components/DropdownLink.vue";
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
         <div class="navbar-start">
-            <Link :href="route('dashboard')">
+            <Link :href="route('home')">
                 <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200"/>
             </Link>
         </div>
         <div v-for="server in $page.props.servers" :key="server.id" class="navbar-center">
             <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                <Link :href="`/${server.name}`" :active="route().current('dashboard')">
+                <Link :href="`/${server.name}`" :active="route().current('home')">
                     <div class="tooltip tooltip-bottom" :data-tip="server.name">
                         <div class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
