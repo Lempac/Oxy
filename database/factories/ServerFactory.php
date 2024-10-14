@@ -19,7 +19,6 @@ class ServerFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'icon' => '',
             'description' => fake()->text(maxNbChars: 40)
         ];
     }

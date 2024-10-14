@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {Link} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import DropdownLink from "@/Components/DropdownLink.vue";
 
 </script>
 
@@ -14,7 +13,7 @@ import DropdownLink from "@/Components/DropdownLink.vue";
         </div>
         <div v-for="server in $page.props.servers" :key="server.id" class="navbar-center">
             <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                <Link :href="`/${server.name}`" :active="route().current('home')">
+                <Link :href="`/${server.name}`">
                     <div class="tooltip tooltip-bottom" :data-tip="server.name">
                         <div class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
@@ -39,9 +38,9 @@ import DropdownLink from "@/Components/DropdownLink.vue";
                 </div>
                 <ul
                     tabindex="0"
-                    class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                    <li><a><DropdownLink :href="route('profile.edit')"> Profile </DropdownLink></a></li>
-                    <li><a><DropdownLink :href="route('logout')" method="post" as="button"> Log Out </DropdownLink></a></li>
+                    class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                    <li><Link :href="route('profile.edit')"> Profile </Link></li>
+                    <li><Link :href="route('logout')" method="post" as="button"> Log Out </Link></li>
                 </ul>
             </div>
         </div>
