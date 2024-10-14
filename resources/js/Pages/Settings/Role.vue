@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { ref } from 'vue';
 import {Link} from "@inertiajs/vue3";
 
@@ -44,7 +43,7 @@ function handleSave() {
 
         <!-- Save/Cancel Buttons -->
         <div class="flex justify-end mb-6 space-x-4">
-          <PrimaryButton @click="handleSave" class="px-6">Save Changes</PrimaryButton>
+          <button @click="handleSave" class="btn px-6">Save Changes</button>
           <button @click="handleCancel" class="btn btn-error">Cancel</button>
         </div>
 
@@ -53,9 +52,9 @@ function handleSave() {
           <h1 class="text-3xl text-white mb-6">Role Settings</h1>
 
           <!-- Add Role Button -->
-          <PrimaryButton @click="AddRole" class="mb-6">
+          <button @click="AddRole" class="btn mb-6">
             Add Role
-          </PrimaryButton>
+          </button>
 
           <!-- Members Table -->
           <table class="min-w-full bg-white rounded-lg">
