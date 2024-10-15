@@ -65,7 +65,7 @@ function IconUpload() {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.name" />
+                <ErrorAlert class="mt-2" :message="form.errors.name" />
             </div>
 
             <div>
@@ -82,7 +82,7 @@ function IconUpload() {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.email" />
+                <ErrorAlert class="mt-2" :message="form.errors.email" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">

@@ -47,7 +47,7 @@ const submit = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.email" />
+                <ErrorAlert class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="mt-4">
@@ -64,7 +64,7 @@ const submit = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.password" />
+                <ErrorAlert class="mt-2" :message="form.errors.password" />
             </div>
 
             <div class="mt-4">
@@ -81,7 +81,7 @@ const submit = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.password_confirmation" />
+                <ErrorAlert class="mt-2" :message="form.errors.password_confirmation" />
             </div>
 
             <div class="flex items-center justify-end mt-4">

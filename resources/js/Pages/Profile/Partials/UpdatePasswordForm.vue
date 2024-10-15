@@ -59,7 +59,7 @@ const updatePassword = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.current_password" />
+                <ErrorAlert class="mt-2" :message="form.errors.current_password" />
             </div>
 
             <div>
@@ -76,7 +76,7 @@ const updatePassword = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.password" />
+                <ErrorAlert class="mt-2" :message="form.errors.password" />
             </div>
 
             <div>
@@ -92,7 +92,7 @@ const updatePassword = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.password_confirmation" />
+                <ErrorAlert class="mt-2" :message="form.errors.password_confirmation" />
             </div>
 
             <div class="flex items-center gap-4">

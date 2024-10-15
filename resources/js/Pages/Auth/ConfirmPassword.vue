@@ -43,7 +43,7 @@ const submit = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.password" />
+                <ErrorAlert class="mt-2" :message="form.errors.password" />
             </div>
 
             <div class="flex justify-end mt-4">

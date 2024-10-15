@@ -7,10 +7,18 @@ import { addIcons } from "oh-vue-icons";
 addIcons(MdKey);
 
 const passwordInput = ref<HTMLInputElement | null>(null);
-
 const form = useForm({
     password: '',
 });
+
+const modalRef = ref<HTMLDialogElement | null>(null);
+
+const toggleModal = (action: 'open' | 'close') => {
+    if (modalRef.value) {
+        action === 'open' ? modalRef.value.showModal() : modalRef.value.close();
+    }
+};
+
 
 const deleteUser = () => {
     form.delete(route('profile.destroy'), {
@@ -34,8 +42,8 @@ const deleteUser = () => {
             </p>
         </header>
 
-        <button class="btn btn-error" onclick="my_modal_2.showModal()">Delete Account</button>
-        <dialog id="my_modal_2" class="modal">
+        <button class="btn btn-error" @click="toggleModal('open')">Delete Account</button>
+        <dialog ref="modalRef" id="my_modal_2" class="modal">
             <div class="modal-box">
                 <form method="dialog" class="modal-backdrop">
                     <div class="p-6">
@@ -49,7 +57,7 @@ const deleteUser = () => {
                         </p>
 
                         <div class="mt-6">
-                            <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password"> Password </label>
+                            <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password">Password</label>
 
                             <label class="input input-bordered flex items-center gap-2">
                                 <v-icon name="md-key" class="h-4 w-4 opacity-70"/>
@@ -63,13 +71,13 @@ const deleteUser = () => {
                                 />
                             </label>
 
-                            <ErrorAlert :message="form.errors.password" />
+                            <ErrorAlert class="mt-2" :message="form.errors.password" />
                         </div>
 
                         <div class="mt-6 flex justify-end">
-                            <button @click="closeModal" class="btn"> Cancel </button>
+                            <button type="button" @click="toggleModal('close')" class="btn">Cancel</button>
 
-                            <button class="btn btn-error ms-3"
+                            <button type="button" class="btn btn-error ms-3"
                                     :class="{ 'opacity-25': form.processing }"
                                     :disabled="form.processing"
                                     @click="deleteUser"

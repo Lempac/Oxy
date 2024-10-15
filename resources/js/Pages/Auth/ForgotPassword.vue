@@ -48,7 +48,7 @@ const submit = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.email" />
+                <ErrorAlert class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="flex items-center justify-end mt-4">
