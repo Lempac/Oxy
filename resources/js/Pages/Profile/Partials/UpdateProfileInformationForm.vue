@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import ErrorAlert from "@/Components/ErrorAlert.vue";
+import { RiUser3Line, HiMail } from "oh-vue-icons/icons";
+import { addIcons } from "oh-vue-icons";
+addIcons(RiUser3Line, HiMail);
 
 defineProps<{
     mustVerifyEmail?: Boolean;
@@ -27,7 +27,6 @@ function IconUpload() {
     <section>
         <header>
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Profile Information</h2>
-
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 Update your account's profile information and email address.
             </p>
@@ -52,34 +51,38 @@ function IconUpload() {
             </div>
 
             <div>
-                <InputLabel for="name" value="Name" />
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="name"> Name </label>
 
-                <TextInput
-                    id="name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.name"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
+                <label class="input input-bordered flex items-center gap-2">
+                    <v-icon name="ri-user-3-line" class="h-4 w-4 opacity-70"/>
+                    <input id="name"
+                           type="text"
+                           class="mt-1 block w-full"
+                           v-model="form.name"
+                           required
+                           autofocus
+                           autocomplete="name"
+                    />
+                </label>
 
-                <InputError class="mt-2" :message="form.errors.name" />
+                <ErrorAlert :message="form.errors.name" />
             </div>
 
             <div>
-                <InputLabel for="email" value="Email" />
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="email"> Email </label>
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autocomplete="username"
-                />
+                <label class="input input-bordered flex items-center gap-2">
+                    <v-icon name="hi-mail" class="h-4 w-4 opacity-70"/>
+                    <input id="email"
+                           type="email"
+                           class="mt-1 block w-full"
+                           v-model="form.email"
+                           required
+                           autocomplete="username"
+                    />
+                </label>
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <ErrorAlert :message="form.errors.email" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
@@ -103,7 +106,7 @@ function IconUpload() {
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <button class="btn" :disabled="form.processing">Save</button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
