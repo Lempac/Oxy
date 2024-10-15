@@ -19,11 +19,10 @@ const toggleModal = (action: 'open' | 'close') => {
     }
 };
 
-
 const deleteUser = () => {
     form.delete(route('profile.destroy'), {
         preserveScroll: true,
-        onSuccess: () => closeModal(),
+        onSuccess: () => toggleModal('close'),
         onError: () => passwordInput.value?.focus(),
         onFinish: () => {
             form.reset();
