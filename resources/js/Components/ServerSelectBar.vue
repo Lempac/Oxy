@@ -13,11 +13,12 @@ import ApplicationLogo from "@/Components/ApplicationLogo.vue";
         </div>
         <div v-for="server in $page.props.servers" :key="server.id" class="navbar-center">
             <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                <Link :href="`/${server.name}`">
+                <Link :href="`/home/${server.id}`">
                     <div class="tooltip tooltip-bottom" :data-tip="server.name">
                         <div class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
-                                <img alt="Server" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s" />
+                                <img alt="Server"
+                                     src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s"/>
                             </div>
                         </div>
                     </div>
@@ -32,15 +33,19 @@ import ApplicationLogo from "@/Components/ApplicationLogo.vue";
                         <div class="w-10 rounded-full">
                             <img
                                 alt="User Avatar"
-                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s" />
+                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s"/>
                         </div>
                     </div>
                 </div>
                 <ul
                     tabindex="0"
                     class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                    <li><Link :href="route('profile.edit')"> Profile </Link></li>
-                    <li><Link :href="route('logout')" method="post" as="button"> Log Out </Link></li>
+                    <li>
+                        <Link :href="route('profile.edit')">Profile</Link>
+                    </li>
+                    <li>
+                        <Link :href="route('logout')" method="post">Log Out</Link>
+                    </li>
                 </ul>
             </div>
         </div>
