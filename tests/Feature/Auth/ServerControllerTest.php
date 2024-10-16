@@ -1,20 +1,9 @@
 <?php
 
-namespace Tests\Feature;
-
-use App\Models\User;
 use App\Models\Server;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
-use Tests\TestCase;
+use App\Models\User;
 
-class ServerControllerTest extends TestCase
-{
-    use RefreshDatabase;
-
-    /** @test */
-    public function it_can_create_a_server()
-{
+test('user can create server', function () {
     // Create a user
     $user = User::factory()->create();
 
@@ -45,28 +34,24 @@ class ServerControllerTest extends TestCase
     // Assert the user is attached to the server through the pivot table
     $server = Server::find($response->json('id'));
     $this->assertTrue($server->users()->where('users.id', $user->id)->exists());
-}
+});
 
+test('fails if data missing', function () {
+    // Create a user
+    $user = User::factory()->create();
 
-    /** @test */
-    public function it_requires_a_name_to_create_a_server()
-    {
-        // Create a user
-        $user = User::factory()->create();
+    // Act as the created user
+    $this->actingAs($user);
 
-        // Act as the created user
-        $this->actingAs($user);
+    // Send a POST request with missing name
+    $response = $this->postJson(route('server.create'), [
+        'description' => 'This is a test server.',
+        'icon' => 'test-icon.png',
+    ]);
 
-        // Send a POST request with missing name
-        $response = $this->postJson(route('server.create'), [
-            'description' => 'This is a test server.',
-            'icon' => 'test-icon.png',
-        ]);
+    // Assert the response status is 422 (Unprocessable Entity)
+    $response->assertStatus(422);
 
-        // Assert the response status is 422 (Unprocessable Entity)
-        $response->assertStatus(422);
-
-        // Assert the error message for the name field
-        $response->assertJsonValidationErrors(['name']);
-    }
-}
+    // Assert the error message for the name field
+    $response->assertJsonValidationErrors(['name']);
+});
