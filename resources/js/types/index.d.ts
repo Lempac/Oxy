@@ -5,7 +5,7 @@ interface Object {
     update_at: Date;
 }
 
-enum ChannelType {
+export enum ChannelType {
     Text,
     Voice,
     Board

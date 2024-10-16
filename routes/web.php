@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 
-Route::get('/', fn() => Inertia::render('Welcome'))->name('welcome');
+Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
 
 Route::middleware('auth')->group(function () {
     Route::get('/home', [HomeController::class, 'home'])->middleware('verified')->name('home');
@@ -14,6 +14,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/home/{server}/text', [HomeController::class, 'text'])->name('home.text');
     Route::get('/home/{server}/text/{channel}', [HomeController::class, 'channel'])->name('home.channel');
     Route::get('/home/{server}/text/{channel}/{message}', [HomeController::class, 'message'])->name('home.message');
+
+
 
     Route::get('/settings/server', fn() => Inertia::render('Settings/Server'))->name('settings.server');
     Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
@@ -23,7 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 
 
