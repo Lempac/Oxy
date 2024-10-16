@@ -11,7 +11,7 @@ const serverId = selected_server?.id;
 
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
-        <Link :href="route('home.text', serverId )">
+        <Link :href="route('home.text', {server : serverId} )">
             <button class="flex flex-col items-center justify-center gap-1 p-2" >
                 <svg class="h-5 w-5">
                     <v-icon name="bi-chat-text" />
@@ -20,7 +20,7 @@ const serverId = selected_server?.id;
             </button>
         </Link>
 
-<!--        :href="route('home.voice', serverId )"-->
+<!--        :href="route('home.voice', {server : serverId} )"-->
         <Link>
             <button class="flex flex-col items-center justify-center gap-1 p-2">
                 <svg class="h-5 w-5">
@@ -30,7 +30,7 @@ const serverId = selected_server?.id;
             </button>
         </Link>
 
-<!--        :href="route('home.board', serverId )"-->
+<!--        :href="route('home.board', {server : serverId} )"-->
         <Link>
             <button class="flex flex-col items-center justify-center gap-1 p-2">
                 <svg class="h-5 w-5">
