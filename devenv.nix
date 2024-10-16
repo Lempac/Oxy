@@ -1,11 +1,12 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
-    #dotenv.enable = true;
+    dotenv.enable = true;
     languages.php.enable = true;
     languages.php.version = "8.3";
     languages.php.extensions = [ "xdebug" "pdo_mysql" ];
-    languages.php.ini = ''xdebug.mode = debug
+    languages.php.ini = ''
+        xdebug.mode = debug
         xdebug.discover_client_host = 1
         xdebug.client_host = 127.0.0.1
     '';
@@ -15,10 +16,10 @@
     services.mysql.enable = true;
     services.mysql.ensureUsers = [
         {
-            name = "laravel";
-            password = "laravel123";
+            name = config.env.DB_USERNAME;
+            password = config.env.DB_PASSWORD;
             ensurePermissions = {
-              "laravel.*" = "ALL PRIVILEGES";
+              "${config.env.DB_DATABASE}.*" = "ALL PRIVILEGES";
             };
         }
     ];

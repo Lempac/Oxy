@@ -15,7 +15,12 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    profile_picture: null, // Add this line to track the profile picture
 });
+
+// Method to handle the file input change
+function IconUpload() {
+    }
 </script>
 
 <template>
@@ -29,6 +34,23 @@ const form = useForm({
         </header>
 
         <form @submit.prevent="form.patch(route('profile.update'))" class="mt-6 space-y-6">
+            <!-- Profile Picture Upload -->
+            <div class="flex items-center gap-4">
+                <label for="profilePicture" class="relative cursor-pointer">
+                    <div class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-600 flex justify-center items-center transition-all duration-300 ease-in-out hover:bg-transparent">
+                        <span class="text-4xl text-gray-500">+</span>
+                    </div>
+                    <input
+                        id="profilePicture"
+                        type="file"
+                        class="hidden"
+                        accept="image/png, image/jpeg"
+                        @change="IconUpload"
+                    />
+                </label>
+                <span class="text-gray-600 dark:text-gray-400">Upload Profile Picture</span>
+            </div>
+
             <div>
                 <InputLabel for="name" value="Name" />
 
