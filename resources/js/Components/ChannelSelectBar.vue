@@ -26,7 +26,7 @@ const serverId = selected_server?.id;
                 <svg class="h-5 w-5">
                     <v-icon name="ri-chat-voice-line" />
                 </svg>
-                <span class="text-stextm">Voice Channels</span>
+                <span class="text-sm">Voice Channels</span>
             </button>
         </Link>
 
