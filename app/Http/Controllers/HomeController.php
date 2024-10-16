@@ -32,7 +32,7 @@ class HomeController extends Controller
         return Inertia::render('Text/Messaging')->with([
             'servers' => $request->user()->servers,
             'selected_server' => Server::find($server),
-            'channels' => Server::find($server)->channels->where('type', ChannelType::Text),
+            'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
         ]);
     }
 
@@ -42,7 +42,7 @@ class HomeController extends Controller
             'selected_server' => Server::find($server),
             'selected_channel' => Channel::find($channel),
             'servers' => $request->user()->servers,
-            'channels' => Server::find($server)->channels->where('type', ChannelType::Text),
+            'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::findMany(['channel_id' => $channel])
         ]);
     }
@@ -54,7 +54,7 @@ class HomeController extends Controller
             'selected_channel' => Channel::find($channel),
             'selected_message' => Message::find($message),
             'servers' => $request->user()->servers,
-            'channels' => Server::find($server)->channels->where('type', ChannelType::Text),
+            'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::findMany(['channel_id' => $channel])
         ]);
     }
