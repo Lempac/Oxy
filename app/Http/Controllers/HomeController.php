@@ -29,7 +29,7 @@ class HomeController extends Controller
 
     public function text(Request $request, int $server): Response
     {
-        return Inertia::render('Text/Messaging')->with([
+        return Inertia::render('Text/Texting')->with([
             'servers' => $request->user()->servers,
             'selected_server' => Server::find($server),
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
@@ -38,7 +38,7 @@ class HomeController extends Controller
 
     public function channel(Request $request, int $server, int $channel): Response
     {
-        return Inertia::render('Text/Messaging', [
+        return Inertia::render('Text/Texting', [
             'selected_server' => Server::find($server),
             'selected_channel' => Channel::find($channel),
             'servers' => $request->user()->servers,
@@ -49,7 +49,7 @@ class HomeController extends Controller
 
     public function message(Request $request, int $server, int $channel, int $message): Response
     {
-        return Inertia::render('Text/Messaging', [
+        return Inertia::render('Text/Texting', [
             'selected_server' => Server::find($server),
             'selected_channel' => Channel::find($channel),
             'selected_message' => Message::find($message),

@@ -13,7 +13,7 @@ import ApplicationLogo from "@/Components/ApplicationLogo.vue";
         </div>
         <div v-for="server in $page.props.servers" :key="server.id" class="navbar-center">
             <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                <Link :href="`/home/${server.id}`">
+                <Link :href="route('home.server', {server : server.id} )">
                     <div class="tooltip tooltip-bottom" :data-tip="server.name">
                         <div class="btn btn-ghost btn-circle avatar">
                             <div class="w-10 rounded-full">
