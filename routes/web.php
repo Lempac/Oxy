@@ -4,6 +4,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\ServerController;
 
 
 Route::get('/', function () {
@@ -14,6 +15,7 @@ Route::get('/home', [HomeController::class, 'home'])->middleware(['auth', 'verif
 
 Route::middleware('auth')->group(function () {
     Route::get('/home/{server}/{channel?}/{message?}', [HomeController::class, 'select'])->name('select');
+    Route::post('/server',[ServerController::class, 'create'])->name('server.create');
 
     Route::get('/settings/server', fn() => Inertia::render('Settings/Server'))->name('settings.server');
     Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
