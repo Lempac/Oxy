@@ -17,12 +17,12 @@ class Channel extends Model
         'server_id',
     ];
 
-    public function messages() : HasMany
+    public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
     }
 
-    public function calls() : HasMany
+    public function calls(): HasMany
     {
         return $this->hasMany(Call::class);
     }
