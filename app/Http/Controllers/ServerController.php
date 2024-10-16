@@ -27,7 +27,10 @@ class ServerController extends Controller
 
         $server->users()->attach(Auth::id());
 
-        return response()->json($server, 201);
+        return response()->json([
+            'id' => $server->id,
+            'server' => $server,
+        ], 201);
     }
 
     public function addUser(Request $request, $serverId)

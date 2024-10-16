@@ -15,7 +15,8 @@ Route::get('/home', [HomeController::class, 'home'])->middleware(['auth', 'verif
 
 Route::middleware('auth')->group(function () {
     Route::get('/home/{server}/{channel?}/{message?}', [HomeController::class, 'select'])->name('select');
-    Route::post('/server',[ServerController::class, 'create'])->name('server.create');
+    Route::post('/servers', [ServerController::class, 'create'])->name('server.create');
+
 
     Route::get('/settings/server', fn() => Inertia::render('Settings/Server'))->name('settings.server');
     Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
