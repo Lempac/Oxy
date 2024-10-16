@@ -21,7 +21,7 @@ const serverId = selected_server?.id;
         </Link>
 
 <!--        :href="route('home.voice', {server : serverId} )"-->
-        <Link>
+        <Link href="/">
             <button class="flex flex-col items-center justify-center gap-1 p-2">
                 <svg class="h-5 w-5">
                     <v-icon name="ri-chat-voice-line" />
@@ -31,7 +31,7 @@ const serverId = selected_server?.id;
         </Link>
 
 <!--        :href="route('home.board', {server : serverId} )"-->
-        <Link>
+        <Link href="/">
             <button class="flex flex-col items-center justify-center gap-1 p-2">
                 <svg class="h-5 w-5">
                     <v-icon name="md-viewkanban-outlined" />
