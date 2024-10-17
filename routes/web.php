@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,7 +15,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/home/{server}/text', [HomeController::class, 'text'])->name('home.text');
     Route::get('/home/{server}/text/{channel}', [HomeController::class, 'channel'])->name('home.channel');
     Route::get('/home/{server}/text/{channel}/{message}', [HomeController::class, 'message'])->name('home.message');
-
+    Route::post('/servers/create', [ServerController::class, 'create'])->name('server.create');
 
 
     Route::get('/settings/server', fn() => Inertia::render('Settings/Server'))->name('settings.server');

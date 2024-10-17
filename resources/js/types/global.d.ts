@@ -13,7 +13,6 @@ declare global {
         Pusher: typeof Pusher;
         Ziggy: typeof Ziggy;
     }
-
     let route: typeof ziggyRoute;
 }
 
