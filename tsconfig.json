@@ -2,6 +2,7 @@
     "compilerOptions": {
         "allowJs": true,
         "module": "ESNext",
+        "lib": ["DOM", "ESNext"],
         "moduleResolution": "bundler",
         "jsx": "preserve",
         "strict": true,
