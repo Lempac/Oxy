@@ -5,7 +5,6 @@ import {PageProps as AppPageProps} from './';
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 import {Ziggy} from "@/ziggy";
-
 declare global {
     interface Window {
         axios: AxiosInstance;

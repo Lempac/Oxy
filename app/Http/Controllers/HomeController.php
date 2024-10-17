@@ -43,7 +43,9 @@ class HomeController extends Controller
             'selected_channel' => Channel::find($channel),
             'servers' => $request->user()->servers,
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::findMany(['channel_id' => $channel])
+            'messages' => Message::findMany(['channel_id' => $channel])->each(function (Message $message) {
+                $message->sender = fn () => $message->user;
+            }),
         ]);
     }
 
@@ -55,7 +57,9 @@ class HomeController extends Controller
             'selected_message' => Message::find($message),
             'servers' => $request->user()->servers,
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::findMany(['channel_id' => $channel])
+            'messages' => Message::findMany(['channel_id' => $channel])->each(function (Message $message) {
+                $message->sender = fn () => $message->user;
+            }),
         ]);
     }
 }

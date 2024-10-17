@@ -44,6 +44,8 @@ export interface Message extends Object {
     type: MessageType;
     data: string;
     user_id: int;
+    created_at: Date;
+    sender: User;
 }
 
 export interface Call {
@@ -57,7 +59,7 @@ export interface User {
     icon: string;
     name: string;
     email: string;
-    email_verified_at?: string;
+    email_verified_at: string | null;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
