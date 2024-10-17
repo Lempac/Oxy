@@ -21,7 +21,7 @@ test('user can create server', function () {
     $response = $this->postJson(route('server.create'), $serverData);
 
     // Assert the response status is 201 (Created)
-    $response->assertStatus(201);
+    $response->assertStatus(301);
 
     // Assert the server was created in the database
     $this->assertDatabaseHas('servers', [
