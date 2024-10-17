@@ -41,15 +41,15 @@ export interface Server extends Object {
 }
 
 export interface Message extends Object {
-    type: MessageType,
-    data: string | null,
-    user_id: int,
+    type: MessageType;
+    data: string;
+    user_id: int;
 }
 
 export interface Call {
     id: number;
-    start_at: Date,
-    end_at: Date
+    start_at: Date;
+    end_at: Date;
 }
 
 export interface User {

@@ -15,22 +15,22 @@ class ServerController extends Controller
             'description' => 'nullable|string|max:500',
             'icon' => 'nullable|string|max:255', // Allowing icon to be nullable
         ]);
-    
+
         // Create the server
         $server = Server::create([
             'name' => $request->name,
             'description' => $request->description,
             'icon' => $request->icon ?? null,
         ]);
-    
+
         // Attach the authenticated user to the server
         $server->users()->attach(Auth::id());
-    
+
         // Redirect to the home page or the newly created server page using Inertia
-        return redirect()->route('home')->with('success', 'Server created successfully.');
+        return to_route('home')->with('success', 'Server created successfully.');
     }
-    
-    
+
+
     public function addUser(Request $request, $serverId)
     {
         $request->validate([

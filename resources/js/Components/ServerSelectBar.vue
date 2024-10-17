@@ -20,12 +20,12 @@ const setActiveTab = (tab: 'create' | 'join') => {
 
 const form = useForm({
     name: '',
-    description: '', 
-    icon: null 
+    description: '',
+    icon: null
 });
 
 const createServer = () => {
-    form.post(route('servers.create'), {
+    form.post(route('server.create'), {
         onSuccess: () => {
             closeModal();
         }
@@ -89,14 +89,14 @@ const createServer = () => {
     <!-- Modal with 2 tabs -->
     <Transition leave-active-class="transition-opacity ease-out duration-300" leave-from-class="opacity-100" leave-to-class="opacity-0">
         <div v-if="isModalOpen" class="modal modal-open">
-            <div class="modal-box">                
+            <div class="modal-box">
                 <!-- Tabs Navigation with active tab underline -->
                 <div class="tabs flex justify-center">
                     <button
                         @click="setActiveTab('create')"
                         :class="{
                             'tab-active border-b-2 border-blue-500': activeTab === 'create',
-                            'tab-bordered': activeTab !== 'create' 
+                            'tab-bordered': activeTab !== 'create'
                         }"
                         class="tab px-3 py-2 mr-9 text-lg">Create Server</button>
                     <button
@@ -107,7 +107,7 @@ const createServer = () => {
                         }"
                         class="tab px-3 py-2 ml-9 text-lg">Join Server</button>
                 </div>
-                
+
                 <!-- Tab Contents -->
                 <div class="py-4">
                     <!-- Create Server Tab Content -->
