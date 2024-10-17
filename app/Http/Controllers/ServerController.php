@@ -6,7 +6,6 @@ use App\Models\Server;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-
 class ServerController extends Controller
 {
     public function create(Request $request)
@@ -14,25 +13,24 @@ class ServerController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|string|max:255',
+            'icon' => 'nullable|string|max:255', // Allowing icon to be nullable
         ]);
-
+    
+        // Create the server
         $server = Server::create([
             'name' => $request->name,
             'description' => $request->description,
-            'icon' => $request->icon,
-            'user_id' => Auth::id(),
+            'icon' => $request->icon ?? null,
         ]);
-
-
+    
+        // Attach the authenticated user to the server
         $server->users()->attach(Auth::id());
-
-        return response()->json([
-            'id' => $server->id,
-            'server' => $server,
-        ], 201);
+    
+        // Redirect to the home page or the newly created server page using Inertia
+        return redirect()->route('home')->with('success', 'Server created successfully.');
     }
-
+    
+    
     public function addUser(Request $request, $serverId)
     {
         $request->validate([
