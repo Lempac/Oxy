@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {RiUser3Line, HiMail} from "oh-vue-icons/icons";
+import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
-import {computed} from "vue";
+import {computed, ref} from "vue";
 
-addIcons(RiUser3Line, HiMail);
+addIcons(RiUser3Line, HiMail, IoAddOutline);
 
 defineProps<{
     mustVerifyEmail?: Boolean;
@@ -13,18 +13,23 @@ defineProps<{
 }>();
 
 const user = usePage().props.auth.user;
+const baseUrl = window.location.origin;
 
+const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
+const inputFile = ref<File | null>();
 
 const form = useForm<{ name: string, email: string, icon: File | null }>({
     name: user.name,
     email: user.email,
-    icon: null,
+    icon: inputFile.value!,
 });
-const baseUrl = window.location.origin;
+const updateIcon = (val: File) => {
+    inputFile.value = val;
+    form.icon = inputFile.value;
+    icon.value = URL.createObjectURL(inputFile.value);
+}
 
-console.log(usePage().props.auth.user.icon);
 
-const url = computed(() => usePage().props.auth.user.icon ? baseUrl+usePage().props.auth.user.icon : (form.icon ? URL.createObjectURL(form.icon) : ""));
 </script>
 
 <template>
@@ -38,20 +43,21 @@ const url = computed(() => usePage().props.auth.user.icon ? baseUrl+usePage().pr
 
         <form @submit.prevent="form.post(route('profile.update'), {method: 'put'})" class="mt-6 space-y-6">
             <!-- Profile Picture Upload -->
-            <div class="form-control">
-                <label class="text-gray-600 dark:text-gray-400 pl-3 flex items-center flex-row gap-4"
-                       for="profilePicture">
-                    <img
-                        class="size-24 place-content-center cursor-pointer text-center rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
-                        :src="url" alt="+"/>
-                    Upload profile picture
+            <div class="form-control flex flex-row items-center gap-4">
+                <label
+                    class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
+                    for="profilePicture">
+                    <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
+                    <v-icon v-else name="io-add-outline" scale="3.333"/>
                 </label>
+                <label for="profilePicture" class="cursor-pointer">Upload profile picture</label>
                 <input
+                    ref="inputFile"
                     id="profilePicture"
                     type="file"
                     class="hidden"
                     accept="image/png, image/jpeg"
-                    @input="form.icon = (<HTMLInputElement>$event.target).files![0]"
+                    @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
                 />
             </div>
 

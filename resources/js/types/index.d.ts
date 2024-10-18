@@ -2,7 +2,7 @@ import {Config} from 'ziggy-js';
 
 interface Object {
     id: number;
-    update_at: Date;
+    update_at: string;
 }
 
 export enum ChannelType {
@@ -44,14 +44,14 @@ export interface Message extends Object {
     type: MessageType;
     data: string;
     user_id: number;
-    created_at: Date;
+    created_at: string;
     sender: User;
 }
 
 export interface Call {
     id: number;
-    start_at: Date;
-    end_at: Date;
+    start_at: string;
+    end_at: string;
 }
 
 export interface User {

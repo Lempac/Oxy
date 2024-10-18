@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import {computed} from 'vue';
-import {usePage} from '@inertiajs/vue3';
 import ServerSelectBar from "@/Components/ServerSelectBar.vue";
 import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
-
-const page = usePage();
-const isHome = computed(() => page.url.startsWith('/home'));
 </script>
 
 <template>
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <header v-if="isHome">
+        <header v-if="$page.url.startsWith('/home')">
             <ServerSelectBar/>
             <ChannelSelectBar/>
         </header>

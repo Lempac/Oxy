@@ -35,7 +35,10 @@ class ProfileController extends Controller
             $path = $request->file('icon')->store('uploads', 'public');
         }
 
-        $val['icon'] = Storage::url($path) ?? null;
+        if (!empty($path) && $path != $val['icon']) {
+            $val['icon'] = Storage::url($path);
+        }
+
         $request->user()->fill($val);
 
         if ($request->user()->isDirty('email')) {
