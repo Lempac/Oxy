@@ -22,7 +22,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import {ref} from 'vue';
-import ErrorAlert from "@/Components/ErrorAlert.vue"; // Import ref for reactivity
-
+import ErrorAlert from "@/Components/ErrorAlert.vue";
+import backgroundImage from '../../../public/images/background.svg';
 // Reactive state for showing/hiding the login popup
 const loginModel = ref<HTMLDialogElement>();
 const registerModel = ref<HTMLDialogElement>();
@@ -34,7 +34,7 @@ const submitRegister = () => {
 <!-- Welcome page-->
 <template>
     <Head title="Welcome"></Head>
-    <body class="bg-[url('/images/background.svg')] bg-cover bg-center">
+    <body class="bg-cover bg-center" :style="`background-image: url(${backgroundImage})`">
     <div class="card card-body">
         <div>
             <header>

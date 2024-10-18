@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Channel;
 use App\Models\Message;
 use App\Models\Server;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,7 +45,7 @@ class HomeController extends Controller
             'servers' => $request->user()->servers,
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::findMany(['channel_id' => $channel])->each(function (Message $message) {
-                $message->sender = fn () => $message->user;
+                $message->sender = fn () : User => $message->user;
             }),
         ]);
     }
@@ -58,7 +59,7 @@ class HomeController extends Controller
             'servers' => $request->user()->servers,
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::findMany(['channel_id' => $channel])->each(function (Message $message) {
-                $message->sender = fn () => $message->user;
+                $message->sender = fn () : User => $message->user;
             }),
         ]);
     }

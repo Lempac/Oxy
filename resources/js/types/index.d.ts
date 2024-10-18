@@ -6,23 +6,23 @@ interface Object {
 }
 
 export enum ChannelType {
-    Text,
-    Voice,
-    Board
+    Text = 'text',
+    Voice = 'voice',
+    Board = 'board',
 }
 
-enum MessageType {
-    Text,
-    Image
+export enum MessageType {
+    Text = 'text',
+    Image = 'image',
 }
 
-export interface Note extends Object{
+export interface Note extends Object {
     title: string;
     text: string;
     board_id: number;
 }
 
-export interface Board extends Object{
+export interface Board extends Object {
     name: string;
     notes: Note[];
     server_id: number;
@@ -37,13 +37,13 @@ export interface Channel extends Object {
 export interface Server extends Object {
     name: string;
     description: string;
-    icon: string;
+    icon: string | null;
 }
 
 export interface Message extends Object {
     type: MessageType;
     data: string;
-    user_id: int;
+    user_id: number;
     created_at: Date;
     sender: User;
 }
@@ -56,7 +56,7 @@ export interface Call {
 
 export interface User {
     id: number;
-    icon: string;
+    icon: string | null;
     name: string;
     email: string;
     email_verified_at: string | null;
