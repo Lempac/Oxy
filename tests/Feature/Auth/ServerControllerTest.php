@@ -14,7 +14,6 @@ test('user can create server', function () {
     $serverData = [
         'name' => 'Test Server',
         'description' => 'This is a test server.',
-        'icon' => 'test-icon.png',
     ];
 
     // Send a POST request to create a server

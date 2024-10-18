@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { RiUser3Line, HiMail } from "oh-vue-icons/icons";
-import { addIcons } from "oh-vue-icons";
-addIcons(RiUser3Line, HiMail);
+import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
+import {addIcons} from "oh-vue-icons";
+import {computed, ref} from "vue";
+
+addIcons(RiUser3Line, HiMail, IoAddOutline);
 
 defineProps<{
     mustVerifyEmail?: Boolean;
@@ -11,16 +13,23 @@ defineProps<{
 }>();
 
 const user = usePage().props.auth.user;
+const baseUrl = window.location.origin;
 
-const form = useForm({
+const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
+const inputFile = ref<File | null>();
+
+const form = useForm<{ name: string, email: string, icon: File | null }>({
     name: user.name,
     email: user.email,
-    profile_picture: null, // Add this line to track the profile picture
+    icon: inputFile.value!,
 });
+const updateIcon = (val: File) => {
+    inputFile.value = val;
+    form.icon = inputFile.value;
+    icon.value = URL.createObjectURL(inputFile.value);
+}
 
-// Method to handle the file input change
-function IconUpload() {
-    }
+
 </script>
 
 <template>
@@ -32,27 +41,28 @@ function IconUpload() {
             </p>
         </header>
 
-        <form @submit.prevent="form.patch(route('profile.update'))" class="mt-6 space-y-6">
+        <form @submit.prevent="form.post(route('profile.update'), {method: 'put'})" class="mt-6 space-y-6">
             <!-- Profile Picture Upload -->
-            <div class="flex items-center gap-4">
-                <label for="profilePicture" class="relative cursor-pointer">
-                    <div class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-600 flex justify-center items-center transition-all duration-300 ease-in-out hover:bg-transparent">
-                        <span class="text-4xl text-gray-500">+</span>
-                    </div>
-                    <input
-                        id="profilePicture"
-                        type="file"
-                        class="hidden"
-                        accept="image/png, image/jpeg"
-                        @change="IconUpload"
-                    />
+            <div class="form-control flex flex-row items-center gap-4">
+                <label
+                    class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
+                    for="profilePicture">
+                    <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
+                    <v-icon v-else name="io-add-outline" scale="3.333"/>
                 </label>
-                <span class="text-gray-600 dark:text-gray-400">Upload Profile Picture</span>
+                <label for="profilePicture" class="cursor-pointer">Upload profile picture</label>
+                <input
+                    ref="inputFile"
+                    id="profilePicture"
+                    type="file"
+                    class="hidden"
+                    accept="image/png, image/jpeg"
+                    @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
+                />
             </div>
 
-            <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="name"> Name </label>
-
+            <div class="form-control">
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="name">Name</label>
                 <label class="input input-bordered flex items-center gap-2">
                     <v-icon name="ri-user-3-line" class="h-4 w-4 opacity-70"/>
                     <input id="name"
@@ -64,12 +74,11 @@ function IconUpload() {
                            autocomplete="name"
                     />
                 </label>
-
-                <ErrorAlert class="mt-2" :message="form.errors.name" />
+                <ErrorAlert class="mt-2" :message="form.errors.name"/>
             </div>
 
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="email"> Email </label>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="email">Email</label>
 
                 <label class="input input-bordered flex items-center gap-2">
                     <v-icon name="hi-mail" class="h-4 w-4 opacity-70"/>
@@ -82,7 +91,7 @@ function IconUpload() {
                     />
                 </label>
 
-                <ErrorAlert class="mt-2" :message="form.errors.email" />
+                <ErrorAlert class="mt-2" :message="form.errors.email"/>
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
