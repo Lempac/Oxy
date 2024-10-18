@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import {ref} from 'vue';
-import ErrorAlert from "@/Components/ErrorAlert.vue"; // Import ref for reactivity
+import ErrorAlert from "@/Components/ErrorAlert.vue";
+import ApplicationLogo from "@/Components/ApplicationLogo.vue"; // Import ref for reactivity
 
 // Reactive state for showing/hiding the login popup
 const loginModel = ref<HTMLDialogElement>();
@@ -39,7 +40,7 @@ const submitRegister = () => {
         <div>
             <header>
                 <div class="navbar flex justify-between">
-                    <img src="/images/oxy.jpg" alt="Oxy" class="rounded-full size-24 w-24"/>
+                    <ApplicationLogo></ApplicationLogo>
                     <div>
                         <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
                             Home
