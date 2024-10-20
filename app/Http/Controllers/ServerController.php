@@ -14,23 +14,21 @@ class ServerController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|string|max:255',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
+        if ($request->file('icon')?->isValid()) {
+            $path = $request->file('icon')->store('uploads', 'public');
+        }
+        
         $server = Server::create([
             'name' => $request->name,
             'description' => $request->description,
-            'icon' => $request->icon,
-            'user_id' => Auth::id(),
+            'icon' => empty($path) ? null : Storage::url($path),
         ]);
-
-
         $server->users()->attach(Auth::id());
 
-        return response()->json([
-            'id' => $server->id,
-            'server' => $server,
-        ], 201);
+        return to_route('home')->with('success', 'Server created successfully.');
     }
 
     public function addUser(Request $request, $serverId)
