@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Events\Message; 
+use App\Events\Message;
 
 class SendMessageCommand extends Command
 {
@@ -21,7 +21,7 @@ class SendMessageCommand extends Command
      */
     protected $description = 'Send a message to the chat';
 
-    public function handle()
+    public function handle(): void
     {
         $userId = $this->argument('userId') ?? $this->ask('What is the user ID?');
 
@@ -32,5 +32,7 @@ class SendMessageCommand extends Command
         event(new Message($text, $userId, $channelId));
 
         $this->info('Message sent successfully!');
+        $timezone = now()->getTimezone();
+        $this->info("The current server timezone is: " . $timezone);
     }
 }
