@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Server;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Storage;
+
 
 class ServerController extends Controller
 {
@@ -14,24 +14,24 @@ class ServerController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'icon' => 'nullable|string|max:255',
         ]);
-        if ($request->file('icon')?->isValid()) {
-            $path = $request->file('icon')->store('uploads', 'public');
-        }
-        // Create the server
+
         $server = Server::create([
             'name' => $request->name,
             'description' => $request->description,
-            'icon' => empty($path) ? null : Storage::url($path),
+            'icon' => $request->icon,
+            'user_id' => Auth::id(),
         ]);
 
-        // Attach the authenticated user to the server
-        $server->users()->attach(Auth::id());
-        // Redirect to the home page or the newly created server page using Inertia
-        return to_route('home')->with('success', 'Server created successfully.');
-    }
 
+        $server->users()->attach(Auth::id());
+
+        return response()->json([
+            'id' => $server->id,
+            'server' => $server,
+        ], 201);
+    }
 
     public function addUser(Request $request, $serverId)
     {
@@ -64,5 +64,29 @@ class ServerController extends Controller
         $server->users()->detach($request->user_id);
         return response()->json(['message' => 'User removed from server successfully.']);
     }
+    public function edit(Request $request, $serverId)
+    {
+        $request->validate([
+            'name' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:500',
+        ]);
 
+        $server = Server::find($serverId);
+
+        if (!$server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        if ($request->has('name')) {
+            $server->name = $request->name;
+        }
+
+        if ($request->has('description')) {
+            $server->description = $request->description;
+        }
+
+        $server->save();
+
+        return response()->json(['message' => 'Server updated successfully.']);
+    }
 }

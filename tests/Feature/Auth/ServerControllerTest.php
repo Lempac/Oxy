@@ -2,6 +2,7 @@
 
 use App\Models\Server;
 use App\Models\User;
+use App\Http\Controllers\ServerController;
 
 test('user can create server', function () {
     // Create a user
@@ -17,23 +18,24 @@ test('user can create server', function () {
     ];
 
     // Send a POST request to create a server
-    $response = $this->post(route('server.create'), $serverData);
+    $response = $this->postJson(route('server.create'), $serverData);
 
-    // Assert the response status is 302 (Created)
-    $response->assertRedirect(route('home'));
+    // Assert the response status is 201 (Created)
+    $response->assertStatus(201);
 
     // Assert the server was created in the database
-//    $this->assertDatabaseHas('servers', [
-//        'id' => $response->id,
-//        'name' => 'Test Server',
-//        'description' => 'This is a test server.',
-//        'icon' => 'test-icon.png',
-//    ]);
+    $this->assertDatabaseHas('servers', [
+        'id' => $response->json('id'),
+        'name' => 'Test Server',
+        'description' => 'This is a test server.',
+        'icon' => null, // Adjust this if you are not using an icon
+    ]);
 
     // Assert the user is attached to the server through the pivot table
-//    $server = Server::find($response->json('id'));
-//    $this->assertTrue($server->users()->where('users.id', $user->id)->exists());
+    $server = Server::find($response->json('id'));
+    $this->assertTrue($server->users()->where('users.id', $user->id)->exists());
 });
+
 
 test('fails if data missing', function () {
     // Create a user
@@ -121,4 +123,40 @@ test('user can be removed from a server', function () {
     // Assert that user2 is no longer attached to the server
     $server = Server::find($serverId);
     $this->assertFalse($server->users()->where('users.id', $user2->id)->exists());
+});
+
+test('user can edit server', function () {
+    // Create a user
+    $user = User::factory()->create();
+
+    // Act as the created user
+    $this->actingAs($user);
+
+    // Create a server
+    $serverData = [
+        'name' => 'Test Server',
+        'description' => 'This is a test server.',
+    ];
+    $response = $this->postJson(route('server.create'), $serverData);
+    $serverId = $response->json('id');
+
+    // Define the updated server data
+    $updatedServerData = [
+        'name' => 'Updated Server Name',
+        'description' => 'This is an updated description.',
+    ];
+
+    // Send a PATCH request to update the server
+    $response = $this->patchJson(route('server.edit', $serverId), $updatedServerData);
+
+    // Assert the response status is 200 (OK)
+    $response->assertStatus(200);
+    $response->assertJson(['message' => 'Server updated successfully.']);
+
+    // Assert the server was updated in the database
+    $this->assertDatabaseHas('servers', [
+        'id' => $serverId,
+        'name' => 'Updated Server Name',
+        'description' => 'This is an updated description.',
+    ]);
 });
