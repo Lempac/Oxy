@@ -6,7 +6,6 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import {ZiggyVue} from "../../vendor/tightenco/ziggy/src/js/index.js";
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-
 createServer((page) =>
     createInertiaApp({
         page,

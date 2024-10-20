@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
+use Closure;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use phpDocumentor\Reflection\Types\Nullable;
 
 class Message extends Model
 {
     use HasFactory;
 
+    /**
+     * @var ?Closure
+     * @returns User
+     */
+    public ?Closure $sender;
     protected $fillable = [
         'type',
         'data',
