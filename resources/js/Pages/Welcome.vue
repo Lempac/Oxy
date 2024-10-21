@@ -3,6 +3,7 @@ import {Head, Link, useForm} from '@inertiajs/vue3';
 import {ref, onMounted, onUnmounted} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 
 // Reactive state for showing/hiding the login popup
 const loginModel = ref<HTMLDialogElement>();
@@ -84,7 +85,7 @@ const submitRegister = () => {
             <div>
                 <header>
                     <div class="navbar flex justify-between">
-                        <img src="/images/oxy.jpg" alt="Oxy" class="rounded-full size-24 w-24"/>
+                        <ApplicationLogo class="block h-9 w-auto fill-current"/>
                         <div>
                             <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
                                 Home
@@ -108,7 +109,7 @@ const submitRegister = () => {
                 <!-- Main content -->
                 <main>
                     <div class="ml-20">
-                    <h1 class="text-7xl font-sans text-gray-500">
+                    <h1 class="text-7xl font-sans text-gray-400">
                         Welcome to the future
                     </h1>
                     <div class="mt-5 w-1/4 p-4 rounded-lg">
@@ -146,7 +147,7 @@ const submitRegister = () => {
                 <img
                     src="/images/messages.jpg"
                     alt="Message screenshot"
-                    class="rounded-3xl w-full"
+                    class="rounded-3xl w-full mt-3"
                 />
 
                 <div class="grid grid-flow-col gap-8 mt-5 w-full">
@@ -159,20 +160,36 @@ const submitRegister = () => {
                             Creating servers lets you easily communicate with multiple people and work on several projects at the same time.
                         </p>
                         <!-- Image under the text -->
-                        <img src="/images/servers.png" alt="Servers" class="m-4 size-fit rounded-3xl "/>
+                        <img src="/images/servers.png" alt="Servers" class="m-4 size-fit rounded-3xl"/>
                     </div>
                 </div>
 
-                <div class="card card-body bg-gray-500 mt-6 h-fit">
-                    <div class="flex flex-col items-center text-center">
-                        <h2 class="card-title text-white">Kanban Board</h2>
-                        <p class="text-white text-xl md:text-2xl">
-                            Our kanban board helps you manage projects in simple steps by organizing tasks into categories.
-                        </p>
-                        <img src="/images/kanban.png" alt="Kanban Board" class="m-4"/>
+                <!-- Column for Kanban and Modern Design -->
+                <div class="grid grid-flow-row gap-8 w-full"> <!-- Use grid-flow-row for stacking vertically -->
+                    <!-- Kanban Board Card -->
+                    <div class="card card-body bg-gray-500 mt-6 h-fit">
+                        <div class="flex flex-col items-center text-center">
+                            <h2 class="card-title text-white">Kanban Board</h2>
+                            <p class="text-white text-xl md:text-2xl">
+                                Our kanban board helps you manage projects in simple steps by organizing tasks into categories.
+                            </p>
+                            <img src="/images/kanban.png" alt="Kanban Board" class="m-3"/>
+                        </div>
+                    </div>
+
+                    <!-- Modern Design Card -->
+                    <div class="card card-body bg-gray-500 h-fit">
+                        <div class="flex flex-col items-center text-center">
+                            <h2 class="card-title text-white">Modern Design</h2>
+                            <p class="text-white text-xl md:text-2xl">
+                                Our site has a very sleek and modern design.
+                            </p>
+                            <img src="/images/design.png" alt="Design" class="m-4"/>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="card mt-10 bordered h-fit bg-white">
             <h2 class="card-title text-black ml-5 mt-5">What are you waiting for?</h2>
             <div class="flex justify-between items-center p-5"> <!-- Use flex to align items -->

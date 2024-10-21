@@ -4,11 +4,14 @@ import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
 import {defaultIcon} from "@/bootstrap";
 import axios from "axios";
-import echo from "@/echo";
+import {addIcons} from "oh-vue-icons";
+import {IoAddOutline} from "oh-vue-icons/icons";
+
+addIcons(IoAddOutline);
 
 const serverModal = ref<HTMLDialogElement>();
 const activeTab = ref<'create' | 'join'>('create');
-const form = useForm<{name: string, description: string, icon: File | null}>({
+const form = useForm<{ name: string, description: string, icon: File | null }>({
     name: '',
     description: '',
     icon: null
@@ -17,10 +20,20 @@ const form = useForm<{name: string, description: string, icon: File | null}>({
 const createServer = async () => {
     // let res = await axios.post(route('tokens.create'))
     // console.log(res)
-    axios.postForm(route('server.create'), form.data()).then(() => {serverModal.value?.close(); router.reload()});
+    axios.postForm(route('server.create'), form.data()).then(() => {
+        serverModal.value?.close();
+        router.reload()
+    });
 };
 const baseUrl = window.location.origin;
-const url = computed(() => form.icon ? URL.createObjectURL(form.icon) : "");
+
+const icon = ref<string | null>( null);
+const inputFile = ref<File | null>();
+const updateIcon = (val: File) => {
+    inputFile.value = val;
+    form.icon = inputFile.value;
+    icon.value = URL.createObjectURL(inputFile.value);
+}
 
 </script>
 
@@ -61,7 +74,7 @@ const url = computed(() => form.icon ? URL.createObjectURL(form.icon) : "");
                         <div class="w-10 rounded-full">
                             <img
                                 alt="User Avatar"
-                                :src="$page.props.auth.user.icon ? `${baseUrl}${$page.props.auth.user.icon}` : defaultIcon" />
+                                :src="$page.props.auth.user.icon ? `${baseUrl}${$page.props.auth.user.icon}` : defaultIcon"/>
                         </div>
                     </div>
                 </div>
@@ -106,19 +119,21 @@ const url = computed(() => form.icon ? URL.createObjectURL(form.icon) : "");
                 <div v-if="activeTab === 'create'">
                     <!-- Create Server Form -->
                     <form @submit.prevent="createServer">
-                        <div class="form-control">
-                            <label class="text-gray-600 dark:text-gray-400 flex flex-row items-center gap-4" for="serverIcon">
-                            <img
-                                class="size-24 place-content-center text-center rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
-                                :src="url" alt="+"/>
-                                Upload server icon
+                        <div class="form-control flex flex-row items-center gap-4">
+                            <label
+                                class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
+                                for="serverIcon">
+                                <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
+                                <v-icon v-else name="io-add-outline" scale="3.333"/>
                             </label>
+                            <label for="serverIcon" class="cursor-pointer">Upload server icon</label>
                             <input
+                                ref="inputFile"
                                 id="serverIcon"
                                 type="file"
                                 class="hidden"
                                 accept="image/png, image/jpeg"
-                                @input="form.icon = (<HTMLInputElement>$event.target).files![0]"
+                                @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
                             />
                         </div>
                         <div class="form-control mb-4">
