@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Server;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Storage;
 
 class ServerController extends Controller
 {
@@ -13,19 +14,20 @@ class ServerController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|string|max:255', // Allowing icon to be nullable
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
-
+        if ($request->file('icon')?->isValid()) {
+            $path = $request->file('icon')->store('uploads', 'public');
+        }
         // Create the server
         $server = Server::create([
             'name' => $request->name,
             'description' => $request->description,
-            'icon' => $request->icon ?? null,
+            'icon' => empty($path) ? null : Storage::url($path),
         ]);
 
         // Attach the authenticated user to the server
         $server->users()->attach(Auth::id());
-
         // Redirect to the home page or the newly created server page using Inertia
         return to_route('home')->with('success', 'Server created successfully.');
     }
