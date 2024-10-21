@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import {Link, useForm, usePage} from "@inertiajs/vue3";
+import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
 import {defaultIcon} from "@/bootstrap";
+import axios from "axios";
+import echo from "@/echo";
 
 const serverModal = ref<HTMLDialogElement>();
 const activeTab = ref<'create' | 'join'>('create');
@@ -12,12 +14,10 @@ const form = useForm<{name: string, description: string, icon: File | null}>({
     icon: null
 });
 
-const createServer = () => {
-    form.post(route('server.create'), {
-        onSuccess: () => {
-            serverModal.value?.close();
-        }
-    });
+const createServer = async () => {
+    // let res = await axios.post(route('tokens.create'))
+    // console.log(res)
+    axios.postForm(route('server.create'), form.data()).then(() => {serverModal.value?.close(); router.reload()});
 };
 const baseUrl = window.location.origin;
 const url = computed(() => form.icon ? URL.createObjectURL(form.icon) : "");
