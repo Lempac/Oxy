@@ -20,87 +20,82 @@ class ServerController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'icon' => 'nullable|string|max:255',
         ]);
-        if ($request->file('icon')?->isValid()) {
-            $path = $request->file('icon')->store('uploads', 'public');
-        }
 
         $server = Server::create([
             'name' => $request->name,
             'description' => $request->description,
-            'icon' => empty($path) ? null : Storage::url($path),
+            'icon' => $request->icon,
+            'user_id' => Auth::id(),
         ]);
+
 
         $server->users()->attach(Auth::id());
 
-        broadcast(new ServerCreated($server));
+        return response()->json([
+            'id' => $server->id,
+            'server' => $server,
+        ], 201);
+    }
+public function addUser(Request $request, int $serverId)
+{
+    $request->validate([
+        'user_id' => 'required|exists:users,id',
+    ]);
 
-        return response()->json(['message' => 'Server created.']);
+    $server = Server::find($serverId);
+
+    if (!$server) {
+        return response()->json(['message' => 'Server not found.'], 404);
     }
 
-    public function addUser(Request $request, int $serverId)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
+    $server->users()->attach($request->user_id);
 
-        $server = Server::find($serverId);
+    broadcast(new ServerJoined($request->user_id, $serverId));
 
-        if (!$server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
+    return response()->json(['message' => 'User added to server successfully.']);
+}
 
-        $server->users()->attach($request->user_id);
 
-        broadcast(new ServerJoined());
+public function removeUser(Request $request, int $serverId)
+{
+    $request->validate([
+        'user_id' => 'required|exists:users,id',
+    ]);
 
-        return response()->json(['message' => 'User added to server successfully.']);
+    $server = Server::find($serverId);
+
+    if (!$server) {
+        return response()->json(['message' => 'Server not found.'], 404);
     }
 
-    public function removeUser(Request $request, int $serverId)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
+    $server->users()->detach($request->user_id);
 
-        $server = Server::find($serverId);
+    broadcast(new ServerLeft($request->user_id, $serverId));
 
-        if (!$server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
+    return response()->json(['message' => 'User removed from server successfully.']);
+}
 
-        $server->users()->detach($request->user_id);
+public function edit(Request $request, int $serverId)
+{
+    $request->validate([
+        'name' => 'nullable|string|max:50',
+        'description' => 'nullable|string|max:500',
+        'icon' => 'nullable|string|max:255',
+    ]);
 
-        broadcast(new ServerLeft());
+    $server = Server::find($serverId);
 
-        return response()->json(['message' => 'User removed from server successfully.']);
+    if (!$server) {
+        return response()->json(['message' => 'Server not found.'], 404);
     }
-    public function edit(Request $request, int $serverId)
-    {
-        $request->validate([
-            'name' => 'nullable|string|max:50',
-            'description' => 'nullable|string|max:500',
-        ]);
 
-        $server = Server::find($serverId);
+    $server->update($request->only(['name', 'description', 'icon']));
 
-        if (!$server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
+    broadcast(new ServerEdited($server->name, $server->description, $server->icon));
 
-        if ($request->has('name')) {
-            $server->name = $request->name;
-        }
+    return response()->json(['message' => 'Server updated successfully.']);
+}
 
-        if ($request->has('description')) {
-            $server->description = $request->description;
-        }
-
-        $server->save();
-
-        broadcast(new ServerEdited($server));
-
-        return response()->json(['message' => 'Server updated successfully.']);
-    }
 }

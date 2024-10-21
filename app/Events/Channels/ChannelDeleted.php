@@ -23,7 +23,7 @@ class ChannelDeleted implements ShouldBroadcast
     /**
      * @inheritDoc
      */
-    public function broadcastOn(): array|Channel|string
+    public function broadcastOn(): array
     {
         return [
             new PrivateChannel('channels.'.$this->serverId),

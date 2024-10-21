@@ -28,12 +28,12 @@ Route::middleware(['web'])->group(function () {
     Route::controller(MessageController::class)->prefix('message')->group(function () {
        Route::post('/{channel}', 'create')->name('message.create');
        Route::patch('/{message}', 'edit')->name('message.edit');
-       Route::delete('/{message}','destroy')->name('message.destroy');
+       Route::delete('/{message}','delete')->name('message.delete');
     });
 
     Route::controller(ChannelController::class)->prefix('channel')->group(function () {
         Route::post('/{server}', 'create')->name('channel.create');
         Route::patch('/{channel}', 'edit')->name('channel.edit');
-        Route::delete('/{channel}', 'destroy')->name('channel.destroy');
+        Route::delete('/{channel}', 'delete')->name('channel.delete');
     });
 });

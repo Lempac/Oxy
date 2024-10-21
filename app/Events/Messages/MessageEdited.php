@@ -17,7 +17,8 @@ class MessageEdited implements ShouldBroadcast
      */
     public function __construct(
         public int $messageId,
-        public int $channelId
+        public int $channelId,
+        public int $userId
     ) {}
 
     /**

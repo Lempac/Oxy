@@ -54,23 +54,32 @@ class MessageController
         ]);
         $message->save();
 
-        broadcast(new MessageEdited($request->data, $request->user()->id, $message->id));
+        broadcast(new MessageEdited($message->id, $message->channel_id, $request->user()->id));
 
         return response()->json(['message' => 'Message updated'], 201);
     }
 
     public function delete(Request $request, int $messageId)
-    {
-        $message = Message::find($messageId);
+{
+    $message = Message::find($messageId);
 
-        if (!$message) {
-            return response()->json(['message' => 'Message not found'], 404);
-        }
-
-        $message->delete();
-
-        broadcast(new MessageDeleted($message->id, $message->channel->id, $message->channel->server->id, $request->user()->id,));
-
-        return response()->json(['message' => 'Message deleted'], 201);
+    if (!$message) {
+        return response()->json(['message' => 'Message not found'], 404);
     }
+
+    $message->delete();
+
+
+    $serverId = $message->channel->server->id;
+
+    broadcast(new MessageDeleted(
+        $message->id,
+        $message->channel->id,
+        $serverId,
+        $request->user()->id
+    ));
+
+    return response()->json(['message' => 'Message deleted'], 201);
+    }
+
 }

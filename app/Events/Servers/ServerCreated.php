@@ -1,20 +1,37 @@
 <?php
-
 namespace App\Events\Servers;
 
-use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PrivateChannel;
 
 class ServerCreated implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, SerializesModels;
+
+    public string $name;
+    public ?string $description;
+    public ?string $icon;
+
+
+    public function __construct(
+        string $name,
+        string $description,
+        string $icon
+        )
+    {}
+
     /**
-     * @inheritDoc
+     * Get the channels the event should broadcast on.
+     *
+     * @return array
      */
-    public function broadcastOn()
+    public function broadcastOn(): array
     {
-        // TODO: Implement broadcastOn() method.
+
+        return [
+            new PrivateChannel('servers.' . $this->name),
+        ];
     }
 }

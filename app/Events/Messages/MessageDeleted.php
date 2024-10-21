@@ -10,15 +10,18 @@ use Illuminate\Queue\SerializesModels;
 
 class MessageDeleted implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    public int $messageId;
+    public int $channelId;
+    public int $serverId;
+    public int $userId;
 
-    /**
-     * Create a new event instance.
-     */
     public function __construct(
-        public int $messageId,
-        public int $channelId
-    ) {}
+        int $messageId,
+        int $channelId,
+        int $serverId,
+        int $userId
+        )
+    {}
 
     /**
      * @inheritDoc
