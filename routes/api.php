@@ -18,22 +18,22 @@ use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ChannelController;
 //})->middleware('auth:web')->name('tokens.create');
 
 Route::middleware(['web'])->group(function () {
-    Route::controller(ServerController::class)->group(function () {
-        Route::post('/server', 'create')->name('server.create');
-        Route::post('/server/{server}/add-user', 'addUser')->name('server.addUser');
-        Route::delete('/server/{server}/remove-user', 'removeUser')->name('server.removeUser');
-        Route::patch('/server/{server}', 'edit')->name('server.edit');
+    Route::controller(ServerController::class)->prefix('server')->group(function () {
+        Route::post('/', 'create')->name('server.create');
+        Route::post('/{server}/add-user', 'addUser')->name('server.addUser');
+        Route::patch('/{server}', 'edit')->name('server.edit');
+        Route::delete('/{server}/remove-user', 'removeUser')->name('server.removeUser');
     });
 
-    Route::controller(MessageController::class)->group(function () {
-       Route::post('/message', 'create')->name('message.create');
-       Route::patch('/message/{message}', 'edit')->name('message.edit');
-       Route::delete('/message/{message}','destroy')->name('message.destroy');
+    Route::controller(MessageController::class)->prefix('message')->group(function () {
+       Route::post('/{channel}', 'create')->name('message.create');
+       Route::patch('/{message}', 'edit')->name('message.edit');
+       Route::delete('/{message}','destroy')->name('message.destroy');
     });
 
-    Route::controller(ChannelController::class)->group(function () {
-        Route::post('/channel', 'create')->name('channel.create');
-        Route::patch('/channel/{channel}', 'edit')->name('channel.edit');
-        Route::delete('/channel/{channel}', 'destroy')->name('channel.destroy');
+    Route::controller(ChannelController::class)->prefix('channel')->group(function () {
+        Route::post('/{server}', 'create')->name('channel.create');
+        Route::patch('/{channel}', 'edit')->name('channel.edit');
+        Route::delete('/{channel}', 'destroy')->name('channel.destroy');
     });
 });

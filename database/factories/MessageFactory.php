@@ -18,7 +18,7 @@ class MessageFactory extends Factory
      */
     public function definition(): array
     {
-        $type = fake()->randomElement(array_column(MessageType::cases(), 'name'));
+        $type = fake()->randomElement(array_column(MessageType::cases(), 'value'));
 
         //TODO: Add faker for images
 //        if ($type === MessageType::Image) {
