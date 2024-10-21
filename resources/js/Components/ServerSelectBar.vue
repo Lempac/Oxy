@@ -107,19 +107,33 @@ const url = computed(() => form.icon ? URL.createObjectURL(form.icon) : "");
                     <!-- Create Server Form -->
                     <form @submit.prevent="createServer">
                         <div class="form-control">
-                            <label class="text-gray-600 dark:text-gray-400 flex flex-row items-center gap-4" for="serverIcon">
-                            <img
-                                class="size-24 place-content-center text-center rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
-                                :src="url" alt="+"/>
-                                Upload server icon
-                            </label>
-                            <input
-                                id="serverIcon"
-                                type="file"
-                                class="hidden"
-                                accept="image/png, image/jpeg"
-                                @input="form.icon = (<HTMLInputElement>$event.target).files![0]"
-                            />
+                            <label class="text-gray-600 dark:text-gray-400 flex flex-row items-center gap-4 cursor-pointer" for="serverIcon">
+
+                        <img
+                            v-if="url"  
+                            class="size-24 rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
+                            :src="url"
+                            alt="Server Icon"
+                        />
+                        
+                        <!-- Placeholder when no image is uploaded -->
+                        <div v-else class="size-24 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                            <span class="text-gray-400">+</span> <!-- Placeholder content -->
+                        </div>
+
+                        <!-- Label text for the file input -->
+                        <span>Upload server icon</span>
+                    </label>
+
+                    <!-- File input -->
+                    <input
+                        id="serverIcon"
+                        type="file"
+                        class="hidden"
+                        accept="image/png, image/jpeg"
+                        @input="form.icon = (<HTMLInputElement>$event.target).files![0]"
+                    />
+
                         </div>
                         <div class="form-control mb-4">
                             <label class="label">
