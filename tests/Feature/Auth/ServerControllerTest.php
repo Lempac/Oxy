@@ -2,7 +2,10 @@
 
 use App\Models\Server;
 use App\Models\User;
-use App\Http\Controllers\ServerController;
+use Inertia\Testing\AssertableInertia as Assert;
+
+//TODO: Add testing for icons
+
 
 test('user can create server', function () {
     // Create a user
@@ -18,22 +21,21 @@ test('user can create server', function () {
     ];
 
     // Send a POST request to create a server
-    $response = $this->post(route('server.create'), $serverData);
+    $response = $this->postJson(route('server.create'), $serverData);
 
-    // Assert the response status is 302 (Created)
-    $response->assertRedirect(route('home'));
-
+//    $response->assertInertia(fn (Assert $page) => $page
+//        ->component('Home')
+//    );
     // Assert the server was created in the database
-//    $this->assertDatabaseHas('servers', [
-//        'id' => $response->id,
-//        'name' => 'Test Server',
-//        'description' => 'This is a test server.',
-//        'icon' => 'test-icon.png',
-//    ]);
-
-    // Assert the user is attached to the server through the pivot table
-//    $server = Server::find($response->json('id'));
-//    $this->assertTrue($server->users()->where('users.id', $user->id)->exists());
+    $this->assertDatabaseHas('servers', [
+        'id' => $response->json('id'),
+        'name' => 'Test Server',
+        'description' => 'This is a test server.',
+    ]);
+//
+//    // Assert the user is attached to the server through the pivot table
+    $server = Server::find($response->json('id'));
+    $this->assertTrue($server->users()->where('users.id', $user->id)->exists());
 });
 
 
@@ -57,7 +59,6 @@ test('fails if data missing', function () {
     $response->assertJsonValidationErrors(['name']);
 
 
-
 });
 
 test('user can be added to a server', function () {
@@ -70,7 +71,6 @@ test('user can be added to a server', function () {
     $serverData = [
         'name' => 'Test Server',
         'description' => 'This is a test server.',
-        'icon' => 'test-icon.png',
     ];
     $response = $this->postJson(route('server.create'), $serverData);
     $serverId = $response->json('id');
@@ -102,7 +102,6 @@ test('user can be removed from a server', function () {
     $serverData = [
         'name' => 'Test Server',
         'description' => 'This is a test server.',
-        'icon' => 'test-icon.png',
     ];
     $response = $this->postJson(route('server.create'), $serverData);
     $serverId = $response->json('id');
@@ -113,7 +112,7 @@ test('user can be removed from a server', function () {
     ]);
 
 
-    $response = $this->postJson(route('server.removeUser', $serverId), [
+    $response = $this->deleteJson(route('server.removeUser', $serverId), [
         'user_id' => $user2->id,
     ]);
 

@@ -5,8 +5,8 @@ import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
 
 <template>
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <ServerSelectBar/>
         <header v-if="$page.url.startsWith('/home')">
-            <ServerSelectBar/>
             <ChannelSelectBar/>
         </header>
 

@@ -31,7 +31,7 @@ class Message implements ShouldBroadcast
         }
 
 
-        $channel = ChannelModel::find($channelId); 
+        $channel = ChannelModel::find($channelId);
         if (!$channel) {
             throw new ModelNotFoundException("Channel with ID {$channelId} not found.");
         }
@@ -47,7 +47,7 @@ class Message implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('ChannelName'),
+            new PrivateChannel('Messages'),
         ];
     }
 }
