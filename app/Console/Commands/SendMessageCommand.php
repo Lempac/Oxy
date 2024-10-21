@@ -3,8 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Mail\Events\MessageSent;
-use App\Events\test;
+use App\Events\Message;
 
 class SendMessageCommand extends Command
 {
@@ -13,7 +12,7 @@ class SendMessageCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'send:message';
+    protected $signature = 'send:message {userId?} {channelId?}';
 
     /**
      * The console command description.
@@ -22,16 +21,18 @@ class SendMessageCommand extends Command
      */
     protected $description = 'Send a message to the chat';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    public function handle(): void
     {
-        $name = $this->ask('What is your name?');
+        $userId = $this->argument('userId') ?? $this->ask('What is the user ID?');
+
+        $channelId = $this->argument('channelId') ?? $this->ask('What is the channel ID?');
+
         $text = $this->ask('What is your message?');
 
-        test::broadcast($name, $text);
+        event(new Message($text, $userId, $channelId));
+
+        $this->info('Message sent successfully!');
+        $timezone = now()->getTimezone();
+        $this->info("The current server timezone is: " . $timezone);
     }
-
-
 }

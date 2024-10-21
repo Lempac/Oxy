@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ServerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,8 +15,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/home/{server}/text', [HomeController::class, 'text'])->name('home.text');
     Route::get('/home/{server}/text/{channel}', [HomeController::class, 'channel'])->name('home.channel');
     Route::get('/home/{server}/text/{channel}/{message}', [HomeController::class, 'message'])->name('home.message');
-    Route::post('/servers/create', [ServerController::class, 'create'])->name('server.create');
-
 
     Route::get('/settings/server', fn() => Inertia::render('Settings/Server'))->name('settings.server');
     Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
@@ -24,6 +22,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+//    Route::post('/servers', [ServerController::class, 'create'])->name('server.create');
+//    Route::post('/servers/{server}/add-user', [ServerController::class, 'addUser'])->name('server.addUser');
+//    Route::delete('/servers/{server}/remove-user', [ServerController::class, 'removeUser'])->name('server.removeUser');
+//    Route::patch('/servers/{server}', [ServerController::class, 'edit'])->name('server.edit');
+
 });
 
 require __DIR__.'/auth.php';
