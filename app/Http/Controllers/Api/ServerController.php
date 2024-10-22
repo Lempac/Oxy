@@ -20,16 +20,18 @@ class ServerController extends Controller
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|string|max:255',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
+        if ($request->file('icon')?->isValid()) {
+            $path = $request->file('icon')->store('uploads', 'public');
+        }
 
         $server = Server::create([
             'name' => $request->name,
             'description' => $request->description,
-            'icon' => $request->icon,
-            'user_id' => Auth::id(),
+            'icon' => empty($path) ? null : Storage::url($path),
         ]);
-
 
         $server->users()->attach(Auth::id());
 
@@ -38,24 +40,22 @@ class ServerController extends Controller
             'server' => $server,
         ], 201);
     }
-public function addUser(Request $request, int $serverId)
-{
-    $request->validate([
-        'user_id' => 'required|exists:users,id',
-    ]);
+    public function addUser(Request $request, int $serverId)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
 
-    $server = Server::find($serverId);
+        $server = Server::find($serverId);
 
-    if (!$server) {
-        return response()->json(['message' => 'Server not found.'], 404);
+        if (!$server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        $server->users()->attach($request->user_id);
+
+        return response()->json(['message' => 'User added to server successfully.']);
     }
-
-    $server->users()->attach($request->user_id);
-
-    broadcast(new ServerJoined($request->user_id, $serverId));
-
-    return response()->json(['message' => 'User added to server successfully.']);
-}
 
 
 public function removeUser(Request $request, int $serverId)
