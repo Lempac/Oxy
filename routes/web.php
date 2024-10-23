@@ -23,7 +23,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
-        Route::patch('/', 'update')->name('profile.update');
+        Route::post('/', 'update')->name('profile.update');
         Route::delete('/', 'destroy')->name('profile.destroy');
     });
 });
