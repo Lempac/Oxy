@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ServerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ChannelController;
 
 //Route::get('/user', function (Request $request) {
 //    return $request->user();
@@ -16,8 +18,22 @@ use Illuminate\Support\Facades\Route;
 //})->middleware('auth:web')->name('tokens.create');
 
 Route::middleware(['web'])->group(function () {
-    Route::post('/servers', [ServerController::class, 'create'])->name('server.create');
-    Route::post('/servers/{server}/add-user', [ServerController::class, 'addUser'])->name('server.addUser');
-    Route::delete('/servers/{server}/remove-user', [ServerController::class, 'removeUser'])->name('server.removeUser');
-    Route::patch('/servers/{server}', [ServerController::class, 'edit'])->name('server.edit');
+    Route::controller(ServerController::class)->prefix('server')->group(function () {
+        Route::post('/', 'create')->name('server.create');
+        Route::post('/{server}/add-user', 'addUser')->name('server.addUser');
+        Route::patch('/{server}', 'edit')->name('server.edit');
+        Route::delete('/{server}/remove-user', 'removeUser')->name('server.removeUser');
+    });
+
+    Route::controller(MessageController::class)->prefix('message')->group(function () {
+       Route::post('/{channel}', 'create')->name('message.create');
+       Route::patch('/{message}', 'edit')->name('message.edit');
+       Route::delete('/{message}','delete')->name('message.delete');
+    });
+
+    Route::controller(ChannelController::class)->prefix('channel')->group(function () {
+        Route::post('/{server}', 'create')->name('channel.create');
+        Route::patch('/{channel}', 'edit')->name('channel.edit');
+        Route::delete('/{channel}', 'delete')->name('channel.delete');
+    });
 });

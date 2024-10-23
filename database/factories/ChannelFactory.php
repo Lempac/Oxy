@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ChannelType;
 use App\Models\Channel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,7 +20,7 @@ class ChannelFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'type' => fake()->randomElement(['text', 'voice'])
+            'type' => fake()->randomElement(array_column(ChannelType::cases(), 'value'))
         ];
     }
 }

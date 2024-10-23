@@ -7,24 +7,28 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 
-Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
+Route::get('/', fn() => Inertia::render('Welcome'))->name('welcome');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/home', [HomeController::class, 'home'])->middleware('verified')->name('home');
-    Route::get('/home/{server}', [HomeController::class, 'server'])->name('home.server');
-    Route::get('/home/{server}/text', [HomeController::class, 'text'])->name('home.text');
-    Route::get('/home/{server}/text/{channel}', [HomeController::class, 'channel'])->name('home.channel');
-    Route::get('/home/{server}/text/{channel}/{message}', [HomeController::class, 'message'])->name('home.message');
+    Route::controller(HomeController::class)->prefix('home')->group(function () {
+        Route::get('/', 'home')->middleware('verified')->name('home');
+        Route::get('/{server}', 'server')->name('home.server');
+        Route::get('/{server}/text', 'text')->name('home.text');
+        Route::get('/{server}/text/{channel}', 'channel')->name('home.channel');
+        Route::get('/{server}/text/{channel}/{message}', 'message')->name('home.message');
+    });
 
     Route::get('/settings/server', fn() => Inertia::render('Settings/Server'))->name('settings.server');
     Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::controller(ProfileController::class)->prefix('profile')->group(function () {
+        Route::get('/', 'edit')->name('profile.edit');
+        Route::post('/', 'update')->name('profile.update');
+        Route::delete('/', 'destroy')->name('profile.destroy');
+    });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 
 
