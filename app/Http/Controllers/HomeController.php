@@ -6,6 +6,7 @@ use App\Models\Channel;
 use App\Models\Message;
 use App\Models\Server;
 use App\Models\User;
+use Hash;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,7 +25,8 @@ class HomeController extends Controller
     {
         return Inertia::render('Home')->with([
             'servers' => $request->user()->servers,
-            'selected_server' => Server::find($server)
+            'selected_server' => Server::find($server),
+            'invite_code' => $server . '#' . hash('xxh32', $server),
         ]);
     }
 
@@ -34,6 +36,7 @@ class HomeController extends Controller
             'servers' => $request->user()->servers,
             'selected_server' => Server::find($server),
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
+            'invite_code' => $server . '#' . hash('xxh32', $server),
         ]);
     }
 
@@ -47,6 +50,7 @@ class HomeController extends Controller
             'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn () : User => $message->user;
             }),
+            'invite_code' => $server . '#' . hash('xxh32', $server),
         ]);
     }
 
@@ -61,6 +65,7 @@ class HomeController extends Controller
             'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn () : User => $message->user;
             }),
+            'invite_code' => $server . '#' . hash('xxh32', $server),
         ]);
     }
 }

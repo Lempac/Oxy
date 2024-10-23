@@ -14,12 +14,9 @@ class ServerJoined implements ShouldBroadcast
 
     use Dispatchable, SerializesModels;
 
-    public $userId;
-    public $serverId;
-
     public function __construct(
-        int $userId,
-        int $serverId
+        public int $userId,
+        public int $serverId
         )
     {}
 

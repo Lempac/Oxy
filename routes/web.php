@@ -1,11 +1,9 @@
 <?php
 
-use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
 
 Route::get('/', fn() => Inertia::render('Welcome'))->name('welcome');
 

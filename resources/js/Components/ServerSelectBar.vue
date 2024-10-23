@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import {computed, ref} from 'vue';
-import {defaultIcon} from "@/bootstrap";
+import {ref} from 'vue';
+import {defaultIcon, joinServer} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {IoAddOutline} from "oh-vue-icons/icons";
@@ -16,6 +16,10 @@ const form = useForm<{ name: string, description: string, icon: File | null }>({
     icon: null
 });
 
+const joinForm = useForm({
+    code: ''
+})
+
 const createServer = async () => {
     // let res = await axios.post(route('tokens.create'))
     // console.log(res)
@@ -26,7 +30,7 @@ const createServer = async () => {
 };
 const baseUrl = window.location.origin;
 
-const icon = ref<string | null>( null);
+const icon = ref<string | null>(null);
 const inputFile = ref<File | null>();
 const updateIcon = (val: File) => {
     inputFile.value = val;
@@ -60,7 +64,7 @@ const updateIcon = (val: File) => {
                 </div>
             </div>
             <button class="ml-3 btn btn-circle" @click="serverModal?.showModal">
-                <span class="text-2xl">+</span>
+                <v-icon name="io-add-outline" scale="1.5"/>
             </button>
         </div>
 
@@ -158,14 +162,16 @@ const updateIcon = (val: File) => {
 
                 <!-- Join Server Tab Content -->
                 <div v-if="activeTab === 'join'">
-                    <form>
+                    <form @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
                         <div class="form-control mb-4">
-                            <label class="label">
+                            <label class="label" for="code">
                                 <span class="label-text">Server Invite Code</span>
                             </label>
-                            <input type="text" placeholder="Enter invite code" class="input input-bordered"/>
+                            <input type="text" name="code" id="code" v-model="joinForm.code" placeholder="Enter invite code" class="input input-bordered"/>
                         </div>
-                        <button type="submit" class="btn btn-secondary w-full">Join Server</button>
+                        <div class="modal-action">
+                            <button type="submit" class="btn btn-secondary w-full">Join Server</button>
+                        </div>
                     </form>
                 </div>
                 <!-- Close Button -->

@@ -72,5 +72,6 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     selected_server: Server | null | undefined;
     selected_channel: Channel | null | undefined;
     selected_message: Message | null | undefined;
+    invite_code: string | undefined;
     ziggy: Config & { location: string };
 };

@@ -1,28 +1,38 @@
 <script setup lang="ts">
 import {addIcons} from "oh-vue-icons";
-import {BiChatText, RiChatVoiceLine, MdViewkanbanOutlined} from "oh-vue-icons/icons";
+import {BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill} from "oh-vue-icons/icons";
 import {Link, usePage} from "@inertiajs/vue3";
+import {ref} from "vue";
+import Server from "@/Pages/Settings/Server.vue";
+import Settings from "@/Pages/Settings/Settings.vue";
 
-addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined);
+addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill);
 
 const {selected_server} = usePage().props;
 const serverId = selected_server?.id;
 
+const serverSettingsModal = ref<HTMLDialogElement>();
+
 </script>
 
 <template>
-    <div v-if="serverId" class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
-        <Link :href="route('home.text', {server: serverId} )">
-            <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+    <Settings />
+
+    <div v-if="serverId">
+        <button class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings" @click="() => serverSettingsModal?.show()">
+            <v-icon name="bi-gear-fill" scale="1.1"/>
+        </button>
+        <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
+            <Link :href="route('home.text', {server: serverId} )">
+                <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
                     :class="{'border-b-2 border-white text-white': $page.url.includes('/text') }"
             >
-                <svg class="h-5 w-5">
-                    <v-icon name="bi-chat-text"/>
-                </svg>
-                <span class="text-sm">Text Channels</span>
-            </button>
-        </Link>
-
+                    <svg class="h-5 w-5">
+                        <v-icon name="bi-chat-text"/>
+                    </svg>
+                    <span class="text-sm">Text Channels</span>
+                </button>
+            </Link>
         <!--        :href="route('home.voice', {server : serverId} )"-->
         <!--        <Link href="/">-->
         <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
@@ -46,5 +56,6 @@ const serverId = selected_server?.id;
             <span class="text-sm">Kanban Board</span>
         </button>
         <!--        </Link>-->
+        </div>
     </div>
 </template>

@@ -10,15 +10,11 @@ class ServerCreated implements ShouldBroadcast
 {
     use Dispatchable, SerializesModels;
 
-    public string $name;
-    public ?string $description;
-    public ?string $icon;
-
-
     public function __construct(
-        string $name,
-        string $description,
-        string $icon
+        public int $id,
+        public string $name,
+        public string $description,
+        public string $icon
         )
     {}
 
@@ -31,7 +27,7 @@ class ServerCreated implements ShouldBroadcast
     {
 
         return [
-            new PrivateChannel('servers.' . $this->name),
+            new PrivateChannel('servers.' . $this->id),
         ];
     }
 }

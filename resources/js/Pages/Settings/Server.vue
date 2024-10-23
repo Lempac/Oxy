@@ -10,21 +10,17 @@ function KickMember() {
 }
 
 function handleCancel() {
-  window.location.href = '/dashboard';
+
 }
 
 function handleSave() {
   alert('Settings saved!');
 }
 
-function IconUpload() {
-}
 </script>
 
 <template>
-  <Head title="Settings"></Head>
-  <body class="bg-gray-500 text-black dark:bg-gray-900 dark:text-white">
-    <div class="min-h-screen flex flex-col items-center justify-center">
+    <div class="flex flex-col items-center justify-center">
       <div class="w-full max-w-6xl p-6">
         <!-- navbar -->
         <div class="navbar bg-gray-800 text-white rounded-lg mb-6 py-4 px-6">
@@ -32,10 +28,10 @@ function IconUpload() {
             <h1 class="text-2xl">Server name</h1>
           </div>
           <div class="flex space-x-6">
-          <Link href="/settings/server" class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
+          <Link :href="route('settings.server')" class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
             Server
           </Link>
-          <Link href="/settings/role" class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
+          <Link :href="route('settings.role')" class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
             Roles
           </Link>
         </div>
@@ -43,7 +39,6 @@ function IconUpload() {
 
         <div class="flex justify-end mb-6 space-x-4">
           <button @click="handleSave" class="btn px-6">Save Changes</button>
-          <button @click="handleCancel" class="btn btn-error">Cancel</button>
         </div>
 
         <div class="bg-gray-700 p-8 rounded-lg shadow-lg">
@@ -59,7 +54,6 @@ function IconUpload() {
                   type="file"
                   class="hidden"
                   accept="image/png, image/jpeg"
-                  @change="IconUpload"
                 />
               </label>
 
@@ -97,5 +91,4 @@ function IconUpload() {
         </div>
       </div>
     </div>
-  </body>
 </template>

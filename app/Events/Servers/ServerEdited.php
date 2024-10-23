@@ -11,15 +11,14 @@ class ServerEdited implements ShouldBroadcast
 {
     use Dispatchable, SerializesModels;
 
-    public string $name;
-    public ?string $description;
-    public ?string $icon;
-
-    public function __construct(string $name,
-    string $description,
-    string $icon
+    public function __construct(
+        public int $id,
+        public string $name,
+        public string $description,
+        public string $icon
     )
-    {}
+    {
+    }
 
     /**
      * Get the channels the event should broadcast on.
