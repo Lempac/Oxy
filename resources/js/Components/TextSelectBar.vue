@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
-import {addIcons} from "oh-vue-icons";
-import {PxPlus} from "oh-vue-icons/icons";
 import {ref} from "vue";
 import axios from "axios";
 import {ChannelType} from "@/types";
-addIcons(PxPlus);
+import {addIcons} from "oh-vue-icons";
+import {OiPlus} from "oh-vue-icons/icons";
+addIcons(OiPlus);
 
 const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
@@ -29,12 +29,12 @@ const createText = async () => {
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly" v-if="$page.props.channels && $page.props.channels.length > 0">
         <Link v-for="channel in $page.props.channels" :key="channel.id" :href="route('home.channel', {server : serverId, channel : channel.id} )">
-            <button class="btn btn-outline btn-sm">
+            <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
                 {{ channel.name }}
             </button>
         </Link>
         <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="channelModal?.showModal">
-            <v-icon name="px-plus"/>
+            <v-icon name="oi-plus"/>
         </button>
     </div>
 
@@ -52,6 +52,9 @@ const createText = async () => {
                     <button type="submit" class="btn btn-primary w-full mt-2">Create Text Channel</button>
                 </div>
             </form>
+            <div class="modal-action">
+                <button @click="() => channelModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </div>
         </div>
     </dialog>
 </template>

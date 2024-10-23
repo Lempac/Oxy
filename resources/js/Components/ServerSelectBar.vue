@@ -5,8 +5,8 @@ import {ref} from 'vue';
 import {defaultIcon, joinServer} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
-import {IoAddOutline} from "oh-vue-icons/icons";
-addIcons(IoAddOutline);
+import {OiPlus} from "oh-vue-icons/icons";
+addIcons(OiPlus);
 
 const serverModal = ref<HTMLDialogElement>();
 const activeTab = ref<'create' | 'join'>('create');
@@ -45,7 +45,7 @@ const updateIcon = (val: File) => {
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
         <div class="navbar-start">
             <Link :href="route('home')">
-                <ApplicationLogo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200"/>
+                <ApplicationLogo class="block h-auto w-auto fill-current ml-5"/>
             </Link>
         </div>
         <div class="navbar-center">
@@ -64,7 +64,7 @@ const updateIcon = (val: File) => {
                 </div>
             </div>
             <button class="ml-3 btn btn-circle" @click="serverModal?.showModal">
-                <v-icon name="io-add-outline" scale="1.5"/>
+                <v-icon name="oi-plus" scale="1.5"/>
             </button>
         </div>
 
@@ -176,7 +176,7 @@ const updateIcon = (val: File) => {
                 </div>
                 <!-- Close Button -->
                 <div class="modal-action">
-                    <button @click="() => serverModal?.close()" class="btn">Close</button>
+                    <button @click="() => serverModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </div>
             </div>
         </div>
