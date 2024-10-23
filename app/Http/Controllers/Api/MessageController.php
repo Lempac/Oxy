@@ -16,7 +16,7 @@ class MessageController
     {
         $request->validate([
             'type' => 'required|in:' . implode(',', array_column(MessageType::cases(), 'value')),
-            'data' => 'required|string',
+            'mdata' => 'required|string',
         ]);
 
         $channel = Channel::find($channelId);
@@ -27,12 +27,12 @@ class MessageController
 
         Message::create([
             'type' => $request->type,
-            'data' => $request->data,
+            'mdata' => $request->mdata,
             'channel_id' => $channel->id,
             'user_id' => $request->user()->id,
         ]);
 
-        broadcast(new MessageCreated($request->data, $request->user()->id, $channel->id));
+        broadcast(new MessageCreated($request->mdata, $request->user()->id, $channel->id));
 
         return response()->json(['message' => 'Message created'], 201);
     }
@@ -40,7 +40,7 @@ class MessageController
     public function edit(Request $request, int $messageId)
     {
         $request->validate([
-            'data' => 'required|string',
+            'mdata' => 'required|string',
         ]);
 
         $message = Message::find($messageId);
@@ -50,7 +50,7 @@ class MessageController
         }
 
         $message->update([
-            'data' => $request->data,
+            'mdata' => $request->mdata,
         ]);
         $message->save();
 

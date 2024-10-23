@@ -11,7 +11,7 @@ const serverId = selected_server?.id;
 </script>
 
 <template>
-    <div v-if="serverId" class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
+    <div v-if="serverId" class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
         <Link :href="route('home.text', {server: serverId} )">
             <button class="flex flex-col items-center justify-center gap-1 p-2">
                 <svg class="h-5 w-5">
