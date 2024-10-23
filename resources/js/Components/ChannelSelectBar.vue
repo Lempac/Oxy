@@ -11,9 +11,11 @@ const serverId = selected_server?.id;
 </script>
 
 <template>
-    <div v-if="serverId" class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
+    <div v-if="serverId" class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
         <Link :href="route('home.text', {server: serverId} )">
-            <button class="flex flex-col items-center justify-center gap-1 p-2">
+            <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+                    :class="{'border-b-2 border-white text-white': $page.url.includes('/text') }"
+            >
                 <svg class="h-5 w-5">
                     <v-icon name="bi-chat-text"/>
                 </svg>
@@ -23,7 +25,9 @@ const serverId = selected_server?.id;
 
         <!--        :href="route('home.voice', {server : serverId} )"-->
         <!--        <Link href="/">-->
-        <button class="flex flex-col items-center justify-center gap-1 p-2">
+        <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+        :class="{'border-b-2 border-white text-white': $page.url.includes('/voice') }"
+        >
             <svg class="h-5 w-5">
                 <v-icon name="ri-chat-voice-line"/>
             </svg>
@@ -33,7 +37,9 @@ const serverId = selected_server?.id;
 
         <!--        :href="route('home.board', {server : serverId} )"-->
         <!--        <Link href="/">-->
-        <button class="flex flex-col items-center justify-center gap-1 p-2">
+        <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+        :class="{'border-b-2 border-white text-white': $page.url.includes('/board') }"
+        >
             <svg class="h-5 w-5">
                 <v-icon name="md-viewkanban-outlined"/>
             </svg>

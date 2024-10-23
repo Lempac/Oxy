@@ -24,10 +24,10 @@ class MessageFactory extends Factory
 //        if ($type === MessageType::Image) {
 //            fake()->image('image.jpg');
 //        }
-
+//        dd([$type, $type == MessageType::Text->value]);
         return [
             'type' => $type,
-            'data' => $type == MessageType::Text ? fake()->text(maxNbChars: 100) : null
+            'mdata' => $type == MessageType::Text->value ? fake()->text(maxNbChars: 100) : null
         ];
     }
 }

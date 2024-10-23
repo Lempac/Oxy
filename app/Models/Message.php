@@ -19,7 +19,7 @@ class Message extends Model
     public ?Closure $sender;
     protected $fillable = [
         'type',
-        'data',
+        'mdata',
         'user_id',
         'channel_id',
     ];

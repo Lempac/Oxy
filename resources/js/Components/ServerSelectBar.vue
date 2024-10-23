@@ -6,7 +6,6 @@ import {defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {IoAddOutline} from "oh-vue-icons/icons";
-
 addIcons(IoAddOutline);
 
 const serverModal = ref<HTMLDialogElement>();
@@ -60,7 +59,7 @@ const updateIcon = (val: File) => {
                     </Link>
                 </div>
             </div>
-            <button class="ml-3 btn btn-circle btn-primary" @click="serverModal?.showModal">
+            <button class="ml-3 btn btn-circle" @click="serverModal?.showModal">
                 <span class="text-2xl">+</span>
             </button>
         </div>

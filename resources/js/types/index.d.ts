@@ -42,7 +42,7 @@ export interface Server extends Object {
 
 export interface Message extends Object {
     type: MessageType;
-    data: string;
+    mdata: string;
     user_id: number;
     created_at: string;
     sender: User;
@@ -66,11 +66,11 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     auth: {
         user: User;
     };
-    servers: Server[] | null;
-    channels: Channel[] | null;
-    messages: Message[] | null;
-    selected_server: Server | null;
-    selected_channel: Channel | null;
-    selected_message: Message | null;
+    servers: Server[] | null | undefined;
+    channels: Channel[] | null | undefined;
+    messages: Message[] | null | undefined;
+    selected_server: Server | null | undefined;
+    selected_channel: Channel | null | undefined;
+    selected_message: Message | null | undefined;
     ziggy: Config & { location: string };
 };
