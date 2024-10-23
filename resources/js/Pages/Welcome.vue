@@ -4,6 +4,7 @@ import {ref, onMounted, onUnmounted} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import echo from "@/echo";
 
 // Reactive state for showing/hiding the login popup
 const loginModel = ref<HTMLDialogElement>();
@@ -25,7 +26,7 @@ let countdownInterval: number | undefined; // Store the interval ID as a number
 const calculateTimeLeft = () => {
     const now = new Date();
     const difference = targetDate.getTime() - now.getTime();
-    
+
     if (difference <= 0) {
         countdown.value = "The time has come!";
         return;
@@ -76,6 +77,7 @@ const submitRegister = () => {
         }
     });
 };
+
 </script>
 
 <template>
@@ -127,13 +129,13 @@ const submitRegister = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="card card-body bg-gray-500 mt-6">
                     <div class="flex flex-row items-center">
                         <!-- Image on the left, aligned with the text -->
                         <img src="/images/message.jpg" width="64" height="64" alt="Messaging"
                             class="rounded-full size-20 m-4"/>
-                        
+
                         <!-- Text next to the image -->
                         <div class="ml-4">
                             <h2 class="card-title text-white">Messaging</h2>

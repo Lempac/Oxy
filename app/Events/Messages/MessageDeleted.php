@@ -10,18 +10,14 @@ use Illuminate\Queue\SerializesModels;
 
 class MessageDeleted implements ShouldBroadcast
 {
-    public int $messageId;
-    public int $channelId;
-    public int $serverId;
-    public int $userId;
-
     public function __construct(
-        int $messageId,
-        int $channelId,
-        int $serverId,
-        int $userId
-        )
-    {}
+        public int $messageId,
+        public int $channelId,
+        public int $serverId,
+        public int $userId
+    )
+    {
+    }
 
     /**
      * @inheritDoc
@@ -29,7 +25,7 @@ class MessageDeleted implements ShouldBroadcast
     public function broadcastOn()
     {
         return [
-            new PrivateChannel('messages.'.$this->channelId),
+            new PrivateChannel('messages.' . $this->channelId),
         ];
     }
 }

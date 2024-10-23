@@ -32,11 +32,17 @@ const form = useForm({
 
 let channel = usePage().props.selected_channel
 if(channel !== undefined){
-    echo.private(`messages.${channel?.id}`)
-        .listen('MessageCreated', () => {
+    echo.channel(`messages.${channel?.id}`)
+        .listen('.MessageCreated', () => {
             console.log("New message!");
-            router.reload();
-        });
+            router.reload({only: ['messages']});
+        })
+
+    // echo.private(`messages.${channel?.id}`)
+    //     .listen('MessageCreated', () => {
+    //         console.log("New message!");
+    //         router.reload({only: ['messages']});
+    //     });
 }
 const createMessage = async () => {
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
@@ -51,7 +57,7 @@ const createMessage = async () => {
 
           <div class="overflow-y-auto flex-grow p-3">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">
-                  <div v-for="message in $page.props.messages.filter(message => message.type == MessageType.Text)" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
+                  <div v-for="message in $page.props.messages.filter(messageObj => messageObj.type == MessageType.Text)" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
                       <div class="chat-image avatar">
                           <div class="w-10 rounded-full">
                               <img :src="message.sender.icon ? baseUrl + message.sender.icon : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s'"

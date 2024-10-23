@@ -1,9 +1,10 @@
 <?php
 
 
-
 namespace App\Events\Messages;
 
+use App\Models\Message;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -23,10 +24,13 @@ class MessageCreated implements ShouldBroadcast
         public int $channelId
     ) {}
 
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [
-            new PrivateChannel('messages.'.$this->channelId),
-        ];
+        return new Channel('messages.'.$this->channelId);
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'MessageCreated';
     }
 }

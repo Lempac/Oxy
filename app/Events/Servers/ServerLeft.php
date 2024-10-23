@@ -12,14 +12,12 @@ class ServerLeft implements ShouldBroadcast
 {
     use Dispatchable, SerializesModels;
 
-    public $userId;
-    public $serverId;
-
     public function __construct(
-        int $userId,
-         int $serverId
-         )
-    {}
+        public int $userId,
+        public int $serverId
+    )
+    {
+    }
 
     /**
      * Get the channels the event should broadcast on.

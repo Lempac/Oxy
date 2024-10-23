@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
+import {joinServer} from "@/bootstrap";
+import {ref} from "vue";
+
+const code = ref<HTMLInputElement>();
+
 </script>
 
 <template>
@@ -12,8 +17,8 @@ import {Head} from '@inertiajs/vue3';
                     <div class="flex items-center justify-between p-6 text-gray-900 dark:text-gray-100">
                         <span>Join a server!</span>
                         <div class="join flex">
-                            <input class="input input-bordered join-item" placeholder="Search"/>
-                            <button class="btn join-item ml-2">Join</button>
+                            <input ref="code" class="input input-bordered join-item" placeholder="Enter code"/>
+                            <button @click="joinServer(code!.value)" class="btn join-item ml-2">Join</button>
                         </div>
                     </div>
                 </div>
