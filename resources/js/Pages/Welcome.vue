@@ -1,40 +1,13 @@
 <script setup lang="ts">
 import {Head, Link, useForm} from '@inertiajs/vue3';
-import {ref} from 'vue'; // Import ref for reactivity
+import {ref, onMounted, onUnmounted} from 'vue';
+import ErrorAlert from "@/Components/ErrorAlert.vue";
+import backgroundImage from '../../../public/images/background.svg';
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 
 // Reactive state for showing/hiding the login popup
-const showLoginPopup = ref(false);
-const showRegisterPopup = ref(false);
-
-const switchR = () => {
-    closeLoginPopup();
-    openRegisterPopup();
-};
-
-const switchL = () => {
-    closeRegisterPopup();
-    openLoginPopup();
-};
-
-// Function to open the login popup
-const openLoginPopup = () => {
-    form.clearErrors()
-    showLoginPopup.value = true;
-};
-
-// Function to close the login popup
-const closeLoginPopup = () => {
-    showLoginPopup.value = false;
-};
-
-const openRegisterPopup = () => {
-    form.clearErrors()
-    showRegisterPopup.value = true;
-};
-
-const closeRegisterPopup = () => {
-    showRegisterPopup.value = false;
-};
+const loginModel = ref<HTMLDialogElement>();
+const registerModel = ref<HTMLDialogElement>();
 
 const form = useForm({
     name: '',
@@ -42,6 +15,51 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     remember: false,
+});
+
+// Countdown state
+const countdown = ref('');
+const targetDate = new Date('2024-10-25T08:30:00'); // Target date and time (October 25, 8:30 AM)
+let countdownInterval: number | undefined; // Store the interval ID as a number
+
+const calculateTimeLeft = () => {
+    const now = new Date();
+    const difference = targetDate.getTime() - now.getTime();
+    
+    if (difference <= 0) {
+        countdown.value = "The time has come!";
+        return;
+    }
+
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((difference / 1000 / 60) % 60);
+    const seconds = Math.floor((difference / 1000) % 60);
+
+    countdown.value = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+};
+
+// Function to start the countdown
+const startCountdown = () => {
+    calculateTimeLeft();
+    countdownInterval = window.setInterval(() => {
+        calculateTimeLeft();
+        if (targetDate.getTime() <= new Date().getTime()) {
+            clearInterval(countdownInterval);
+        }
+    }, 1000);
+};
+
+// Start the countdown when the component is mounted
+onMounted(() => {
+    startCountdown();
+});
+
+// Clean up the interval when the component is unmounted
+onUnmounted(() => {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+    }
 });
 
 const submitLogin = () => {
@@ -55,321 +73,281 @@ const submitRegister = () => {
     form.post(route('register'), {
         onFinish: () => {
             form.reset('password', 'password_confirmation');
-        },
-        onError: () => {
-            // Handle errors (e.g., display them below the respective fields)
         }
     });
 };
 </script>
-<!-- Welcome page-->
+
 <template>
     <Head title="Welcome"></Head>
-    <body>
-    <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
-        <img
-            id="background"
-            class="absolute h-full w-full object-cover"
-            src="/images/background.svg"
-            alt=""
-        />
-        <div
-            class="relative min-h-screen flex flex-col items-center justify-center selection:bg-[#285aff] selection:text-white">
-            <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
-                <!-- Header -->
-                <header class="grid grid-cols-2 items-center gap-2 py-10 lg:grid-cols-3">
-                    <div class="flex lg:justify-center lg:col-start-2">
-                        <a href="/" class="block">
-                            <svg
-                                class="h-40 w-40 rounded-full lg:h-20 lg:w-20 object-cover"
-                                viewBox="0 0 62 65"
-                                fill="none"
-                            >
+    <body class="bg-cover bg-center" :style="`background-image: url(${backgroundImage})`">
+        <div class="card card-body">
+            <div>
+                <header>
+                    <div class="navbar flex justify-between">
+                        <ApplicationLogo class="block h-9 w-auto fill-current"/>
+                        <div>
+                            <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
+                                Home
+                            </Link>
 
-                                <image href="/images/oxy.jpg" x="-10" y="-19" height="110" width="110"/>
-                            </svg>
-                        </a>
+                            <template v-else>
+                                <div class="grid gap-3 grid-flow-col">
+                                    <!-- Login button that triggers the popup -->
+                                    <button @click="() => {form.clearErrors(); loginModel?.showModal()}" class="btn btn-lg">
+                                        Log in
+                                    </button>
+                                    <button @click="() => {form.clearErrors(); registerModel?.showModal()}"
+                                            class="btn btn-lg">
+                                        Register
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
                     </div>
-
-                    <nav class="-mx-3 flex flex-1 justify-end">
-                        <Link
-                            v-if="$page.props.auth.user"
-                            :href="route('home')"
-                            class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#285aff] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
-                        >
-                            Home
-                        </Link>
-
-                        <template v-else>
-                            <!-- Login button that triggers the popup -->
-                            <button
-                                @click="openLoginPopup"
-                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#285aff] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
-                            >
-                                Log in
-                            </button>
-
-                            <!-- Register link -->
-                            <button
-                                @click="openRegisterPopup"
-                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#285aff] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
-                            >
-                                Register
-                            </button>
-                        </template>
-                    </nav>
                 </header>
                 <!-- Main content -->
-                <main class="mt-6">
-                    <h1 style="color: aliceblue; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 70px;">
+                <main>
+                    <div class="ml-20">
+                    <h1 class="text-7xl font-sans text-gray-400">
                         Welcome to the future
                     </h1>
-                    <h2 style="color: aliceblue; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 30px; text-align: left; margin-bottom: 100px">
-                        Scroll down to see what we offer
-                    </h2>
-                    <div class="grid gap-6 lg:grid-cols-2 lg:gap-8">
-                        <a
-                            id="docs-card"
-                            class="mt-[100px] col-span-full gap-7 overflow-hidden rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#285aff] lg:p-10 lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#285aff]"
-                        >
-                            <div id="screenshot-container" class="relative flex w-full flex-1 items-stretch">
-                                <img
-                                    src="/images/messages.jpg"
-                                    alt="Message screenshot"
-                                    class="aspect-video h-full w-full flex-1 rounded-[10px] object-left-top object-cover drop-shadow-[0px_4px_34px_rgba(0,0,0,0.06)] dark:hidden"
-                                />
-                                <img
-                                    src="/images/messages.jpg"
-                                    alt="Message screenshot"
-                                    class="hidden aspect-video h-full w-full flex-1 rounded-[10px] object-left-top object-cover drop-shadow-[0px_4px_34px_rgba(0,0,0,0.25)] dark:block"
-                                />
-                            </div>
-                            <div class="relative flex items-center gap-6 lg:items-end">
-                                <div id="docs-card-content" class="flex items-start gap-6 lg:flex-col">
-                                    <div
-                                        class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white sm:size-16">
-                                        <svg
-                                            class="size-5 sm:size-6"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            width="24"
-                                            height="24"
-                                        >
-                                            <image href="/images/message.jpg" width="24" height="24"/>
-                                        </svg>
-                                    </div>
-                                    <div class="pt-3 sm:pt-5 lg:pt-0">
-                                        <h2 class="text-xl font-semibold text-black dark:text-white">Messaging</h2>
-                                        <p class="mt-4 text-sm/relaxed">
-                                            CO2 lets users easily communicate with other users in a fast and convenient
-                                            way
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                        <!-- End of messages -->
-                        <a
-                            class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#285aff] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#285aff]"
-                        >
-                            <div
-                                class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white sm:size-16"
-                            >
-                                <svg
-                                    class="size-5 sm:size-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    width="24" height="24"
-                                >
-                                    <image href="/images/co2.jpg" width="24" height="24"/>
-                                </svg>
-                            </div>
-                            <div class="pt-3 sm:pt-5">
-                                <h2 class="text-xl font-semibold text-black dark:text-white">Servers</h2>
-                                <p class="mt-4 text-sm/relaxed">
-                                    Creating serves lets you easy communicate with multiple people and work with several
-                                    projects at the same time.
-                                </p>
-                            </div>
-                        </a>
-                        <div
-                            class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800"
-                        >
-                            <div
-                                class="flex size-20 shrink-0 items-center justify-center rounded-full bg-white sm:size-16"
-                            >
-                                <svg
-                                    class="size-5 sm:size-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    width="24" height="24"
-                                >
-                                    <image href="/images/kanban.jpg" width="24" height="24"/>
-                                </svg>
-                            </div>
-                            <div class="pt-3 sm:pt-5">
-                                <h2 class="text-xl font-semibold text-black dark:text-white">Kanban board</h2>
-                                <p class="mt-4 text-sm/relaxed">
-                                    Our
-                                    <a
-                                        href="https://en.wikipedia.org/wiki/Kanban_(development)"
-                                        class="rounded-sm underline hover:text-black focus:outline-none focus-visible:ring-1 focus-visible:ring-[#285aff] dark:hover:text-white dark:focus-visible:ring-[#285aff]"
-                                    >kanban board</a
-                                    >,
-                                    helps you take your projects in simple steps. The kanban board let's you seperate
-                                    everything you are doing, done and need to do.
-                                </p>
+                    <div class="mt-5 w-1/4 p-4 rounded-lg">
+                        <h2 class="text-3xl font-sans text-white text-left">
+                            Scroll down to see what we offer
+                        </h2>
+                    </div>
+                </div>
+
+                    <div class="text-left flex my-8">
+                        <div class="card shadow-lg bg-gray-500 text-white">
+                            <div class="card-body">
+                                <h2 class="text-4xl font-bold">Countdown to Death</h2>
+                                <p class="text-2xl">{{ countdown }}</p>
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="card card-body bg-gray-500 mt-6">
+                    <div class="flex flex-row items-center">
+                        <!-- Image on the left, aligned with the text -->
+                        <img src="/images/message.jpg" width="64" height="64" alt="Messaging"
+                            class="rounded-full size-20 m-4"/>
+                        
+                        <!-- Text next to the image -->
+                        <div class="ml-4">
+                            <h2 class="card-title text-white">Messaging</h2>
+                            <p class="text-white text-2xl">
+                                CO2 lets users easily communicate with other users in a fast and convenient
+                                way, with different channels and servers.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <img
+                    src="/images/messages.jpg"
+                    alt="Message screenshot"
+                    class="rounded-3xl w-full mt-3"
+                />
+
+                <div class="grid grid-flow-col gap-8 mt-5 w-full">
+                <!-- Servers Card -->
+                <div class="card card-body bg-gray-500 mt-6"> <!-- Set width as needed -->
+                    <div class="flex flex-col items-center text-center">
+                        <!-- Text on top of the image -->
+                        <h2 class="card-title text-white">Servers</h2>
+                        <p class="text-white text-xl md:text-2xl">
+                            Creating servers lets you easily communicate with multiple people and work on several projects at the same time.
+                        </p>
+                        <!-- Image under the text -->
+                        <img src="/images/servers.png" alt="Servers" class="m-4 size-fit rounded-3xl"/>
+                    </div>
+                </div>
+
+                <!-- Column for Kanban and Modern Design -->
+                <div class="grid grid-flow-row gap-8 w-full"> <!-- Use grid-flow-row for stacking vertically -->
+                    <!-- Kanban Board Card -->
+                    <div class="card card-body bg-gray-500 mt-6 h-fit">
+                        <div class="flex flex-col items-center text-center">
+                            <h2 class="card-title text-white">Kanban Board</h2>
+                            <p class="text-white text-xl md:text-2xl">
+                                Our kanban board helps you manage projects in simple steps by organizing tasks into categories.
+                            </p>
+                            <img src="/images/kanban.png" alt="Kanban Board" class="m-3"/>
+                        </div>
+                    </div>
+
+                    <!-- Modern Design Card -->
+                    <div class="card card-body bg-gray-500 h-fit">
+                        <div class="flex flex-col items-center text-center">
+                            <h2 class="card-title text-white">Modern Design</h2>
+                            <p class="text-white text-xl md:text-2xl">
+                                Our site has a very sleek and modern design.
+                            </p>
+                            <img src="/images/design.png" alt="Design" class="m-4"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-10 bordered h-fit bg-white">
+            <h2 class="card-title text-black ml-5 mt-5">What are you waiting for?</h2>
+            <div class="flex justify-between items-center p-5"> <!-- Use flex to align items -->
+                <p class="text-black text-xl md:text-l ml-5">
+                    Join now!!!
+                </p>
+                <div>
+                            <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
+                                Home
+                            </Link>
+
+                            <template v-else>
+                                <div class="grid gap-3 grid-flow-col">
+                                    <!-- Login button that triggers the popup -->
+                                    <button @click="() => {form.clearErrors(); loginModel?.showModal()}" class="btn btn-lg bg-red-500 text-white hover:text-black">
+                                        Join
+                                    </button>
+                                </div>
+                            </template>
+                </div>
+            </div>
+        </div>
+
                 </main>
+
                 <!-- Footer -->
-                <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-                    © {{ new Date().getFullYear() }} Oxygen
+                <footer class="footer footer-center">
+                    <div class="max-w-fit rounded-full bg-base-300 p-4 mt-4 bg-transparent text-white">
+                        © {{ new Date().getFullYear() }} Oxy
+                    </div>
                 </footer>
             </div>
         </div>
-    </div>
-    <!-- Login popup modal -->
-    <Transition>
-        <div v-if="showLoginPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md  dark:bg-slate-900">
-                <h2 class="text-xl font-semibold mb-4 text-black dark:text-white">Log in</h2>
-                <form @submit.prevent="submitLogin">
-                    <div class="mb-4">
-                        <label for="email" class="block text-sm font-medium text-black dark:text-white">Email</label>
-                        <input
-                            id="email"
-                            type="email"
-                            v-model="form.email"
-                            required
-                            class="mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black dark:bg-slate-700 dark:text-white"
-                        />
-                        <span v-if="form.errors.email" class="text-red-500 text-sm">{{ form.errors.email }}</span>
-                    </div>
-                    <div class="mb-4">
-                        <label for="password"
-                               class="block text-sm font-medium text-gray-700 dark:text-white">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            v-model="form.password"
-                            required
-                            class="mt-1 block w-full rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
-                        />
-                        <span v-if="form.errors.password" class="text-red-500 text-sm">{{ form.errors.password }}</span>
-                    </div>
-                    <div class="mb-4 flex items-center">
-                        <input
-                            id="remember"
-                            type="checkbox"
-                            v-model="form.remember"
-                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        />
-                        <label for="remember" class="ml-2 block text-sm text-gray-900 dark:text-white opacity-70 ">Remember
-                            me</label>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md ">
-                            Log in
-                        </button>
 
-                        <button @click="closeLoginPopup" class="text-red-500">Cancel</button>
-                    </div>
-                </form>
-                <button @click="switchR" class="text-black dark:text-white"
-                        style="text-decoration: underline; font-size: 15px; padding-top:20px ;">Create an account?
+        <dialog ref="loginModel" class="modal">
+        <form @submit.prevent="submitLogin" class="modal-box">
+            <h2 class="text-lg font-bold">Log in</h2>
+            <div class="form-control">
+                <label for="email" class="label">Email</label>
+                <input
+                    id="email"
+                    type="email"
+                    v-model="form.email"
+                    required
+                    class="input input-bordered grow"
+                />
+                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" class="mt-2"/>
+            </div>
+            <div class="form-control">
+                <label for="password" class="label">
+                    Password
+                </label>
+                <input
+                    id="password"
+                    type="password"
+                    v-model="form.password"
+                    required
+                    class="input input-bordered grow"
+                />
+                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" class="mt-2"/>
+            </div>
+            <div class="form-control">
+                <label for="remember" class="label place-content-start gap-3">
+                    <input id="remember" type="checkbox" v-model="form.remember" class="checkbox"/>
+                    Remember me
+                </label>
+            </div>
+            <div class="flex justify-between items-center">
+                <button type="submit" class="btn btn-success">
+                    Log in
+                </button>
+
+                <button @click="() => loginModel?.close()" class="btn btn-error">Cancel</button>
+            </div>
+            <button @click="() => {loginModel?.close(); registerModel?.showModal();}" class="btn btn-link">Create an
+                account?
+            </button>
+        </form>
+    </dialog>
+    <dialog ref="registerModel" class="modal">
+        <form @submit.prevent="submitRegister" class="modal-box">
+            <h2 class="text-lg font-bold">Register</h2>
+            <!-- Name Input -->
+            <div class="form-control">
+                <label class="label" for="name">Name</label>
+                <input
+                    id="name"
+                    type="text"
+                    v-model="form.name"
+                    required
+                    class="input input-bordered grow"
+                />
+                <!-- Error for name -->
+                <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
+            </div>
+            <div class="form-control">
+                <!-- Email Input -->
+                <label class="label" for="email">Email</label>
+                <input
+                    id="email"
+                    type="email"
+                    v-model="form.email"
+                    required
+                    class="input input-bordered grow"
+                />
+                <!-- Error for email -->
+                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" class="mt-2"/>
+            </div>
+            <!-- Password Input -->
+            <div class="form-control">
+                <label class="label" for="password">Password</label>
+                <input
+                    id="password"
+                    type="password"
+                    v-model="form.password"
+                    required
+                    class="input input-bordered grow"
+                />
+                <!-- Error for password -->
+                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" class="mt-2"/>
+            </div>
+            <!-- Password Confirmation Input -->
+            <div class="form-control">
+                <label class="label" for="password_confirmation">Confirm Password</label>
+                <input
+                    id="password_confirmation"
+                    type="password"
+                    v-model="form.password_confirmation"
+                    required
+                    class="input input-bordered grow"
+                />
+                <!-- Error for password_confirmation -->
+                <ErrorAlert v-if="form.errors.password_confirmation" :message="form.errors.password_confirmation"
+                            class="mt-2"/>
+            </div>
+            <!-- Submit and Cancel Buttons -->
+            <div class="justify-between modal-action">
+                <button type="submit" class="btn btn-success"
+                        :disabled="form.processing">
+                    Register
+                </button>
+                <button @click="() => registerModel?.close()" type="button" class="btn btn-error">
+                    Cancel
                 </button>
             </div>
-        </div>
-    </Transition>
-    <!-- Register  -->
-    <Transition>
-        <div v-if="showRegisterPopup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white p-8 rounded shadow-lg w-full max-w-md dark:bg-slate-900">
-                <h2 class="text-xl font-semibold mb-4 text-black dark:text-white">Register</h2>
-                <form @submit.prevent="submitRegister">
-                    <!-- Name Input -->
-                    <div class="mb-4">
-                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-white">Name</label>
-                        <input
-                            id="name"
-                            type="text"
-                            v-model="form.name"
-                            required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
-                        />
-                        <!-- Error for name -->
-                        <span v-if="form.errors.name" class="text-red-500 text-sm">{{ form.errors.name }}</span>
-                    </div>
-                    <!-- Email Input -->
-                    <div class="mb-4">
-                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-white">Email</label>
-                        <input
-                            id="email"
-                            type="email"
-                            v-model="form.email"
-                            required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
-                        />
-                        <!-- Error for email -->
-                        <span v-if="form.errors.email" class="text-red-500 text-sm">{{ form.errors.email }}</span>
-                    </div>
-                    <!-- Password Input -->
-                    <div class="mb-4">
-                        <label for="password"
-                               class="block text-sm font-medium text-gray-700 dark:text-white">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            v-model="form.password"
-                            required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
-                        />
-                        <!-- Error for password -->
-                        <span v-if="form.errors.password" class="text-red-500 text-sm">{{ form.errors.password }}</span>
-                    </div>
-                    <!-- Password Confirmation Input -->
-                    <div class="mb-4">
-                        <label for="password_confirmation"
-                               class="block text-sm font-medium text-gray-700 dark:text-white">Confirm Password</label>
-                        <input
-                            id="password_confirmation"
-                            type="password"
-                            v-model="form.password_confirmation"
-                            required
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm text-black  dark:bg-slate-700 dark:text-white"
-                        />
-                        <!-- Error for password_confirmation -->
-                        <span v-if="form.errors.password_confirmation"
-                              class="text-red-500 text-sm">{{ form.errors.password_confirmation }}</span>
-                    </div>
-                    <!-- Submit and Cancel Buttons -->
-                    <div class="flex justify-between items-center">
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md"
-                                :disabled="form.processing">
-                            Register
-                        </button>
-                        <button @click="closeRegisterPopup" type="button" class="text-red-500">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-                <button @click="switchL" class="text-black dark:text-white"
-                        style="text-decoration: underline; font-size: 15px; padding-top:20px ;">Already have an account?
-                </button>
-            </div>
-        </div>
-    </Transition>
+            <button @click="() => {registerModel?.close(); loginModel?.showModal();}" class="btn btn-link">Already have
+                an account?
+            </button>
+        </form>
+    </dialog>
+    <!--    </Transition>-->
     </body>
 </template>
 
 <style scoped>
 
 body {
-    animation: fadeIn ease 2s;
-    animation-iteration-count: 1;
-    animation-fill-mode: forwards;
+    animation: fadeIn ease-in-out 2s;
 }
 
 @keyframes fadeIn {
@@ -381,14 +359,4 @@ body {
     }
 }
 
-/* We will explain what these classes do next! */
-.v-enter-active,
-.v-leave-active {
-    transition: opacity 0.5s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-    opacity: 0;
-}
 </style>

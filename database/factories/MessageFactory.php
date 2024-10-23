@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\MessageType;
 use App\Models\Message;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,10 +18,16 @@ class MessageFactory extends Factory
      */
     public function definition(): array
     {
-        $type = fake()->randomElement(['text', 'image']);
+        $type = fake()->randomElement(array_column(MessageType::cases(), 'value'));
+
+        //TODO: Add faker for images
+//        if ($type === MessageType::Image) {
+//            fake()->image('image.jpg');
+//        }
+//        dd([$type, $type == MessageType::Text->value]);
         return [
             'type' => $type,
-            'data' => $type == 'text' ? fake()->text(maxNbChars: 100) : null
+            'mdata' => $type == MessageType::Text->value ? fake()->text(maxNbChars: 100) : null
         ];
     }
 }
