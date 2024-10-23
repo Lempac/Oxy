@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Server;
-use App\Models\User;
+// use App\Models\Server;
+// use App\Models\User;
 
 // // Test for creating a server
 // test('user can create server', function () {
