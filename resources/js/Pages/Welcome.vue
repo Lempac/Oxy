@@ -87,7 +87,7 @@ const submitRegister = () => {
             <div>
                 <header>
                     <div class="navbar flex justify-between">
-                        <ApplicationLogo class="block h-9 w-auto fill-current"/>
+                        <ApplicationLogo class="block h-auto w-auto fill-current"/>
                         <div>
                             <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
                                 Home

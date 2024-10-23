@@ -7,6 +7,6 @@ addIcons(PiMunchlaxShiny);
 
 <template>
     <div class="">
-        <v-icon name="pi-munchlax-shiny" scale="2" />
+        <v-icon name="pi-munchlax-shiny" scale="2.5" />
     </div>
 </template>
