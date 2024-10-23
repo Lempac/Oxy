@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Events\Messages\MessageCreated;
 use Illuminate\Console\Command;
-use App\Events\Message;
 
 class SendMessageCommand extends Command
 {
@@ -29,7 +29,7 @@ class SendMessageCommand extends Command
 
         $text = $this->ask('What is your message?');
 
-        event(new Message($text, $userId, $channelId));
+        event(new MessageCreated($text, $userId, $channelId));
 
         $this->info('Message sent successfully!');
         $timezone = now()->getTimezone();
