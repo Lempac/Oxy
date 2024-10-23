@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Events\Messages\MessageCreated;
+use App\Events\Messages\MessageDeleted;
+use App\Events\Messages\MessageEdited;
 use Closure;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use phpDocumentor\Reflection\Types\Nullable;
 
 class Message extends Model
 {
@@ -23,6 +25,12 @@ class Message extends Model
         'user_id',
         'channel_id',
     ];
+
+//    protected $dispatchesEvents = [
+//        'created' => MessageCreated::class,
+//        'updated' => MessageEdited::class,
+//        'deleted' => MessageDeleted::class,
+//    ];
 
     public function channel() : BelongsTo
     {

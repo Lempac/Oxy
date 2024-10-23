@@ -1,7 +1,7 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
-    dotenv.enable = true;
+#    dotenv.enable = true;
     languages.php.enable = true;
     languages.php.version = "8.3";
     languages.php.extensions = [ "xdebug" "pdo_mysql" ];
@@ -16,10 +16,10 @@
     services.mysql.enable = true;
     services.mysql.ensureUsers = [
         {
-            name = config.env.DB_USERNAME;
-            password = config.env.DB_PASSWORD;
+            name = "laravel";
+            password = "laravel123";
             ensurePermissions = {
-              "${config.env.DB_DATABASE}.*" = "ALL PRIVILEGES";
+              "laravel.*" = "ALL PRIVILEGES";
             };
         }
     ];

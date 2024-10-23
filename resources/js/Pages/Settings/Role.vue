@@ -10,7 +10,7 @@ function KickMember() {
 }
 
 function handleCancel() {
-  window.location.href = '/dashboard';
+
 }
 
 function handleSave() {
@@ -19,9 +19,9 @@ function handleSave() {
 </script>
 
 <template>
-  <Head title="Role Settings"></Head>
-  <body class="bg-gray-500 text-black dark:bg-gray-900 dark:text-white">
-    <div class="min-h-screen flex flex-col items-center justify-center">
+<!--  <Head title="Role Settings"></Head>-->
+<!--  <body class="bg-gray-500 text-black dark:bg-gray-900 dark:text-white">-->
+    <div class="flex flex-col items-center justify-center">
       <div class="w-full max-w-6xl p-6">
 
         <!-- Top Navigation Bar using DaisyUI Navbar -->
@@ -32,10 +32,10 @@ function handleSave() {
 
           <!-- Buttons positioned towards the middle-right with hover expanding effect -->
           <div class="flex justify-end space-x-6 mr-16">
-            <Link href="/settings/server" class="text-lg transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg">
+            <Link :href="route('settings.server')" class="text-lg transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg">
               Server
             </Link>
-            <Link href="/settings/role" class="text-lg transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg">
+            <Link :href="route('settings.role')" class="text-lg transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg">
               Roles
             </Link>
           </div>
@@ -44,7 +44,6 @@ function handleSave() {
         <!-- Save/Cancel Buttons -->
         <div class="flex justify-end mb-6 space-x-4">
           <button @click="handleSave" class="btn px-6">Save Changes</button>
-          <button @click="handleCancel" class="btn btn-error">Cancel</button>
         </div>
 
         <!-- Members Table Section -->
@@ -81,5 +80,5 @@ function handleSave() {
         </div>
       </div>
     </div>
-  </body>
+<!--  </body>-->
 </template>

@@ -35,12 +35,35 @@ class ServerController extends Controller
 
         $server->users()->attach(Auth::id());
 
-        return response()->json([
-            'id' => $server->id,
-            'server' => $server,
-        ], 201);
+        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
+
+        return response()->json(['message' => 'Server created successfully.']);
     }
-    public function addUser(Request $request, int $serverId)
+
+    public function addUser(Request $request)
+    {
+        $request->validate([
+           'code' => 'required|string|max:20',
+        ]);
+
+        $data = explode('#', $request->code);
+        $serverId = $data[0];
+        $code = $data[1];
+        if (hash('xxh32', $serverId) !== $code) return response()->json(['message' => 'Code is invalid.'], 404);
+
+        $server = Server::find($serverId);
+        if(!$server) return response()->json(['message' => 'Server not found.'], 404);
+        if($server->users->has(Auth::id())) return response()->json(['message' => 'Server has already been added.'], 409);
+
+        $server->users()->attach(Auth::id());
+
+        broadcast(new ServerJoined(Auth::id(), $serverId));
+
+        return response()->json(['message' => 'User added to server successfully.']);
+    }
+
+
+    public function removeUser(Request $request, int $serverId)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -52,50 +75,32 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $server->users()->attach($request->user_id);
+        $server->users()->detach($request->user_id);
 
-        return response()->json(['message' => 'User added to server successfully.']);
+        broadcast(new ServerLeft($request->user_id, $serverId));
+
+        return response()->json(['message' => 'User removed from server successfully.']);
     }
 
+    public function edit(Request $request, int $serverId)
+    {
+        $request->validate([
+            'name' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:500',
+            'icon' => 'nullable|string|max:255',
+        ]);
 
-public function removeUser(Request $request, int $serverId)
-{
-    $request->validate([
-        'user_id' => 'required|exists:users,id',
-    ]);
+        $server = Server::find($serverId);
 
-    $server = Server::find($serverId);
+        if (!$server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
 
-    if (!$server) {
-        return response()->json(['message' => 'Server not found.'], 404);
+        $server->update($request->only(['name', 'description', 'icon']));
+
+        broadcast(new ServerEdited($serverId, $server->name, $server->description, $server->icon));
+
+        return response()->json(['message' => 'Server updated successfully.']);
     }
-
-    $server->users()->detach($request->user_id);
-
-    broadcast(new ServerLeft($request->user_id, $serverId));
-
-    return response()->json(['message' => 'User removed from server successfully.']);
-}
-
-public function edit(Request $request, int $serverId)
-{
-    $request->validate([
-        'name' => 'nullable|string|max:50',
-        'description' => 'nullable|string|max:500',
-        'icon' => 'nullable|string|max:255',
-    ]);
-
-    $server = Server::find($serverId);
-
-    if (!$server) {
-        return response()->json(['message' => 'Server not found.'], 404);
-    }
-
-    $server->update($request->only(['name', 'description', 'icon']));
-
-    broadcast(new ServerEdited($server->name, $server->description, $server->icon));
-
-    return response()->json(['message' => 'Server updated successfully.']);
-}
 
 }

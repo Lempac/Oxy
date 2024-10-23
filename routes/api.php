@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web'])->group(function () {
     Route::controller(ServerController::class)->prefix('server')->group(function () {
         Route::post('/', 'create')->name('server.create');
-        Route::post('/{server}/add-user', 'addUser')->name('server.addUser');
+        Route::post('/add-user', 'addUser')->name('server.addUser');
         Route::patch('/{server}', 'edit')->name('server.edit');
         Route::delete('/{server}/remove-user', 'removeUser')->name('server.removeUser');
     });
