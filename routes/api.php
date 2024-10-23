@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ServerController;
+use App\Http\Controllers\Api\ChannelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Laravel\Reverb\Protocols\Pusher\Http\Controllers\ChannelController;
 
 //Route::get('/user', function (Request $request) {
 //    return $request->user();

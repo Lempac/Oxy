@@ -67,7 +67,7 @@ const createMessage = async () => {
                   </div>
               </div>
               <div v-else>
-                  <p>No messages found in this channel.</p>
+                  <p>no messages rn :(</p>
               </div>
           </div>
 
