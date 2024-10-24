@@ -11,15 +11,15 @@ addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill);
 const {selected_server} = usePage().props;
 const serverId = selected_server?.id;
 
-const serverSettingsModal = ref<HTMLDialogElement>();
+const settings = ref<typeof Settings>();
 
 </script>
 
 <template>
-    <Settings />
+    <Settings ref="settings"/>
 
     <div v-if="serverId">
-        <button class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings" @click="() => serverSettingsModal?.show()">
+        <button class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings" @click="() => settings?.$refs.serverSettingsModal?.show()">
             <v-icon name="bi-gear-fill" scale="1.1"/>
         </button>
         <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
