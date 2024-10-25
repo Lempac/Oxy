@@ -35,7 +35,6 @@ let channel = usePage().props.selected_channel
 if(channel !== undefined){
     echo.channel(`messages.${channel?.id}`)
         .listen('.MessageCreated', () => {
-            console.log("New message!");
             router.reload({only: ['messages']});
             scrollToBottom();
         });
@@ -45,7 +44,8 @@ if(channel !== undefined){
     //         console.log("New message!");
     //         router.reload({only: ['messages']});
     //     });
-}
+};
+
 const createMessage = async () => {
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
 };

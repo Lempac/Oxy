@@ -4,15 +4,12 @@ import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
 import {usePage} from "@inertiajs/vue3";
 import {addIcons} from "oh-vue-icons";
 import {HiClipboardCopy} from "oh-vue-icons/icons";
-import {ref} from "vue";
 
 addIcons(HiClipboardCopy);
 
 const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
 }
-
-const toggle = ref(false);
 
 </script>
 
@@ -28,9 +25,9 @@ const toggle = ref(false);
         </main>
 
         <footer v-if="$page.url.match(/\/home\/\d+/) && $page.props.invite_code !== null || $page.props.invite_code !== undefined">
-            <div class="toast truncate">
-                <div class="alert transition-all delay-300 ease-in-out" @mouseenter="toggle = true" @mouseleave="toggle = false">
-                    <span :class="`font-bold p-2  ${toggle ? '' : 'w-10'}`">{{ $page.props.invite_code }}</span>
+            <div class="toast">
+                <div class="alert">
+                    <span class="text-md font-bold p-2">{{ $page.props.invite_code }}</span>
                     <button class="btn tooltip" data-tip="Copy" @click="copyToClipboard($page.props.invite_code!)">
                         <v-icon name="hi-clipboard-copy"/>
                     </button>
