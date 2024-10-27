@@ -7,6 +7,7 @@ import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
 import {MessageType} from "@/types";
 import axios from "axios";
+import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 
 addIcons(FaRegularPaperPlane);
 
@@ -34,19 +35,47 @@ let channel = usePage().props.selected_channel
 if(channel !== undefined){
     echo.channel(`messages.${channel?.id}`)
         .listen('.MessageCreated', () => {
-            console.log("New message!");
             router.reload({only: ['messages']});
-        })
+            scrollToBottom();
+        });
 
     // echo.private(`messages.${channel?.id}`)
     //     .listen('MessageCreated', () => {
     //         console.log("New message!");
     //         router.reload({only: ['messages']});
     //     });
-}
+};
+
 const createMessage = async () => {
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
 };
+
+const messageContainer = ref<HTMLElement | null>(null);
+
+const scrollToBottom = () => {
+    if (messageContainer.value) {
+        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+    }
+};
+
+onMounted(() => {
+    scrollToBottom();
+});
+
+onUpdated(() => {
+    nextTick(() => {
+        scrollToBottom();
+    });
+});
+
+watch(
+    () => usePage().props.messages,
+    () => {
+        nextTick(() => {
+            scrollToBottom();
+        });
+    }
+);
 
 </script>
 
@@ -55,7 +84,7 @@ const createMessage = async () => {
     <TextSelectBar></TextSelectBar>
       <div class="w-3/4 h-[calc(100vh-21vh)] rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
 
-          <div class="overflow-y-auto flex-grow p-3">
+          <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">
                   <div v-for="message in $page.props.messages.filter(messageObj => messageObj.type == MessageType.Text)" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
                       <div class="chat-image avatar">
@@ -82,9 +111,9 @@ const createMessage = async () => {
                   <input type="text"
                          placeholder="Type here"
                          v-model="form.mdata"
-                         class="input input-bordered w-full join-item"
+                         class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5 ml-5"
                   />
-                  <button class="btn btn-circle btn-outline join-vertical">
+                  <button class="btn join-item mr-5">
                       <v-icon name="fa-regular-paper-plane" />
                   </button>
               </div>

@@ -35,7 +35,7 @@ const serverSettingsModal = ref<HTMLDialogElement>();
             </Link>
         <!--        :href="route('home.voice', {server : serverId} )"-->
         <!--        <Link href="/">-->
-        <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+        <button class="flex flex-col items-center justify-center gap-1 p-2 relative text-gray-600"
         :class="{'border-b-2 border-white text-white': $page.url.includes('/voice') }"
         >
             <svg class="h-5 w-5">
@@ -47,7 +47,7 @@ const serverSettingsModal = ref<HTMLDialogElement>();
 
         <!--        :href="route('home.board', {server : serverId} )"-->
         <!--        <Link href="/">-->
-        <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+        <button class="flex flex-col items-center justify-center gap-1 p-2 relative text-gray-600"
         :class="{'border-b-2 border-white text-white': $page.url.includes('/board') }"
         >
             <svg class="h-5 w-5">
