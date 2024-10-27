@@ -1,13 +1,13 @@
 <template>
     <div class="kanban-container">
         <h1>Kanban Boards</h1>
-        
+
         <div v-if="boards.length">
             <div v-for="board in boards" :key="board.id" class="board-item">
                 <router-link :to="`/kanban/${board.id}`">{{ board.name }}</router-link>
             </div>
         </div>
-        
+
         <p v-else>No boards available.</p>
 
         <!-- Button to add a new Kanban board -->
@@ -16,8 +16,7 @@
 </template>
 
 <script>
-import { usePage } from '@inertiajs/inertia-vue3';
-import { Inertia } from '@inertiajs/inertia';
+import {router, usePage} from '@inertiajs/vue3';
 
 export default {
     setup() {
@@ -26,7 +25,7 @@ export default {
 
         // Method to navigate to the create board page
         const createBoard = () => {
-            Inertia.get('/kanban/create');
+            router.get('/kanban/create');
         };
 
         return { boards, createBoard };

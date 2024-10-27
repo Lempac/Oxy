@@ -10,7 +10,7 @@
 import { ref } from 'vue';
 import Column from '../Columns/Column.vue';
 import CreateColumn from '../Columns/CreateColumn.vue';
-import { usePage } from '@inertiajs/inertia-vue3';
+import { usePage } from '@inertiajs/vue3';
 
 export default {
     components: { Column, CreateColumn },

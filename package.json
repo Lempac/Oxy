@@ -23,9 +23,6 @@
         "vue-tsc": "^2.1.6"
     },
     "dependencies": {
-        "@inertiajs/inertia-vue3": "^0.6.0",
-        "nodejs": "^0.0.0",
-        "oh-vue-icons": "^1.0.0-rc3",
-        "tailwind": "^4.0.0"
+        "oh-vue-icons": "^1.0.0-rc3"
     }
 }
