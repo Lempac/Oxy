@@ -8,6 +8,8 @@ import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
 addIcons(OiPlus);
 
+
+
 const serverModal = ref<HTMLDialogElement>();
 const activeTab = ref<'create' | 'join'>('create');
 const form = useForm<{ name: string, description: string, icon: File | null }>({
@@ -96,7 +98,7 @@ const updateIcon = (val: File) => {
     <!-- Modal with 2 tabs -->
     <dialog ref="serverModal" class="modal">
         <div class="modal-box">
-            <!-- Tabs Navigation with active tab underline -->
+            <!-- Create Server-->
             <div class="tabs flex justify-center">
                 <button
                     @click="activeTab = 'create'"
@@ -127,7 +129,7 @@ const updateIcon = (val: File) => {
                                 class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
                                 for="serverIcon">
                                 <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
-                                <v-icon v-else name="io-add-outline" scale="3.333"/>
+                                <v-icon v-else name="oi-plus" scale="3.333"/>
                             </label>
                             <label for="serverIcon" class="cursor-pointer">Upload server icon</label>
                             <input

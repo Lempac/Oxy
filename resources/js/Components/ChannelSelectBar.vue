@@ -20,7 +20,7 @@ const serverSettingsModal = ref<HTMLDialogElement>();
 
     <div v-if="serverId">
         <button class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings" @click="() => serverSettingsModal?.show()">
-            <v-icon name="bi-gear-fill" scale="1.1"/>
+            <v-icon name="bi-gear-fill" scale="1.1" animation="ring" hover/>
         </button>
         <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
             <Link :href="route('home.text', {server: serverId} )">
