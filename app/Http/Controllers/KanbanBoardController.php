@@ -11,6 +11,7 @@ class KanbanBoardController extends Controller
     public function index()
     {
         $boards = KanbanBoard::all();
+
         return Inertia::render('Kanban/Index', ['boards' => $boards]);
     }
 
@@ -27,12 +28,13 @@ class KanbanBoardController extends Controller
 
         KanbanBoard::create(['name' => $request->name]);
 
-        return redirect()->route('kanban_boards.index');
+        return redirect()->route('kanban.index');
     }
 
     public function show(KanbanBoard $kanbanBoard)
     {
         $kanbanBoard->load('columns.tasks');
+
         return Inertia::render('Kanban/Show', ['board' => $kanbanBoard]);
     }
 
@@ -49,12 +51,12 @@ class KanbanBoardController extends Controller
 
         $kanbanBoard->update(['name' => $request->name]);
 
-        return redirect()->route('kanban_boards.show', $kanbanBoard);
+        return redirect()->route('kanban.show', $kanbanBoard);
     }
 
     public function destroy(KanbanBoard $kanbanBoard)
     {
         $kanbanBoard->delete();
-        return redirect()->route('kanban_boards.index');
+        return redirect()->route('kanban.index');
     }
 }

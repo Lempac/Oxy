@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\KanbanBoardController;
+use App\Http\Controllers\KanbanColumnController;
+use App\Http\Controllers\KanbanTaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -24,10 +27,38 @@ Route::middleware('auth')->group(function () {
         Route::post('/', 'update')->name('profile.update');
         Route::delete('/', 'destroy')->name('profile.destroy');
     });
+
+    Route::get('/kanban', [KanbanBoardController::class, 'index'])->name('kanban');
+
+    Route::prefix('kanban')->name('kanban.')->group(function () {
+        Route::get('/', [KanbanBoardController::class, 'index'])->name('index');
+        Route::get('/create', [KanbanBoardController::class, 'create'])->name('create');
+        Route::post('/', [KanbanBoardController::class, 'store'])->name('store');
+        Route::get('/{kanbanBoard}', [KanbanBoardController::class, 'show'])->name('show');
+        Route::get('/{kanbanBoard}/edit', [KanbanBoardController::class, 'edit'])->name('edit');
+        Route::put('/{kanbanBoard}', [KanbanBoardController::class, 'update'])->name('update');
+        Route::delete('/{kanbanBoard}', [KanbanBoardController::class, 'destroy'])->name('destroy');
+
+        Route::prefix('{kanbanBoard}/columns')->name('columns.')->group(function () {
+            Route::get('/', [KanbanColumnController::class, 'index'])->name('index');
+            Route::get('/create', [KanbanColumnController::class, 'create'])->name('create');
+            Route::post('/', [KanbanColumnController::class, 'store'])->name('store');
+            Route::get('/{kanbanColumn}', [KanbanColumnController::class, 'show'])->name('show');
+            Route::get('/{kanbanColumn}/edit', [KanbanColumnController::class, 'edit'])->name('edit');
+            Route::put('/{kanbanColumn}', [KanbanColumnController::class, 'update'])->name('update');
+            Route::delete('/{kanbanColumn}', [KanbanColumnController::class, 'destroy'])->name('destroy');
+
+            Route::prefix('{kanbanColumn}/tasks')->name('tasks.')->group(function () {
+                Route::get('/', [KanbanTaskController::class, 'index'])->name('index');
+                Route::get('/create', [KanbanTaskController::class, 'create'])->name('create');
+                Route::post('/', [KanbanTaskController::class, 'store'])->name('store');
+                Route::get('/{kanbanTask}', [KanbanTaskController::class, 'show'])->name('show');
+                Route::get('/{kanbanTask}/edit', [KanbanTaskController::class, 'edit'])->name('edit');
+                Route::put('/{kanbanTask}', [KanbanTaskController::class, 'update'])->name('update');
+                Route::delete('/{kanbanTask}', [KanbanTaskController::class, 'destroy'])->name('destroy');
+            });
+        });
+    });
 });
 
 require __DIR__ . '/auth.php';
-
-
-
-

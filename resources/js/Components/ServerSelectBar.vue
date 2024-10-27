@@ -86,6 +86,9 @@ const updateIcon = (val: File) => {
                         <Link :href="route('profile.edit')">Profile</Link>
                     </li>
                     <li>
+                        <Link :href="route('kanban.index')">Kanban Board</Link>
+                    </li>
+                    <li>
                         <Link :href="route('logout')" method="post" as="button">Log Out</Link>
                     </li>
                 </ul>
