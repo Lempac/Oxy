@@ -5,9 +5,9 @@ import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import echo from "@/echo";
-import { CoChatBubble } from "oh-vue-icons/icons"; 
+import { CoChatBubble } from "oh-vue-icons/icons";
 import { RiComputerFill } from "oh-vue-icons/icons";
-import { addIcons } from "oh-vue-icons"; 
+import { addIcons } from "oh-vue-icons";
 addIcons(CoChatBubble, RiComputerFill);
 
 // Reactive state for showing/hiding the login popup
@@ -86,11 +86,11 @@ const submitRegister = () => {
 
 <template>
     <Head title="Welcome"></Head>
-    <body class="bg-cover bg-center" :style="`background-image: url(${backgroundImage})`">
+    <body class="min-h-screen bg-cover bg-center" :style="`background-image: url(${backgroundImage})`">
         <div class="card card-body">
             <header>
                 <div class="navbar flex justify-between">
-                    <img src="/images/oxy.png" class="block h-16 w-auto fill-current"/>
+                    <img src="/images/oxy.png" class="block h-16 w-auto fill-current" alt=""/>
                     <div>
                         <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
                             Home
@@ -115,12 +115,12 @@ const submitRegister = () => {
                     <h2 class="text-3xl font-sans text-white text-left">Scroll down to see what we offer</h2>
                 </div>
 
-                <!-- Countdown Section --> 
-                <div class="text-left flex my-4"> 
+                <!-- Countdown Section -->
+                <div class="text-left flex my-4">
                     <div class="card shadow-lg bg-gray-500 text-white">
-                        <div class="card-body p-2"> 
+                        <div class="card-body p-2">
                             <h2 class="text-2xl font-bold">Countdown to next phase</h2>
-                            <p class="text-xl">{{ countdown }}</p> 
+                            <p class="text-xl">{{ countdown }}</p>
                         </div>
                     </div>
                 </div>
@@ -152,7 +152,7 @@ const submitRegister = () => {
                 <!-- Join Now Card -->
                 <div class="card mt-10 bordered h-fit bg-white">
                     <h2 class="card-title text-black ml-5 mt-5">What are you waiting for?</h2>
-                    <div class="flex justify-between items-center p-5"> 
+                    <div class="flex justify-between items-center p-5">
                         <p class="text-black text-xl md:text-l ml-5">
                             Join now!!!
                         </p>
