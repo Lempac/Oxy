@@ -13,8 +13,8 @@ class ServerCreated implements ShouldBroadcast
     public function __construct(
         public int $id,
         public string $name,
-        public string $description,
-        public string $icon
+        public ?string $description,
+        public ?string $icon
         )
     {}
 

@@ -2,6 +2,7 @@
 
 namespace App\Events\Channels;
 
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -22,7 +23,7 @@ class ChannelEdited implements ShouldBroadcast
     /**
      * @inheritDoc
      */
-    public function broadcastOn()
+    public function broadcastOn(): array|Channel|string
     {
         return [
             new PrivateChannel('channels.'.$this->serverId),
