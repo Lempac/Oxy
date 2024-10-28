@@ -2,6 +2,7 @@
 
 namespace App\Events\Messages;
 
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -22,7 +23,7 @@ class MessageDeleted implements ShouldBroadcast
     /**
      * @inheritDoc
      */
-    public function broadcastOn()
+    public function broadcastOn(): array|Channel|string
     {
         return [
             new PrivateChannel('messages.' . $this->channelId),

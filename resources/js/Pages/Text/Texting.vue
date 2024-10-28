@@ -44,7 +44,7 @@ if(channel !== undefined){
     //         console.log("New message!");
     //         router.reload({only: ['messages']});
     //     });
-};
+}
 
 const createMessage = async () => {
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
@@ -83,7 +83,6 @@ watch(
   <AuthenticatedLayout>
     <TextSelectBar></TextSelectBar>
       <div class="w-3/4 h-[calc(100vh-21vh)] rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
-
           <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">
                   <div v-for="message in $page.props.messages.filter(messageObj => messageObj.type == MessageType.Text)" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
