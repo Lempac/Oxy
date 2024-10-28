@@ -21,7 +21,9 @@ class Server extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class, 'role_server_user')
+            ->withPivot('role_id')
+            ->withTimestamps();
     }
 
     public function channels() : HasMany
@@ -34,8 +36,10 @@ class Server extends Model
         return $this->hasOne(Board::class);
     }
 
-    public function roles() : HasMany
+    public function roles() : belongsToMany
     {
-        return $this->hasMany(Role::class);
+        return $this->belongsToMany(Role::class, 'role_server_user')
+            ->withPivot('user_id')
+            ->withTimestamps();
     }
 }

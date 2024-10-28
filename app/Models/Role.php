@@ -18,14 +18,18 @@ class Role extends Model
         'importance',
     ];
 
-    public function users() : HasMany
+    public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'role_server_user')
+            ->withPivot('server_id')
+            ->withTimestamps();
     }
 
-    public function servers() : BelongsTo
+    public function servers(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsToMany(Server::class, 'role_server_user')
+            ->withPivot('user_id')
+            ->withTimestamps();
     }
 
 }

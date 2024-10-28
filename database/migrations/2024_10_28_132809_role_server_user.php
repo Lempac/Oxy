@@ -10,13 +10,14 @@ return new class extends Migration
     {
         Schema::create('role_server_user', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('server_id');
-            $table->unsignedBigInteger('roles_id');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('server_id')->nullable();
+            $table->unsignedBigInteger('role_id')->nullable();
 
             $table->foreign('server_id')->references('id')->on('servers');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->foreign('roles_id')->references('id')->on('roles');
+            $table->foreign('role_id')->references('id')->on('roles');
+            $table->timestamps();
         });
     }
 };
