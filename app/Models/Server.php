@@ -33,4 +33,9 @@ class Server extends Model
     {
         return $this->hasOne(Board::class);
     }
+
+    public function roles() : HasMany
+    {
+        return $this->hasMany(Role::class);
+    }
 }

@@ -61,6 +61,11 @@ class User extends Authenticatable
         return $this->hasMany(Message::class);
     }
 
+    public function roles(): HasMany
+    {
+        return $this->hasMany(Role::class);
+    }
+
 
 
 }
