@@ -103,4 +103,17 @@ class ServerController extends Controller
         return response()->json(['message' => 'Server updated successfully.']);
     }
 
+    public function delete(Request $request, int $serverId)
+    {
+        $server = Server::find($serverId);
+
+        if (!$server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        $server->delete();
+
+        return response()->json(['message' => 'Server deleted successfully.']);
+    }
+
 }
