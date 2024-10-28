@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->timestamps();
             $table->unsignedBigInteger('channel_id');
 
-            $table->foreign('channel_id')->references('id')->on('channels');
+            $table->foreign('channel_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('channels');
         });
     }
 
