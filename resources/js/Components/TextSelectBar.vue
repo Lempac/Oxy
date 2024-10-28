@@ -4,8 +4,8 @@ import {ref} from "vue";
 import axios from "axios";
 import {ChannelType} from "@/types";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus} from "oh-vue-icons/icons";
-addIcons(OiPlus);
+import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
+addIcons(OiPlus, MdDeleteforeverOutlined);
 
 const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
@@ -24,15 +24,28 @@ const createText = async () => {
     });
 };
 
+const deleteText = async (channelId: number) => {
+    axios.delete(route('channel.delete', {channel: channelId})).then(() => {
+        router.reload()
+    });
+};
+
 </script>
 
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
-        <Link v-for="channel in $page.props.channels" :key="channel.id" :href="route('home.channel', {server : serverId, channel : channel.id})">
-            <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
-                {{ channel.name }}
-            </button>
-        </Link>
+        <div class="indicator" v-for="channel in $page.props.channels" :key="channel.id">
+            <div class="indicator-item indicator-top">
+                <button @click.prevent="deleteText(channel.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
+                    <v-icon name="md-deleteforever-outlined"/>
+                </button>
+            </div>
+            <Link :href="route('home.channel', {server : serverId, channel : channel.id})">
+                <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
+                    {{ channel.name }}
+                </button>
+            </Link>
+        </div>
         <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="channelModal?.showModal">
             <v-icon name="oi-plus"/>
         </button>

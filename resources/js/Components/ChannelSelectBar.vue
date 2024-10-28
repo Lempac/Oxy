@@ -3,7 +3,6 @@ import {addIcons} from "oh-vue-icons";
 import {BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill} from "oh-vue-icons/icons";
 import {Link, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
-import Server from "@/Pages/Settings/Server.vue";
 import Settings from "@/Pages/Settings/Settings.vue";
 
 addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill);
