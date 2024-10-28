@@ -8,6 +8,7 @@ import echo from "@/echo";
 import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
+import MembersList from "@/Components/MembersList.vue";
 
 addIcons(FaRegularPaperPlane);
 
@@ -81,8 +82,9 @@ watch(
 
 <template>
   <AuthenticatedLayout>
-    <TextSelectBar></TextSelectBar>
-      <div class="w-3/4 h-[calc(100vh-21vh)] rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
+      <TextSelectBar></TextSelectBar>
+
+      <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-38px)] rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
 
           <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">
@@ -90,7 +92,7 @@ watch(
                       <div class="chat-image avatar">
                           <div class="w-10 rounded-full">
                               <img :src="message.sender.icon ? baseUrl + message.sender.icon : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s'"
-                                  alt="User Avatar"
+                                   alt="User Avatar"
                               />
                           </div>
                       </div>
@@ -120,5 +122,6 @@ watch(
           </form>
       </div>
 
+      <MembersList></MembersList>
   </AuthenticatedLayout>
 </template>

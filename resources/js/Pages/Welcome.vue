@@ -4,7 +4,6 @@ import {ref, onMounted, onUnmounted} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import echo from "@/echo";
 
 // Reactive state for showing/hiding the login popup
 const loginModel = ref<HTMLDialogElement>();
