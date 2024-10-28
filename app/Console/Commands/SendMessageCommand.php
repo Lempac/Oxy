@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\MessageType;
 use App\Events\Messages\MessageCreated;
+use App\Models\Message;
 use Illuminate\Console\Command;
 
 class SendMessageCommand extends Command
@@ -28,6 +30,13 @@ class SendMessageCommand extends Command
         $channelId = $this->argument('channelId') ?? $this->ask('What is the channel ID?');
 
         $text = $this->ask('What is your message?');
+
+        Message::create([
+            'type' => MessageType::Text->value,
+            'mdata' => $text,
+            'channel_id' => $channelId,
+            'user_id' => $userId
+        ]);
 
         event(new MessageCreated($text, $userId, $channelId));
 

@@ -53,7 +53,9 @@ class User extends Authenticatable
 
     public function servers(): BelongsToMany
     {
-        return $this->belongsToMany(Server::class);
+        return $this->belongsToMany(Server::class, 'role_server_user')
+            ->withPivot('role_id')
+            ->withTimestamps();
     }
 
     public function messages(): HasMany
@@ -61,6 +63,10 @@ class User extends Authenticatable
         return $this->hasMany(Message::class);
     }
 
-
-
+    public function roles(): belongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'role_server_user')
+            ->withPivot('server_id')
+            ->withTimestamps();
+    }
 }
