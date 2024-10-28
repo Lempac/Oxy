@@ -2,15 +2,15 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import TextSelectBar from "@/Components/TextSelectBar.vue";
 import {addIcons} from "oh-vue-icons";
-import {FaRegularPaperPlane} from "oh-vue-icons/icons";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
 import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 import MembersList from "@/Components/MembersList.vue";
+import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 
-addIcons(FaRegularPaperPlane);
+addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const baseUrl = window.location.origin;
 
@@ -78,6 +78,12 @@ watch(
     }
 );
 
+const deleteMessage = async (messageId: number) => {
+    axios.delete(route('message.delete', {message: messageId})).then(() => {
+        router.reload()
+    });
+};
+
 </script>
 
 <template>
@@ -100,7 +106,22 @@ watch(
                           {{ message.sender.name }}
                           <time class="text-xs opacity-50">{{ formatDate(message.created_at) }}</time>
                       </div>
-                      <div class="chat-bubble">{{ message.mdata }}</div>
+
+                      <div class="indicator">
+                          <div class="chat-bubble relative group">
+                              {{ message.mdata }}
+                              <div class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                                  <button @click.prevent="deleteMessage(message.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
+                                      <v-icon name="md-deleteforever-outlined"/>
+                                  </button>
+                              </div>
+                              <div class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                                  <button @click.prevent="" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                                      <v-icon name="md-modeeditoutline-outlined"/>
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
                   </div>
               </div>
               <div v-else>
