@@ -84,7 +84,7 @@ watch(
   <AuthenticatedLayout>
       <TextSelectBar></TextSelectBar>
 
-      <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-38px)] rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
+      <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] m-5 rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
 
           <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">

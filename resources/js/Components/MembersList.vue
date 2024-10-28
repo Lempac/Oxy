@@ -1,35 +1,38 @@
 <script setup lang="ts">
+import {defaultIcon} from "@/bootstrap";
+
+const baseUrl = window.location.origin;
 
 </script>
 
 <template>
-    <div class="btm-nav h-20">
+    <div class="btm-nav h-16">
         <div class="stats shadow h-auto">
-            <div class="stat">
-                <div class="avatar online">
+            <div class="stat py-0.5">
+                <div class="avatar">
                     <div class="w-10 rounded-full">
-                        <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                        <img :src="$page.props.auth.user.icon ? `${baseUrl}${$page.props.auth.user.icon}` : defaultIcon" />
                     </div>
                 </div>
-                <div>user</div>
+                <div class="flex items-center justify-center">user</div>
             </div>
 
-            <div class="stat">
-                <div class="avatar online">
+            <div class="stat py-0.5">
+                <div class="avatar">
                     <div class="w-10 rounded-full">
-                        <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                        <img :src="$page.props.auth.user.icon ? `${baseUrl}${$page.props.auth.user.icon}` : defaultIcon" />
                     </div>
                 </div>
-                <div>user</div>
+                <div class="flex items-center justify-center">user</div>
             </div>
 
-            <div class="stat">
-                <div class="avatar online">
+            <div class="stat py-0.5">
+                <div class="avatar">
                     <div class="w-10 rounded-full">
-                        <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                        <img :src="$page.props.auth.user.icon ? `${baseUrl}${$page.props.auth.user.icon}` : defaultIcon" />
                     </div>
                 </div>
-                <div>user</div>
+                <div class="flex items-center justify-center">user</div>
             </div>
         </div>
     </div>

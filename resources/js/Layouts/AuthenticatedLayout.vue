@@ -28,8 +28,8 @@ const toggle = ref(false);
         </main>
 
         <footer v-if="$page.url.match(/\/home\/\d+/) && $page.props.invite_code !== null || $page.props.invite_code !== undefined">
-            <div class="toast truncate mb-20">
-                <div class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0 mb-1.5" @mouseenter="toggle = true" @mouseleave="toggle = false">
+            <div class="toast truncate mb-16">
+                <div class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0" @mouseenter="toggle = true" @mouseleave="toggle = false">
                     <span :class="`font-bold p-2  ${toggle ? '' : 'hidden'}`">{{ $page.props.invite_code }}</span>
                     <button class="btn tooltip" data-tip="Copy" @click="copyToClipboard($page.props.invite_code!)">
                         <v-icon name="hi-clipboard-copy"/>
