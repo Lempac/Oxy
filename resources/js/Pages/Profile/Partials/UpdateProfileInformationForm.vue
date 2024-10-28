@@ -3,7 +3,7 @@ import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
-import {computed, ref} from "vue";
+import {ref} from "vue";
 
 addIcons(RiUser3Line, HiMail, IoAddOutline);
 

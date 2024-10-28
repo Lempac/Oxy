@@ -24,7 +24,7 @@ class MessageCreated implements ShouldBroadcast
         public int $channelId
     ) {}
 
-    public function broadcastOn()
+    public function broadcastOn(): Channel
     {
         return new Channel('messages.'.$this->channelId);
     }
