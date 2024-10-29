@@ -10,53 +10,74 @@ class KanbanBoardController extends Controller
 {
     public function index()
     {
-        $boards = KanbanBoard::all();
-
-        return Inertia::render('Kanban/Index', ['boards' => $boards]);
+        $boards = KanbanBoard::with('columns.tasks')->get();
+        return Inertia::render('Kanban/Index', [
+            'boards' => $boards,
+        ]);
     }
 
     public function create()
     {
-        return Inertia::render('Kanban/Create');
+        return Inertia::render('Kanban/CreateBoard');
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            //'bio' => 'nullable|string',
         ]);
 
-        KanbanBoard::create(['name' => $request->name]);
+        $board = KanbanBoard::create([
+            'name' => $request->input('name'),
+            //'bio' => $request->input('bio'),
+        ]);
 
-        return redirect()->route('kanban.index');
+        $defaultColumns = ['To do', 'Doing', 'Done'];
+        foreach ($defaultColumns as $position => $columnName) {
+            $board->columns()->create([
+                'name' => $columnName,
+                'position' => $position,
+            ]);
+        }
+
+        return redirect()->route('kanban.index')->with('success', 'Board created successfully.');
     }
 
-    public function show(KanbanBoard $kanbanBoard)
+    public function edit(KanbanBoard $board)
     {
-        $kanbanBoard->load('columns.tasks');
-
-        return Inertia::render('Kanban/Show', ['board' => $kanbanBoard]);
+        return Inertia::render('Kanban/EditBoard', [
+            'board' => $board,
+        ]);
     }
 
-    public function edit(KanbanBoard $kanbanBoard)
-    {
-        return Inertia::render('Kanban/Edit', ['board' => $kanbanBoard]);
-    }
-
-    public function update(Request $request, KanbanBoard $kanbanBoard)
+    public function update(Request $request, KanbanBoard $board)
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            //'bio' => 'nullable|string',
         ]);
 
-        $kanbanBoard->update(['name' => $request->name]);
+        $board->update([
+            'name' => $request->input('name'),
+            //'bio' => $request->input('bio'),
+        ]);
 
-        return redirect()->route('kanban.show', $kanbanBoard);
+        return redirect()->route('kanban.index')->with('Board updated successfully.');
     }
 
-    public function destroy(KanbanBoard $kanbanBoard)
+    public function destroy(KanbanBoard $board)
     {
-        $kanbanBoard->delete();
-        return redirect()->route('kanban.index');
+        $board->delete();
+
+        return redirect()->route('kanban.index')->with('Board deleted successfully.');
+    }
+
+    public function show(KanbanBoard $board)
+    {
+        $board->load('columns.tasks');
+        return Inertia::render('Kanban/BoardDetail', [
+            'board' => $board,
+        ]);
     }
 }

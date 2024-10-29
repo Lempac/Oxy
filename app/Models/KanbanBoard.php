@@ -9,7 +9,7 @@ class KanbanBoard extends Model
 {
     protected $table = 'kanban_boards';
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'bio'];
     /**
      */
     public function columns(): HasMany

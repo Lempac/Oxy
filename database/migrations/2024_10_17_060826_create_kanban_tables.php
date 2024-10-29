@@ -14,13 +14,14 @@ return new class extends Migration
         Schema::create('kanban_boards', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->text('bio')->nullable();
             $table->timestamps();
         });
 
         Schema::create('kanban_columns', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('kanban_board_id') 
+            $table->foreignId('kanban_board_id')
                   ->constrained('kanban_boards')
                   ->onDelete('cascade');
             $table->integer('position')->default(0);

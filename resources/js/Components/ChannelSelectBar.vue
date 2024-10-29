@@ -46,16 +46,16 @@ const serverSettingsModal = ref<HTMLDialogElement>();
         <!--        </Link>-->
 
         <!--        :href="route('home.board', {server : serverId} )"-->
-        <!--        <Link href="/">-->
-        <button class="flex flex-col items-center justify-center gap-1 p-2 relative text-gray-600"
-        :class="{'border-b-2 border-white text-white': $page.url.includes('/board') }"
+        <Link href="/kanban">
+            <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+                :class="{'border-b-2 border-white text-white': $page.url.includes('/kanban') }"
         >
-            <svg class="h-5 w-5">
-                <v-icon name="md-viewkanban-outlined"/>
-            </svg>
-            <span class="text-sm">Kanban Board</span>
-        </button>
-        <!--        </Link>-->
+                <svg class="h-5 w-5">
+                    <v-icon name="md-viewkanban-outlined"/>
+                </svg>
+                <span class="text-sm">Kanban Board</span>
+            </button>
+        </Link>
         </div>
     </div>
 </template>
