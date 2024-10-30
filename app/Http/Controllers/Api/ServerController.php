@@ -11,7 +11,7 @@ use App\Models\Server;
 use Auth;
 use Illuminate\Http\Request;
 use Storage;
-
+use Inertia\Inertia;
 
 class ServerController extends Controller
 {
@@ -102,7 +102,53 @@ class ServerController extends Controller
 
         return response()->json(['message' => 'Server updated successfully.']);
     }
+    public function showSettings($serverId)
+    {
+        $server = Server::find($serverId);
+        if (!$server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+    
+        return Inertia::render('Settings/Server', [
+            'server' => $server,
+        ]);
+    }
+    public function destroy(Request $request, int $serverId)
+{
+    $server = Server::find($serverId);
 
+    if (!$server) {
+        return response()->json(['message' => 'Server not found.'], 404);
+    }
+
+    $server->users()->detach();
+    $server->delete();
+
+    return redirect('/home');
+}
+public function update(Request $request, int $serverId)
+{
+    $request->validate([
+        'name' => 'nullable|string|max:50',
+        'description'=> 'nullable|string|max:255',
+        'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
+
+    $server = Server::find($serverId);
+    if (!$server) return redirect()->back()->withErrors(['message' => 'Server not found.']);
+
+    if ($request->file('icon')?->isValid()) {
+        $path = $request->file('icon')->store('uploads', 'public');
+        $server->icon = Storage::url($path);
+    }
+
+    $server->name = $request->input('name', $server->name);
+    $server->description = $request->input('description', $server->description);
+    $server->save();
+
+    return redirect()->route('settings.server', ['serverId' => $serverId])
+        ->with('message', 'Server updated successfully.');
+}
     public function delete(Request $request, int $serverId)
     {
         $server = Server::find($serverId);
@@ -115,5 +161,4 @@ class ServerController extends Controller
 
         return response()->json(['message' => 'Server deleted successfully.']);
     }
-
 }
