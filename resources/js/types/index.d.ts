@@ -38,6 +38,7 @@ export interface Server extends Object {
     name: string;
     description: string;
     icon: string | null;
+    users: User[];
 }
 
 export interface Message extends Object {

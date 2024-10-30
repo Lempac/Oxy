@@ -23,18 +23,22 @@ class HomeController extends Controller
 
     public function server(Request $request, int $server): Response
     {
+        $serverObj = Server::find($server);
         return Inertia::render('Home')->with([
             'servers' => $request->user()->servers,
-            'selected_server' => Server::find($server),
+            'selected_server' => $serverObj,
+            'users' => $serverObj->users,
             'invite_code' => $server . '#' . hash('xxh32', $server),
         ]);
     }
 
     public function text(Request $request, int $server): Response
     {
+        $serverObj = Server::find($server);
         return Inertia::render('Text/Texting')->with([
             'servers' => $request->user()->servers,
-            'selected_server' => Server::find($server),
+            'selected_server' => $serverObj,
+            'users' => $serverObj->users,
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
             'invite_code' => $server . '#' . hash('xxh32', $server),
         ]);
@@ -42,10 +46,12 @@ class HomeController extends Controller
 
     public function channel(Request $request, int $server, int $channel): Response
     {
+        $serverObj = Server::find($server);
         return Inertia::render('Text/Texting', [
-            'selected_server' => Server::find($server),
+            'selected_server' => $serverObj,
             'selected_channel' => Channel::find($channel),
             'servers' => $request->user()->servers,
+            'users' => $serverObj->users,
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn () : User => $message->user;
