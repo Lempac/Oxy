@@ -13,6 +13,7 @@
     languages.javascript.enable = true  ;
     languages.javascript.package = pkgs.nodejs_20;
 
+    services.mailpit.enable = true;
     services.mysql.enable = true;
     services.mysql.ensureUsers = [
         {
