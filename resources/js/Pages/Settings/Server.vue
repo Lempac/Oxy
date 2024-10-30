@@ -4,7 +4,7 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3';
 const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
-const baseUrl = import.meta.env.VITE_APP_BASE_URL || '';
+const baseUrl = window.location.origin;
 
 const props = defineProps<{
   server: {
