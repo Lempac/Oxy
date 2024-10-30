@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\Api\ChannelController;
+use App\Http\Controllers\Api\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,4 +38,10 @@ Route::middleware(['web'])->group(function () {
         Route::patch('/{channel}', 'edit')->name('.edit');
         Route::delete('/{channel}', 'delete')->name('.delete');
     });
+    Route::controller(RoleController::class)->prefix('roles')->name('roles')->group(function () {
+        Route::post('/', 'create')->name('.create');
+        Route::patch('/{roleId}', 'edit')->name('.edit');
+        Route::delete('/{roleId}', 'delete')->name('.delete');
+    });
+
 });
