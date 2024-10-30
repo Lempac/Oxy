@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-
+use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Server;
 use Illuminate\Http\Request;
@@ -44,10 +44,10 @@ public function edit(Request $request, int $serverId, int $roleId)
 {
 
     $request->validate([
-        'name' => 'sometimes|required|string|max:255',
-        'color' => 'sometimes|required|string|size:7',
-        'perms' => 'sometimes|required|integer',
-        'importance' => 'sometimes|required|integer',
+        'name' => 'sometimes|string|max:255',
+        'color' => 'sometimes|string|size:7',
+        'perms' => 'sometimes|integer',
+        'importance' => 'sometimes|integer',
     ]);
 
     $server = Server::find($serverId);
