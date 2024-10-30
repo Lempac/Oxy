@@ -19,6 +19,8 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+bun.lockb
+
 # Devenv
 .devenv*
 devenv.local.nix
