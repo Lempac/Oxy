@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Link, router, useForm, usePage} from "@inertiajs/vue3";
+import {Link, router, useForm} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
 import {defaultIcon, joinServer} from "@/bootstrap";
@@ -12,6 +12,7 @@ const isHomePage = computed(() => usePage().component === 'Home');
 
 const serverModal = ref<HTMLDialogElement>();
 const activeTab = ref<'create' | 'join'>('create');
+
 const form = useForm<{ name: string, description: string, icon: File | null }>({
     name: '',
     description: '',
@@ -28,10 +29,12 @@ const createServer = async () => {
         router.reload()
     });
 };
+
 const baseUrl = window.location.origin;
 
 const icon = ref<string | null>(null);
 const inputFile = ref<File | null>();
+
 const updateIcon = (val: File) => {
     inputFile.value = val;
     form.icon = inputFile.value;

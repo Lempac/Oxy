@@ -2,14 +2,15 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import TextSelectBar from "@/Components/TextSelectBar.vue";
 import {addIcons} from "oh-vue-icons";
-import {FaRegularPaperPlane} from "oh-vue-icons/icons";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
 import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
+import MembersList from "@/Components/MembersList.vue";
+import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 
-addIcons(FaRegularPaperPlane);
+addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const baseUrl = window.location.origin;
 
@@ -44,7 +45,7 @@ if(channel !== undefined){
     //         console.log("New message!");
     //         router.reload({only: ['messages']});
     //     });
-};
+}
 
 const createMessage = async () => {
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
@@ -77,20 +78,26 @@ watch(
     }
 );
 
+const deleteMessage = async (messageId: number) => {
+    axios.delete(route('message.delete', {message: messageId})).then(() => {
+        router.reload()
+    });
+};
+
 </script>
 
 <template>
   <AuthenticatedLayout>
-    <TextSelectBar></TextSelectBar>
-      <div class="w-3/4 h-[calc(100vh-21vh)] rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
+      <TextSelectBar></TextSelectBar>
 
+      <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] m-5 rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
           <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">
                   <div v-for="message in $page.props.messages.filter(messageObj => messageObj.type == MessageType.Text)" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
                       <div class="chat-image avatar">
                           <div class="w-10 rounded-full">
                               <img :src="message.sender.icon ? baseUrl + message.sender.icon : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s'"
-                                  alt="User Avatar"
+                                   alt="User Avatar"
                               />
                           </div>
                       </div>
@@ -98,7 +105,22 @@ watch(
                           {{ message.sender.name }}
                           <time class="text-xs opacity-50">{{ formatDate(message.created_at) }}</time>
                       </div>
-                      <div class="chat-bubble">{{ message.mdata }}</div>
+
+                      <div class="indicator">
+                          <div class="chat-bubble relative group">
+                              {{ message.mdata }}
+                              <div class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                                  <button @click.prevent="deleteMessage(message.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
+                                      <v-icon name="md-deleteforever-outlined"/>
+                                  </button>
+                              </div>
+                              <div class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                                  <button @click.prevent="" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                                      <v-icon name="md-modeeditoutline-outlined"/>
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
                   </div>
               </div>
               <div v-else>
@@ -120,5 +142,6 @@ watch(
           </form>
       </div>
 
+      <MembersList></MembersList>
   </AuthenticatedLayout>
 </template>

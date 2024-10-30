@@ -1,36 +1,29 @@
 <?php
 
+namespace App\Events\Roles;
 
-namespace App\Events\Messages;
-
-use App\Models\Message;
+use App\Models\Role;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageCreated implements ShouldBroadcast
+class RoleCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
     public function __construct(
-        public string $text,
-        public int $userId,
-        public int $channelId
+        public Role $role
     ) {}
 
     public function broadcastOn(): Channel
     {
-        return new Channel('messages.'.$this->channelId);
+        return new Channel('roles');
     }
 
     public function broadcastAs(): string
     {
-        return 'MessageCreated';
+        return 'RoleCreated';
     }
 }

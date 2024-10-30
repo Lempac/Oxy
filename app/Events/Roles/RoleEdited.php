@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Events\Messages;
+namespace App\Events\Roles;
 
+
+use App\Models\Role;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-
-class MessageEdited implements ShouldBroadcast
+class RoleEdited implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -17,18 +17,16 @@ class MessageEdited implements ShouldBroadcast
      * Create a new event instance.
      */
     public function __construct(
-        public int $messageId,
-        public int $channelId,
-        public int $userId
+        public Role $role
     ) {}
 
-    /**
-     * @inheritDoc
-     */
-    public function broadcastOn(): array|Channel|string
+    public function broadcastOn(): Channel
     {
-        return [
-            new PrivateChannel('messages.'.$this->channelId),
-        ];
+        return new Channel('roles');
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'RoleEdited';
     }
 }
