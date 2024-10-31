@@ -7,10 +7,9 @@ import echo from "@/echo";
 import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
-import MembersList from "@/Components/MembersList.vue";
-import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
+import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined} from "oh-vue-icons/icons";
 
-addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
+addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined);
 
 const baseUrl = window.location.origin;
 
@@ -107,14 +106,14 @@ const deleteMessage = async (messageId: number) => {
                       </div>
 
                       <div class="indicator">
-                          <div class="chat-bubble relative group">
+                          <div class="chat-bubble group max-w-full">
                               {{ message.mdata }}
-                              <div class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                              <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
                                   <button @click.prevent="deleteMessage(message.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
                                       <v-icon name="md-deleteforever-outlined"/>
                                   </button>
                               </div>
-                              <div class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                              <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
                                   <button @click.prevent="" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
                                       <v-icon name="md-modeeditoutline-outlined"/>
                                   </button>
@@ -128,20 +127,22 @@ const deleteMessage = async (messageId: number) => {
               </div>
           </div>
 
-          <form @submit.prevent="createMessage">
-              <div class="join w-full">
+          <form @submit.prevent="createMessage" class="flex items-center">
+<!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
+<!--                  <v-icon name="md-fileupload-outlined"/>-->
+<!--              </label>-->
+              <input id="file-upload" type="file" class="file-input file-input-bordered ml-5 mr-3 mb-5"/>
+              <div class="join w-full items-center">
                   <input type="text"
                          placeholder="Type here"
                          v-model="form.mdata"
-                         class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5 ml-5"
+                         class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
                   />
-                  <button class="btn join-item mr-5">
+                  <button class="btn join-item mr-5 mb-5">
                       <v-icon name="fa-regular-paper-plane" />
                   </button>
               </div>
           </form>
       </div>
-
-      <MembersList></MembersList>
   </AuthenticatedLayout>
 </template>
