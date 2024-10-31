@@ -5,6 +5,7 @@ import {usePage} from "@inertiajs/vue3";
 import {addIcons} from "oh-vue-icons";
 import {HiClipboardCopy} from "oh-vue-icons/icons";
 import {ref} from "vue";
+import MembersList from "@/Components/MembersList.vue";
 
 addIcons(HiClipboardCopy);
 
@@ -36,6 +37,8 @@ const toggle = ref(false);
                     </button>
                 </div>
             </div>
+
+            <MembersList/>
         </footer>
     </div>
 </template>

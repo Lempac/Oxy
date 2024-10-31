@@ -34,10 +34,15 @@ const deleteText = async (channelId: number) => {
 
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
-        <div class="indicator" v-for="channel in $page.props.channels" :key="channel.id">
-            <div class="indicator-item indicator-top">
+        <div class="indicator relative group" v-for="channel in $page.props.channels" :key="channel.id">
+            <div class="indicator-item indicator-top absolute hidden group-hover:block">
                 <button @click.prevent="deleteText(channel.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
                     <v-icon name="md-deleteforever-outlined"/>
+                </button>
+            </div>
+            <div class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
+                <button @click.prevent="" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                    <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
             <Link :href="route('home.channel', {server : serverId, channel : channel.id})">
