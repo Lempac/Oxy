@@ -2,20 +2,34 @@
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import axios from "axios";
-import {ChannelType} from "@/types";
+import {Channel, ChannelType} from "@/types";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
 addIcons(OiPlus, MdDeleteforeverOutlined);
 
-const { selected_server } = usePage().props;
+const { selected_server, selected_channel } = usePage().props;
 const serverId = selected_server?.id;
 
 const channelModal = ref<HTMLDialogElement>();
+const isEditing = ref(false);
+const editCurent = ref<Function>();
 
 const form = useForm({
     type: ChannelType.Text,
     name: ''
 });
+
+const openModal = (channel?: Channel) => {
+    if (channel) {
+        isEditing.value = true;
+        form.name = channel?.name || '';
+        editCurent.value = () => editText(channel.id);
+    } else {
+        isEditing.value = false;
+        form.name = '';
+    }
+    channelModal.value?.showModal();
+};``
 
 const createText = async () => {
     axios.postForm(route('channel.create', {server: serverId}), form.data()).then(() => {
@@ -26,6 +40,13 @@ const createText = async () => {
 
 const deleteText = async (channelId: number) => {
     axios.delete(route('channel.delete', {channel: channelId})).then(() => {
+        router.reload()
+    });
+};
+
+const editText = async (channelId: number) => {
+    axios.patch(route('channel.edit', {channel: channelId}), form.data()).then(() => {
+        channelModal.value?.close();
         router.reload()
     });
 };
@@ -41,7 +62,7 @@ const deleteText = async (channelId: number) => {
                 </button>
             </div>
             <div class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
-                <button @click.prevent="" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                <button @click.prevent="openModal(channel)" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
                     <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
@@ -51,23 +72,24 @@ const deleteText = async (channelId: number) => {
                 </button>
             </Link>
         </div>
-        <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="channelModal?.showModal">
+        <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="openModal()">
             <v-icon name="oi-plus"/>
         </button>
     </div>
 
     <dialog ref="channelModal" class="modal">
         <div class="modal-box">
-            <form @submit.prevent="createText">
+            <form @submit.prevent="isEditing ? editCurent!() : createText()">
                 <div class="form-control mb-4">
                     <label class="label">
                         <span class="label-text">Text Channel Name</span>
                     </label>
-                    <input v-model="form.name" type="text" placeholder="Enter channel name"
-                           class="input input-bordered"/>
+                    <input v-model="form.name" type="text" placeholder="Enter channel name" class="input input-bordered"/>
                 </div>
                 <div class="modal-action">
-                    <button type="submit" class="btn btn-primary w-full mt-2">Create Text Channel</button>
+                    <button type="submit" class="btn btn-primary w-full mt-2">
+                        {{ isEditing ? 'Edit Text Channel' : 'Create Text Channel' }}
+                    </button>
                 </div>
             </form>
             <div class="modal-action">
