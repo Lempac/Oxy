@@ -5,9 +5,9 @@ import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import echo from "@/echo";
-import { CoChatBubble } from "oh-vue-icons/icons";
+import { CoChatBubble } from "oh-vue-icons/icons"; 
 import { RiComputerFill } from "oh-vue-icons/icons";
-import { addIcons } from "oh-vue-icons";
+import { addIcons } from "oh-vue-icons"; 
 addIcons(CoChatBubble, RiComputerFill);
 
 // Reactive state for showing/hiding the login popup
@@ -86,11 +86,11 @@ const submitRegister = () => {
 
 <template>
     <Head title="Welcome"></Head>
-    <body class="min-h-screen bg-cover bg-center" :style="`background-image: url(${backgroundImage})`">
+    <body class="bg-cover bg-center" :style="`background-image: url(${backgroundImage})`">
         <div class="card card-body">
             <header>
                 <div class="navbar flex justify-between">
-                    <img src="/images/oxy.png" class="block h-16 w-auto fill-current" alt=""/>
+                    <img src="/images/oxy.png" class="block h-16 w-auto fill-current"/>
                     <div>
                         <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
                             Home
@@ -111,37 +111,31 @@ const submitRegister = () => {
 
             <main class="ml-20">
                 <h1 class="text-7xl font-sans text-gray-400">Welcome to the future</h1>
-                <div class="mt-5 w-1/4 p-4 rounded-lg">
-                    <h2 class="text-3xl font-sans text-white text-left">Scroll down to see what we offer</h2>
-                </div>
 
-                <!-- Countdown Section -->
-                <div class="text-left flex my-4">
+                <!-- Countdown Section --> 
+                <div class="text-left flex my-4 mb-10 mt-10"> 
                     <div class="card shadow-lg bg-gray-500 text-white">
-                        <div class="card-body p-2">
+                        <div class="card-body p-2"> 
                             <h2 class="text-2xl font-bold">Countdown to next phase</h2>
-                            <p class="text-xl">{{ countdown }}</p>
+                            <p class="text-xl">{{ countdown }}</p> 
                         </div>
                     </div>
                 </div>
 
-                <!-- Three-Column Feature Section -->
+                <!-- Info cards -->
                 <div class="flex justify-center mt-8 space-x-8">
-                    <!-- Messaging Card -->
                     <div class="card bg-gray-500 text-white p-4 w-1/3 text-center">
                         <v-icon name="co-chat-bubble" scale="1" class="w-16 h-16 mx-auto mb-4"></v-icon>
                         <h2 class="text-2xl font-bold">Messaging</h2>
                         <p class="mt-2">Oxy lets users easily communicate with others quickly with channels and servers.</p>
                     </div>
 
-                    <!-- Servers Card -->
                     <div class="card bg-gray-500 text-white p-4 w-1/3 text-center">
                         <v-icon name="ri-computer-fill" scale="1" class="w-16 h-16 mx-auto mb-4"></v-icon>
                         <h2 class="text-2xl font-bold">Servers</h2>
                         <p class="mt-2">Create servers to communicate with multiple people and work on projects simultaneously.</p>
                     </div>
 
-                    <!-- Kanban Board Card -->
                     <div class="card bg-gray-500 text-white p-4 w-1/3 text-center">
                         <img src="/images/kanban.png" alt="Kanban" class="w-16 h-16 mx-auto mb-4"/>
                         <h2 class="text-2xl font-bold">Kanban Board</h2>
@@ -149,10 +143,9 @@ const submitRegister = () => {
                     </div>
                 </div>
 
-                <!-- Join Now Card -->
                 <div class="card mt-10 bordered h-fit bg-white">
                     <h2 class="card-title text-black ml-5 mt-5">What are you waiting for?</h2>
-                    <div class="flex justify-between items-center p-5">
+                    <div class="flex justify-between items-center p-5"> 
                         <p class="text-black text-xl md:text-l ml-5">
                             Join now!!!
                         </p>
@@ -175,7 +168,7 @@ const submitRegister = () => {
             </main>
 
             <footer class="footer footer-center mt-10 text-white">
-                <div class="rounded-full bg-base-300 p-4">
+                <div class="rounded-full p-4 bg-black">
                     © {{ new Date().getFullYear() }} Oxy
                 </div>
             </footer>

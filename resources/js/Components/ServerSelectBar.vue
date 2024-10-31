@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import {Link, router, useForm} from "@inertiajs/vue3";
+import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 import {defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
 addIcons(OiPlus);
 
+const isHomePage = computed(() => usePage().component === 'Home');
 
 
 const serverModal = ref<HTMLDialogElement>();
@@ -24,8 +25,6 @@ const joinForm = useForm({
 })
 
 const createServer = async () => {
-    // let res = await axios.post(route('tokens.create'))
-    // console.log(res)
     axios.postForm(route('server.create'), form.data()).then(() => {
         serverModal.value?.close();
         router.reload()
@@ -68,7 +67,7 @@ const updateIcon = (val: File) => {
                     </Link>
                 </div>
             </div>
-            <button class="ml-3 btn btn-circle" @click="serverModal?.showModal">
+            <button v-if="isHomePage" class="ml-3 btn btn-circle" @click="serverModal?.showModal">
                 <v-icon name="oi-plus" scale="1.5"/>
             </button>
         </div>
