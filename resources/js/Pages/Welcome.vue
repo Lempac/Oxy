@@ -3,11 +3,9 @@ import {Head, Link, useForm} from '@inertiajs/vue3';
 import {ref, onMounted, onUnmounted} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import echo from "@/echo";
-import { CoChatBubble } from "oh-vue-icons/icons"; 
+import { CoChatBubble } from "oh-vue-icons/icons";
 import { RiComputerFill } from "oh-vue-icons/icons";
-import { addIcons } from "oh-vue-icons"; 
+import { addIcons } from "oh-vue-icons";
 addIcons(CoChatBubble, RiComputerFill);
 
 // Reactive state for showing/hiding the login popup
@@ -86,7 +84,7 @@ const submitRegister = () => {
 
 <template>
     <Head title="Welcome"></Head>
-    <body class="bg-cover bg-center" :style="`background-image: url(${backgroundImage})`">
+    <body class="bg-cover bg-center min-h-screen" :style="`background-image: url(${backgroundImage})`">
         <div class="card card-body">
             <header>
                 <div class="navbar flex justify-between">
@@ -112,12 +110,12 @@ const submitRegister = () => {
             <main class="ml-20">
                 <h1 class="text-7xl font-sans text-gray-400">Welcome to the future</h1>
 
-                <!-- Countdown Section --> 
-                <div class="text-left flex my-4 mb-10 mt-10"> 
+                <!-- Countdown Section -->
+                <div class="text-left flex my-4 mb-10 mt-10">
                     <div class="card shadow-lg bg-gray-500 text-white">
-                        <div class="card-body p-2"> 
+                        <div class="card-body p-2">
                             <h2 class="text-2xl font-bold">Countdown to next phase</h2>
-                            <p class="text-xl">{{ countdown }}</p> 
+                            <p class="text-xl">{{ countdown }}</p>
                         </div>
                     </div>
                 </div>
@@ -145,7 +143,7 @@ const submitRegister = () => {
 
                 <div class="card mt-10 bordered h-fit bg-white">
                     <h2 class="card-title text-black ml-5 mt-5">What are you waiting for?</h2>
-                    <div class="flex justify-between items-center p-5"> 
+                    <div class="flex justify-between items-center p-5">
                         <p class="text-black text-xl md:text-l ml-5">
                             Join now!!!
                         </p>

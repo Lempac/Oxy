@@ -25,17 +25,12 @@ class Role extends Model
             ->withTimestamps();
     }
 
-    public function servers(): BelongsToMany
+    public function server(): BelongsTo
     {
-        return $this->belongsToMany(Server::class, 'role_server_user')
+        return $this->belongsTo(Server::class, 'role_server_user')
             ->withPivot('user_id')
             ->withTimestamps();
     }
-
-    protected $casts = [
-        'perms' => 'array', 
-    ];
-
 }
 
 

@@ -3,7 +3,6 @@ import { defineProps, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3';
 const { selected_server } = usePage().props;
-const serverId = selected_server?.id;
 const baseUrl = window.location.origin;
 
 const props = defineProps<{
@@ -28,8 +27,8 @@ const updateIcon = (file: File | null) => {
     console.log('Selected file:', file);
     if (!file) return;
     inputFile.value = file;
-    form.icon = file; 
-    icon.value = URL.createObjectURL(file); 
+    form.icon = file;
+    icon.value = URL.createObjectURL(file);
 };
 
 function handleSave() {

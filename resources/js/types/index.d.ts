@@ -38,7 +38,18 @@ export interface Server extends Object {
     name: string;
     description: string;
     icon: string | null;
-    users: User[];
+    users: User[] | null;
+    roles: Role[] | null;
+}
+
+export interface Role extends Object {
+    name: string;
+    color: string;
+    perms: number;
+    importance: number;
+    created_at: string;
+    users: User[] | null;
+    server: Server | null;
 }
 
 export interface Message extends Object {
@@ -61,6 +72,8 @@ export interface User {
     name: string;
     email: string;
     email_verified_at: string | null;
+    roles: Role[] | null;
+    servers: Server[] | null;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
