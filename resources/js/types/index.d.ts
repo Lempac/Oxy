@@ -1,8 +1,8 @@
 import {Config} from 'ziggy-js';
 
 interface Object {
-    id: number;
-    update_at: string;
+    readonly id: number;
+    readonly update_at: string;
 }
 
 export enum ChannelType {
@@ -14,6 +14,14 @@ export enum ChannelType {
 export enum MessageType {
     Text = 'text',
     Image = 'image',
+}
+
+export interface Role extends Object{
+    name: string;
+    color: string;
+    importance: number;
+    perms: number;
+    readonly created_at: string;
 }
 
 export interface Note extends Object {

@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Api\ServerController;
+use App\Http\Controllers\Api\RoleController;
 
 Route::get('/', fn() => Inertia::render('Welcome'))->name('welcome');
 #Server/home routes
@@ -17,11 +18,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/{server}/text/{channel}/{message}', 'message')->name('home.message');
     });
     #Setting routes
-    Route::get('/settings/server/{serverId}', [ServerController::class, 'showSettings'])->name('settings.server');
-    Route::post('/settings/server/{id}', [ServerController::class, 'update'])->name('server.update');
-    Route::delete('/settings/server/{id}', [ServerController::class, 'destroy'])->name('server.destroy');
-    Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
-    
+    Route::prefix('settings')->group(function () {
+        Route::controller(ServerController::class)->prefix('server')->group(function () {
+            Route::get('/{serverId}','showSettings')->name('settings.server');
+            Route::post('/{id}', 'update')->name('server.update');
+            Route::delete('/{id}', 'destroy')->name('server.destroy');
+        });
+        Route::get('/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
+    });
+
     #Profile routes
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
