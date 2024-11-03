@@ -58,10 +58,10 @@ function deleteServer() {
         </div>
         <div class="flex space-x-6">
           <Link :href="route('settings.server', { serverId: server.id })" class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
-            Server
+              Server
           </Link>
-          <Link :href="route('settings.role')" class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
-            Roles
+          <Link :href="route('settings.role', { id: server.id })" class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
+              Roles
           </Link>
         </div>
       </div>
