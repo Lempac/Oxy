@@ -28,9 +28,9 @@ Route::middleware(['web'])->group(function () {
     });
 
     Route::controller(MessageController::class)->prefix('message')->name('message')->group(function () {
-       Route::post('/{channel}', 'create')->name('.create');
-       Route::patch('/{message}', 'edit')->name('.edit');
-       Route::delete('/{message}','delete')->name('.delete');
+        Route::post('/{channel}', 'create')->name('.create');
+        Route::patch('/{message}', 'edit')->name('.edit');
+        Route::delete('/{message}', 'delete')->name('.delete');
     });
 
     Route::controller(ChannelController::class)->prefix('channel')->name('channel')->group(function () {
@@ -39,9 +39,11 @@ Route::middleware(['web'])->group(function () {
         Route::delete('/{channel}', 'delete')->name('.delete');
     });
     Route::controller(RoleController::class)->prefix('roles')->name('roles')->group(function () {
-        Route::post('/', 'create')->name('.create');
-        Route::patch('/{roleId}', 'edit')->name('.edit');
-        Route::delete('/{roleId}', 'delete')->name('.delete');
+        Route::get('/{server}', 'index')->name('.index');
+        Route::post('/{server}', 'create')->name('.create');
+        Route::patch('/{role}', 'edit')->name('.edit');
+        Route::delete('/{role}', 'delete')->name('.delete');
+
     });
 
 });

@@ -18,14 +18,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/{server}/text/{channel}/{message}', 'message')->name('home.message');
     });
     #Setting routes
-    Route::get('/settings/server/{serverId}', [ServerController::class, 'showSettings'])->name('settings.server');
-    Route::post('/settings/server/{id}', [ServerController::class, 'update'])->name('server.update');
-    Route::delete('/settings/server/{id}', [ServerController::class, 'destroy'])->name('server.destroy');
-    Route::get('/settings/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
-    Route::get('/api/servers/{serverId}/roles', [RoleController::class, 'fetchRoles']);
-    Route::post('/api/servers/{serverId}/roles', [RoleController::class, 'create']);
-    Route::put('/api/servers/{serverId}/roles/{roleId}', [RoleController::class, 'edit']);
-    Route::delete('/api/servers/{serverId}/roles/{roleId}', [RoleController::class, 'delete']);
+    Route::prefix('settings')->group(function () {
+        Route::controller(ServerController::class)->prefix('server')->group(function () {
+            Route::get('/{serverId}','showSettings')->name('settings.server');
+            Route::post('/{id}', 'update')->name('server.update');
+            Route::delete('/{id}', 'destroy')->name('server.destroy');
+        });
+        Route::get('/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
+    });
 
     #Profile routes
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
