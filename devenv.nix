@@ -2,7 +2,6 @@
 
 {
 #    dotenv.enable = true;
-    devcontainer.enable = true;
     languages.php.enable = true;
     languages.php.version = "8.3";
     languages.php.extensions = [ "xdebug" "pdo_mysql" ];
@@ -17,8 +16,8 @@
     processes = {
         vite.exec = "npm run dev";
         php-serve.exec = "php artisan serve";
-#        php-queue.exec = "php artisan queue:work";
-#        php-reverb.exec = "php artisan reverb:start";
+        php-queue.exec = "php artisan queue:work";
+        php-reverb.exec = "php artisan reverb:start";
     };
 
     services.mailpit.enable = true;
