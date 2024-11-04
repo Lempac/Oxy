@@ -113,7 +113,7 @@ class ServerController extends Controller
         return Inertia::render('Settings/Server')->with(['selected_server' => $server]);
     }
 
-    public function destroy(Request $request, int $serverId)
+    public function destroy(int $serverId)
     {
         $server = Server::find($serverId);
 

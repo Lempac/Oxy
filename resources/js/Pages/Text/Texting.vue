@@ -92,7 +92,7 @@ const deleteMessage = async (messageId: number) => {
       <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] m-5 rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
           <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">
-                  <div v-for="message in $page.props.messages.filter(messageObj => messageObj.type == MessageType.Text)" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
+                  <div v-for="message in $page.props.messages" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
                       <div class="chat-image avatar">
                           <div class="w-10 rounded-full">
                               <img :src="message.sender.icon ? baseUrl + message.sender.icon : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s'"

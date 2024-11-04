@@ -27,7 +27,7 @@ class MessageFactory extends Factory
 //        dd([$type, $type == MessageType::Text->value]);
         return [
             'type' => $type,
-            'mdata' => $type == MessageType::Text->value ? fake()->text(maxNbChars: 100) : null
+            'mdata' => $type == MessageType::Text->value ? fake()->text(maxNbChars: 100) : 'https://picsum.photos/'.random_int(120, 1920).'/'.random_int(120, 1080)
         ];
     }
 }
