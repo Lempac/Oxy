@@ -18,6 +18,7 @@ return new class extends Migration
             $table->bigInteger('perms');
             $table->integer('importance');
             $table->timestamps();
+
         });
     }
 

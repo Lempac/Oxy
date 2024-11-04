@@ -97,9 +97,7 @@ class RoleController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        return Inertia::render('Settings/Role')->with(
-            ['selected_server' => $server,]
-        );
+        return Inertia::render('Settings/Role')->with(['selected_server' => $server]);
     }
 
 }
