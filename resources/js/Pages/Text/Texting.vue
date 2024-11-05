@@ -27,9 +27,9 @@ function formatDate(dateString: string): string {
     return `${day}-${month}-${year} ${hours}:${minutes}`;
 }
 
-const form = useForm({
+const form = useForm<{type: MessageType , mdata: File | string | null}>({
     type: MessageType.Text,
-    mdata: ''
+    mdata: null
 });
 
 let channel = usePage().props.selected_channel
@@ -47,8 +47,16 @@ if(channel !== undefined){
     //     });
 }
 
+let isDisabled = false;
+const fileInput = ref<HTMLInputElement | null>(null);
+
 const createMessage = async () => {
+    if (typeof(form.mdata) !== "string") {
+        form.type = MessageType.Image;
+    }
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
+    isDisabled = false;
+    fileInput.value!.value = '';
 };
 
 const messageContainer = ref<HTMLElement | null>(null);
@@ -102,13 +110,20 @@ const openModal = (messageId: number, messageContent: string) => {
     messageModal.value?.showModal();
 };
 
-const inputFile = ref<File | null>();
-
-// const uploadFile = (val: File) => {
-//     inputFile.value = val;
-//     form.mdata = inputFile.value;
-//     mdata.value = URL.createObjectURL(inputFile.value);
+// doesnt work
+// const modalCheck = () => {
+//     return form.mdata;
 // }
+
+const inputFile = ref<File | null>();
+const mdata = ref<string | null>(null);
+
+const uploadFile = (val: File) => {
+    inputFile.value = val;
+    form.mdata = inputFile.value;
+    mdata.value = URL.createObjectURL(inputFile.value);
+    isDisabled = true;
+}
 
 </script>
 
@@ -161,11 +176,11 @@ const inputFile = ref<File | null>();
     <!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
     <!--                  <v-icon name="md-fileupload-outlined"/>-->
     <!--              </label>-->
-              <input id="file-upload" type="file" ref="uploadFile"
+              <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])" ref="fileInput"
                      class="file-input file-input-bordered ml-5 mr-3 mb-5 focus:outline-none focus:ring-0"
               />
               <div class="join w-full items-center">
-                  <input type="text" placeholder="Type here" v-model="form.mdata"
+                  <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled"
                          class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
                   />
                   <button class="btn join-item mr-5 mb-5">
@@ -188,10 +203,10 @@ const inputFile = ref<File | null>();
                 <div class="modal-action">
                     <button type="submit" class="btn btn-primary w-full mt-2">Edit Message</button>
                 </div>
+                <div class="modal-action">
+                    <button @click="() => messageModal?.close() && form.reset()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </div>
             </form>
-            <div class="modal-action">
-                <button @click="() => messageModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-            </div>
         </div>
     </dialog>
 </template>

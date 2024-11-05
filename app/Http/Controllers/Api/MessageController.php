@@ -17,7 +17,7 @@ class MessageController
     {
         $request->validate([
             'type' => 'required|in:' . implode(',', array_column(MessageType::cases(), 'value')),
-            'mdata' => 'required|string',
+            'mdata' => 'required',
         ]);
 
         $channel = Channel::find($channelId);
