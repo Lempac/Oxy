@@ -7,7 +7,7 @@ import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
 addIcons(OiPlus, MdDeleteforeverOutlined);
 
-const { selected_server, selected_channel } = usePage().props;
+const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
 
 const channelModal = ref<HTMLDialogElement>();
