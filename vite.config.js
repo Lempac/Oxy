@@ -23,5 +23,10 @@ export default defineConfig({
         alias: {
             "@/types": path.resolve(__dirname, './resources/js/types/index.d.ts')
         }
+    },
+    server:{
+        watch: {
+            ignored: [ "**/.devenv/**" ],
+        }
     }
 });

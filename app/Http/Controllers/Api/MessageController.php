@@ -17,7 +17,7 @@ class MessageController
     {
         $request->validate([
             'type' => 'required|in:' . implode(',', array_column(MessageType::cases(), 'value')),
-            'mdata' => 'required|string',
+            'mdata' => 'required',
         ]);
 
         $channel = Channel::find($channelId);
@@ -54,7 +54,7 @@ class MessageController
             return response()->json(['message' => 'Message not found'], 404);
         }
 
-        if ($message->type == MessageType::Text->value) {
+        if ($message->type != MessageType::Text->value) {
             return response()->json(['message' => 'Message can not be edited'], 400);
         }
 
@@ -76,7 +76,7 @@ class MessageController
             return response()->json(['message' => 'Message not found'], 404);
         }
 
-        if ($message->type == MessageType::Text->value) {
+        if ($message->type != MessageType::Text->value) {
             Storage::disk('public')->delete($message->mdata);
         }
 
