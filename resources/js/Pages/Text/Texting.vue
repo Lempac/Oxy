@@ -50,13 +50,19 @@ if(channel !== undefined){
 let isDisabled = false;
 const fileInput = ref<HTMLInputElement | null>(null);
 
+const clearFile = () => {
+    fileInput.value!.value = '';
+    form.reset();
+    isDisabled = false;
+}
+
 const createMessage = async () => {
     if (typeof(form.mdata) !== "string") {
         form.type = MessageType.Image;
     }
-    axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
-    isDisabled = false;
-    fileInput.value!.value = '';
+    axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => {
+        clearFile()
+    });
 };
 
 const messageContainer = ref<HTMLElement | null>(null);
@@ -176,9 +182,13 @@ const uploadFile = (val: File) => {
     <!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
     <!--                  <v-icon name="md-fileupload-outlined"/>-->
     <!--              </label>-->
-              <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])" ref="fileInput"
-                     class="file-input file-input-bordered ml-5 mr-3 mb-5 focus:outline-none focus:ring-0"
-              />
+              <div class="items-center inline-flex">
+                  <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])" ref="fileInput"
+                         class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
+                  />
+                  <button @click.prevent="clearFile" class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕</button>
+              </div>
+
               <div class="join w-full items-center">
                   <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled"
                          class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
