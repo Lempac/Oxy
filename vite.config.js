@@ -3,6 +3,7 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 
+/** @type {import('vite').UserConfig} */
 export default defineConfig({
     plugins: [
         laravel({
