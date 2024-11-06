@@ -76,7 +76,7 @@ class MessageController
             return response()->json(['message' => 'Message not found'], 404);
         }
 
-        if ($message->type == MessageType::Text->value) {
+        if ($message->type != MessageType::Text->value) {
             Storage::disk('public')->delete($message->mdata);
         }
 
