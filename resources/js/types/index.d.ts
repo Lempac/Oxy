@@ -14,6 +14,7 @@ export enum ChannelType {
 export enum MessageType {
     Text = 'text',
     Image = 'image',
+    File = 'file',
 }
 
 export interface Role extends Object{

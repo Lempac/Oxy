@@ -21,7 +21,7 @@ jobs:
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
     - name: Install NPM dependencies
-      run: npm install
+      run: npm install --force
     - name: Compile assets
       run: npm run build
     - name: Generate key
