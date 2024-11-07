@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->enum('type', array_column(ChannelType::cases(), 'value'));
             $table->timestamps();
             $table->unsignedBigInteger('server_id');
-            $table->foreign('server_id')->references('id')->on('servers');
+            $table->foreign('server_id')->cascadeOnUpdate()->cascadeOnDelete()->references('id')->on('servers');
         });
     }
 
