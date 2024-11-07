@@ -2,6 +2,7 @@
 import {defineProps, ref} from 'vue';
 import {Link, router, usePage} from '@inertiajs/vue3';
 import {useForm} from '@inertiajs/vue3';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 
 const {selected_server} = usePage().props;
 const baseUrl = window.location.origin;
@@ -27,16 +28,17 @@ function handleSave() {
     form.post(route('server.update', {id: selected_server?.id}));
 }
 
-
 function deleteServer() {
-    if (confirm('Are you sure you want to delete this server?')) {
-        router.delete(route('server.destroy', {id: selected_server?.id}), {
-            onSuccess: () => {
-                router.visit('/home');
-            },
-        });
-    }
+  showModal.value = false;
+  router.delete(route('server.destroy', { id: selected_server?.id }), {
+    onSuccess: () => {
+      router.visit('/home');
+    },
+  });
 }
+
+const showModal = ref(false);
+
 </script>
 
 <template>
@@ -129,8 +131,15 @@ function deleteServer() {
                         <input type="checkbox" class="toggle toggle-primary"/>
                     </div>
                 </div>
-                <button @click="deleteServer" class="btn btn-danger mt-10 bg-red-500 text-white">Delete Server</button>
-            </div>
+                <button @click="showModal = true" class="btn btn-danger mt-10 bg-red-500 text-white">Delete Server</button>
+                <ConfirmDialog
+                  v-if="showModal"
+                  :title="'Delete Server'"
+                  :description="'Are you sure you want to delete this server?'"
+                  :cancel="() => showModal = false"
+                  :confirm="deleteServer"
+                />
+              </div>
         </div>
     </div>
 </template>
