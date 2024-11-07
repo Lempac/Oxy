@@ -107,11 +107,11 @@ const submitRegister = () => {
                 </div>
             </header>
 
-            <main class="ml-20">
+            <main>
                 <h1 class="text-7xl font-sans text-gray-400">Welcome to the future</h1>
 
                 <!-- Countdown Section -->
-                <div class="text-left flex my-4 mb-10 mt-10">
+                <div class="text-left flex my-4 mb-10 mt-10 mr-8">
                     <div class="card shadow-lg bg-gray-500 text-white">
                         <div class="card-body p-2">
                             <h2 class="text-2xl font-bold">Countdown to next phase</h2>
@@ -151,7 +151,6 @@ const submitRegister = () => {
                             <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
                                 Home
                             </Link>
-
                             <template v-else>
                                 <div class="grid gap-3 grid-flow-col">
                                     <!-- Login button that triggers the popup -->
@@ -162,6 +161,78 @@ const submitRegister = () => {
                             </template>
                         </div>
                     </div>
+                </div>
+                <div class="collapse bg-base-200 text-center mt-2">
+                <input type="checkbox" />
+                <div class="collapse-title text-xl font-medium underline">See more</div>
+                <div class="collapse-content">
+                    <div class="font-medium text-2xl">About us </div>
+                    <ul class="timeline timeline-snap-icon max-md:timeline-compact timeline-vertical">
+                <li>
+                    <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="h-5 w-5">
+                        <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    </div>
+                    <div class="timeline-start mb-10 md:text-end">
+                    <div class="text-lg font-black text-center">Server</div>
+                    Within our program you will be able to create a server, which allows you to control your own server and
+                    manage it's members. This means you can control who will be allowed in the server as well as what role
+                    they have. By creating a server you are also able to create text channels, voice channels and gain accses
+                    to the kanban board.
+                    </div>
+                    <hr />
+                </li>
+                <li>
+                    <hr />
+                    <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="h-5 w-5">
+                        <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    </div>
+                    <div class="timeline-end mb-10">
+                    <div class="text-lg font-black">Roles</div>
+                    Within each server, you can be assigned a role. It could be something simple like "programmer" or "manager".
+                    Theese roles will be visible by all members and help them communicate better.
+                    </div>
+                    <hr />
+                </li>
+                <li>
+                    <hr />
+                    <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="h-5 w-5">
+                        <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                        clip-rule="evenodd" />
+                    </svg>
+                    </div>
+                    <div class="timeline-start mb-10 md:text-end">
+                    <div class="text-lg font-black text-center">temp</div>
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Incidunt maiores amet a quaerat eum, quisquam adipisci ratione ea corrupti! Repellat numquam recusandae neque esse nisi porro expedita possimus maxime accusamus.
+                    </div>
+                    <hr />
+                    </li>
+                </ul>
+                </div>
                 </div>
             </main>
 
@@ -287,7 +358,6 @@ const submitRegister = () => {
             </button>
         </form>
     </dialog>
-    <!--    </Transition>-->
     </body>
 </template>
 
