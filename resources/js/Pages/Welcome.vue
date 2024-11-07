@@ -107,7 +107,7 @@ const submitRegister = () => {
                 </div>
             </header>
 
-            <main class="ml-10">
+            <main>
                 <h1 class="text-7xl font-sans text-gray-400">Welcome to the future</h1>
 
                 <!-- Countdown Section -->
@@ -183,8 +183,8 @@ const submitRegister = () => {
                     </div>
                     <div class="timeline-start mb-10 md:text-end">
                     <div class="text-lg font-black text-center">Server</div>
-                    Within our program you will be able to create a server, which allows you to control your own server and 
-                    manage it's members. This means you can control who will be allowed in the server as well as what role 
+                    Within our program you will be able to create a server, which allows you to control your own server and
+                    manage it's members. This means you can control who will be allowed in the server as well as what role
                     they have. By creating a server you are also able to create text channels, voice channels and gain accses
                     to the kanban board.
                     </div>
@@ -206,7 +206,7 @@ const submitRegister = () => {
                     </div>
                     <div class="timeline-end mb-10">
                     <div class="text-lg font-black">Roles</div>
-                    Within each server, you can be assigned a role. It could be something simple like "programmer" or "manager". 
+                    Within each server, you can be assigned a role. It could be something simple like "programmer" or "manager".
                     Theese roles will be visible by all members and help them communicate better.
                     </div>
                     <hr />

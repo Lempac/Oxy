@@ -36,11 +36,9 @@ function deleteServer() {
     },
   });
 }
+
 const showModal = ref(false);
 
-const cancelDelete = () => {
-  showModal.value = false;
-};
 </script>
 
 <template>
@@ -138,7 +136,7 @@ const cancelDelete = () => {
                   v-if="showModal"
                   :title="'Delete Server'"
                   :description="'Are you sure you want to delete this server?'"
-                  :cancel="cancelDelete"
+                  :cancel="() => showModal = false"
                   :confirm="deleteServer"
                 />
               </div>
