@@ -7,12 +7,12 @@ import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
 addIcons(OiPlus, MdDeleteforeverOutlined);
 
-const { selected_server, selected_channel } = usePage().props;
+const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
 
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
-const editCurent = ref<Function>();
+const editCurrent = ref<Function>();
 
 const form = useForm({
     type: ChannelType.Text,
@@ -23,7 +23,7 @@ const openModal = (channel?: Channel) => {
     if (channel) {
         isEditing.value = true;
         form.name = channel?.name || '';
-        editCurent.value = () => editText(channel.id);
+        editCurrent.value = () => editText(channel.id);
     } else {
         isEditing.value = false;
         form.name = '';
@@ -79,7 +79,7 @@ const editText = async (channelId: number) => {
 
     <dialog ref="channelModal" class="modal">
         <div class="modal-box">
-            <form @submit.prevent="isEditing ? editCurent!() : createText()">
+            <form @submit.prevent="isEditing ? editCurrent!() : createText()">
                 <div class="form-control mb-4">
                     <label class="label">
                         <span class="label-text">Text Channel Name</span>
