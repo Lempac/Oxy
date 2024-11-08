@@ -8,7 +8,7 @@ import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
 addIcons(OiPlus);
 
-const isHomePage = computed(() => usePage().component === 'Home');
+const isHomePage = computed(() => usePage().component === 'Home' || 'Text');
 
 
 const serverModal = ref<HTMLDialogElement>();
