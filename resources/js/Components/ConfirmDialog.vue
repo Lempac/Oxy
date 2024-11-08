@@ -1,22 +1,30 @@
 <script setup lang="ts">
-import {ref, defineProps, Ref} from "vue";
+import {ref, defineProps} from "vue";
+import {usePage} from "@inertiajs/vue3";
 
 const modal = ref<HTMLDialogElement>();
 
-defineProps<{
+withDefaults(defineProps<{
     title: String,
     description: String,
-    cancel: (event: MouseEvent) => void,
-    confirm: (event: MouseEvent) => void
-}>();
+    cancel?: (event: MouseEvent) => void,
+    confirm?: (event: MouseEvent) => void
+    text?: string,
+    className: string,
+}>(), {
+    cancel: (_: MouseEvent) => {},
+    confirm: (_: MouseEvent) => {},
+});
 
-defineExpose<{
 
-}>()
 
 </script>
 
 <template>
+    <button @click="modal?.showModal" :class="className">
+        <span v-if="text" v-text="text"></span>
+        <slot v-else/>
+    </button>
     <Teleport to="body">
         <dialog ref="modal" class="modal">
             <div class="modal-box">

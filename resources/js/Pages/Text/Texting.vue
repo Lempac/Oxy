@@ -170,15 +170,14 @@ const uploadFile = (val: File) => {
                               </div>
 
                               <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
-                                  <button class="indicator-item badge badge-error h-auto w-auto p-0.5">
+                                  <ConfirmDialog
+                                      title="Delete Message"
+                                      description="Are you sure you want to delete this message?"
+                                      class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
+                                      :confirm="() => deleteMessage(message.id)"
+                                  >
                                       <v-icon name="md-deleteforever-outlined"/>
-                                  </button>
-<!--                                  <ConfirmDialog-->
-<!--                                      :title="'Delete Message'"-->
-<!--                                      :description="'Are you sure you want to delete this message?'"-->
-<!--                                      :cancel="() => {}"-->
-<!--                                      :confirm="() => deleteMessage(message.id)"-->
-<!--                                  />-->
+                                  </ConfirmDialog>
                               </div>
                               <div v-if="message.user_id === $page.props.auth.user.id && MessageType.Text === message.type" class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
                                   <button @click="openModal(message.id, message.mdata)" class="indicator-item badge badge-warning h-auto w-auto p-0.5">

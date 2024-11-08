@@ -31,11 +31,11 @@ function handleSave() {
 }
 
 function deleteServer() {
-  router.delete(route('server.destroy', { id: selected_server?.id }), {
-    onSuccess: () => {
-      router.visit('/home');
-    },
-  });
+    router.delete(route('server.destroy', {id: selected_server?.id}), {
+        onSuccess: () => {
+            router.visit('/home');
+        },
+    });
 }
 
 const showModal = ref(false);
@@ -64,7 +64,8 @@ const showModal = ref(false);
             </div>
 
             <div class="flex justify-end mb-6 space-x-4">
-                <button @click="handleSave" :class="`btn ${form.isDirty ? 'btn-neutral' : ''} px-6`">Save Changes</button>
+                <button @click="handleSave" :class="`btn ${form.isDirty ? 'btn-neutral' : ''} px-6`">Save Changes
+                </button>
                 <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-neutral">Cancel
                 </Link>
 
@@ -132,14 +133,14 @@ const showModal = ref(false);
                         <input type="checkbox" class="toggle toggle-primary"/>
                     </div>
                 </div>
-                <button @click.prevent="showModal = true" class="btn btn-danger mt-10 bg-red-500 text-white">Delete Server</button>
                 <ConfirmDialog
-                    :title="'Delete Message'"
-                    :description="'Are you sure you want to delete this message?'"
-                    :cancel="() => {}"
+                    title="Delete Message"
+                    description="Are you sure you want to delete this message?"
                     :confirm="deleteServer"
+                    text="Delete Server"
+                    class-name="btn btn-danger mt-10 bg-red-500 text-white"
                 />
-              </div>
+            </div>
         </div>
     </div>
 </template>

@@ -5,6 +5,7 @@ import axios from "axios";
 import {Channel, ChannelType} from "@/types";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
+import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 addIcons(OiPlus, MdDeleteforeverOutlined);
 
 const { selected_server } = usePage().props;
@@ -57,9 +58,14 @@ const editText = async (channelId: number) => {
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
         <div class="indicator relative group" v-for="channel in $page.props.channels" :key="channel.id">
             <div class="indicator-item indicator-top absolute hidden group-hover:block">
-                <button @click.prevent="deleteText(channel.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
+                <ConfirmDialog
+                    title="Delete Channel"
+                    :description="`Are you sure you want to delete ${channel.name} channel?`"
+                    class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
+                    :confirm="() => deleteText(channel.id)"
+                >
                     <v-icon name="md-deleteforever-outlined"/>
-                </button>
+                </ConfirmDialog>
             </div>
             <div class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
                 <button @click.prevent="openModal(channel)" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
