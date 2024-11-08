@@ -7,10 +7,11 @@ import echo from "@/echo";
 import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
-import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined} from "oh-vue-icons/icons";
-import {baseUrl} from "@/bootstrap";
+import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile} from "oh-vue-icons/icons";
+import {baseUrl, defaultIcon} from "@/bootstrap";
+import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
-addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined);
+addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
 
 function formatDate(dateString: string): string {
     const date = new Date(dateString);
@@ -25,9 +26,9 @@ function formatDate(dateString: string): string {
     return `${day}-${month}-${year} ${hours}:${minutes}`;
 }
 
-const form = useForm({
+const form = useForm<{type: MessageType , mdata: File | string | null}>({
     type: MessageType.Text,
-    mdata: ''
+    mdata: null
 });
 
 let channel = usePage().props.selected_channel
@@ -45,8 +46,23 @@ if(channel !== undefined){
     //     });
 }
 
+let isDisabled = false;
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const clearFile = () => {
+    fileInput.value!.value = '';
+    form.reset();
+    isDisabled = false;
+}
+
 const createMessage = async () => {
-    axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
+    console.log(form.mdata)
+    if (typeof(form.mdata) === "string") {
+        form.type = MessageType.Text;
+    }
+    axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => {
+        clearFile()
+    });
 };
 
 const messageContainer = ref<HTMLElement | null>(null);
@@ -76,16 +92,54 @@ watch(
     }
 );
 
-const deleteMessage = async (messageId: number) => {
+const deleteMessage = async (messageId: number) =>  {
     axios.delete(route('message.delete', {message: messageId})).then(() => {
-        router.reload()
+        router.reload();
     });
 };
 
+const messageModal = ref<HTMLDialogElement>();
+const messageIdToEdit = ref<number | null>(null);
+
+const editMessage = async () => {
+    if (messageIdToEdit.value !== null) {
+        await axios.patch(route('message.edit', { message: messageIdToEdit.value }), { mdata: form.mdata });
+        messageModal.value?.close();
+        form.reset();
+        router.reload();
+    }
+};
+
+const openModal = (messageId: number, messageContent: string) => {
+    messageIdToEdit.value = messageId;
+    form.mdata = messageContent;
+    messageModal.value?.showModal();
+};
+
+// doesnt work
+// const modalCheck = () => {
+//     return form.mdata;
+// }
+
+const inputFile = ref<File | null>();
+const mdata = ref<string | null>(null);
+
+const uploadFile = (val: File) => {
+    inputFile.value = val;
+    form.mdata = inputFile.value;
+    if (form.mdata.type === 'image/jpeg' || form.mdata.type === 'image/png') {
+        form.type = MessageType.Image;
+    }
+    else {
+        form.type = MessageType.File;
+    }
+    mdata.value = URL.createObjectURL(inputFile.value);
+    isDisabled = true;
+}
 </script>
 
 <template>
-  <AuthenticatedLayout>
+    <AuthenticatedLayout>
       <TextSelectBar/>
 
       <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] m-5 rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
@@ -94,7 +148,7 @@ const deleteMessage = async (messageId: number) => {
                   <div v-for="message in $page.props.messages" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
                       <div class="chat-image avatar">
                           <div class="w-10 rounded-full">
-                              <img :src="message.sender.icon ? baseUrl + message.sender.icon : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s'"
+                              <img :src="message.sender.icon ? baseUrl + message.sender.icon : defaultIcon"
                                    alt="User Avatar"
                               />
                           </div>
@@ -106,14 +160,27 @@ const deleteMessage = async (messageId: number) => {
 
                       <div class="indicator">
                           <div class="chat-bubble group max-w-full">
-                              {{ message.mdata }}
-                              <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
-                                  <button @click.prevent="deleteMessage(message.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
-                                      <v-icon name="md-deleteforever-outlined"/>
-                                  </button>
+                              <div v-if="MessageType.Text === message.type">
+                                  {{ message.mdata }}
                               </div>
-                              <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
-                                  <button @click.prevent="" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                              <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img" class="max-w-3xl h-auto" />
+                              <div v-if="MessageType.File === message.type">
+                                  <v-icon name="fa-regular-file" />
+                                  {{ baseUrl + message.mdata }}
+                              </div>
+
+                              <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                                  <ConfirmDialog
+                                      title="Delete Message"
+                                      description="Are you sure you want to delete this message?"
+                                      class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
+                                      :confirm="() => deleteMessage(message.id)"
+                                  >
+                                      <v-icon name="md-deleteforever-outlined"/>
+                                  </ConfirmDialog>
+                              </div>
+                              <div v-if="message.user_id === $page.props.auth.user.id && MessageType.Text === message.type" class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
+                                  <button @click="openModal(message.id, message.mdata)" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
                                       <v-icon name="md-modeeditoutline-outlined"/>
                                   </button>
                               </div>
@@ -126,15 +193,19 @@ const deleteMessage = async (messageId: number) => {
               </div>
           </div>
 
-          <form @submit.prevent="createMessage" class="flex items-center">
-<!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
-<!--                  <v-icon name="md-fileupload-outlined"/>-->
-<!--              </label>-->
-              <input id="file-upload" type="file" class="file-input file-input-bordered ml-5 mr-3 mb-5"/>
+          <form @submit.prevent="createMessage" class="flex items-center mt-1">
+    <!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
+    <!--                  <v-icon name="md-fileupload-outlined"/>-->
+    <!--              </label>-->
+              <div class="items-center inline-flex">
+                  <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])" ref="fileInput"
+                         class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
+                  />
+                  <button @click.prevent="clearFile" class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕</button>
+              </div>
+
               <div class="join w-full items-center">
-                  <input type="text"
-                         placeholder="Type here"
-                         v-model="form.mdata"
+                  <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled"
                          class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
                   />
                   <button class="btn join-item mr-5 mb-5">
@@ -143,5 +214,24 @@ const deleteMessage = async (messageId: number) => {
               </div>
           </form>
       </div>
-  </AuthenticatedLayout>
+    </AuthenticatedLayout>
+
+    <dialog ref="messageModal" class="modal">
+        <div class="modal-box">
+            <form @submit.prevent="editMessage">
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">Editing Message</span>
+                    </label>
+                    <input v-model="form.mdata" type="text" class="input input-bordered"/>
+                </div>
+                <div class="modal-action">
+                    <button type="submit" class="btn btn-primary w-full mt-2">Edit Message</button>
+                </div>
+                <div class="modal-action">
+                    <button @click="() => messageModal?.close() && form.reset()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
 </template>

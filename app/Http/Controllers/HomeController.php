@@ -74,4 +74,9 @@ class HomeController extends Controller
             'invite_code' => $server . '#' . hash('xxh32', $server),
         ]);
     }
+
+    public function voice(Request $request, int $server)
+    {
+        return Inertia::render('Voice/Speaking');
+    }
 }
