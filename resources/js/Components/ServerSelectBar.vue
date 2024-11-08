@@ -2,13 +2,13 @@
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
-import {defaultIcon} from "@/bootstrap";
+import {baseUrl, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
 addIcons(OiPlus);
 
-const isHomePage = computed(() =>window.location.pathname.startsWith('/home'));
+const isHomePage = computed(() => usePage().component === 'Home' || usePage().component === 'Text/Texting');
 
 
 const serverModal = ref<HTMLDialogElement>();

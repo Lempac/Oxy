@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import {defaultIcon} from "@/bootstrap";
-
-const baseUrl = window.location.origin;
+import {baseUrl, defaultIcon} from "@/bootstrap";
 
 </script>
 

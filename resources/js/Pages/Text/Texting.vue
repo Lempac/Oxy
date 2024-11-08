@@ -8,6 +8,7 @@ import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined} from "oh-vue-icons/icons";
+import {baseUrl} from "@/bootstrap";
 import {defaultIcon} from "@/bootstrap";
 
 addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined);
