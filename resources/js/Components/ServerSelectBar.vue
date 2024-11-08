@@ -31,8 +31,6 @@ const createServer = async () => {
     });
 };
 
-const baseUrl = window.location.origin;
-
 const icon = ref<string | null>(null);
 const inputFile = ref<File | null>();
 

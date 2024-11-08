@@ -38,6 +38,8 @@ function deleteServer() {
   });
 }
 
+const showModal = ref(false);
+
 </script>
 
 <template>

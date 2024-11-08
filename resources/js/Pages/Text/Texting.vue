@@ -8,8 +8,7 @@ import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile} from "oh-vue-icons/icons";
-import {baseUrl} from "@/bootstrap";
-import {defaultIcon} from "@/bootstrap";
+import {baseUrl, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
 addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
