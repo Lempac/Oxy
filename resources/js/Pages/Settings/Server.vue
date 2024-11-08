@@ -3,9 +3,9 @@ import {defineProps, ref} from 'vue';
 import {Link, router, usePage} from '@inertiajs/vue3';
 import {useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import {baseUrl} from "@/bootstrap";
 
 const {selected_server} = usePage().props;
-const baseUrl = window.location.origin;
 
 const icon = ref<string | null>(selected_server?.icon ? baseUrl + selected_server?.icon : null);
 const inputFile = ref<File | null>(null);
@@ -15,6 +15,8 @@ const form = useForm({
     description: selected_server?.description,
     icon: null as File | null,
 });
+
+form.defaults();
 
 const updateIcon = (file: File | null) => {
     console.log('Selected file:', file);
@@ -38,7 +40,6 @@ function deleteServer() {
 }
 
 const showModal = ref(false);
-
 </script>
 
 <template>
@@ -47,7 +48,7 @@ const showModal = ref(false);
             <!-- navbar -->
             <div class="navbar bg-gray-800 text-white rounded-lg mb-6 py-4 px-6">
                 <div class="flex-1">
-                    <h1 class="text-2xl truncate" :title="selected_server?.name" style="max-width: 50%;">
+                    <h1 class="text-2xl truncate max-w-[50%]" :title="selected_server?.name">
                         {{ selected_server?.name }}</h1>
                 </div>
                 <div class="flex space-x-6">
@@ -63,7 +64,7 @@ const showModal = ref(false);
             </div>
 
             <div class="flex justify-end mb-6 space-x-4">
-                <button @click="handleSave" class="btn px-6">Save Changes</button>
+                <button @click="handleSave" :class="`btn ${form.isDirty ? 'btn-neutral' : ''} px-6`">Save Changes</button>
                 <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-neutral">Cancel
                 </Link>
 

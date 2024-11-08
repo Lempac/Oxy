@@ -13,6 +13,7 @@ const newRole = ref({
     importance: 0,
     perms: 0,
 } as Role);
+
 const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
 
@@ -77,12 +78,6 @@ const deleteRole = async (role: Role) => {
     } catch (error) {
         console.error('Error deleting role:', error);
     }
-};
-
-const updateColor = (event: Event) => {
-    console.log(event.target)
-    const target = event.target as HTMLInputElement;
-    newRole.value.color = target.value;
 };
 
 // Fetch roles when component mounts

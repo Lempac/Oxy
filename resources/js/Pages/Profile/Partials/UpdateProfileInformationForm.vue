@@ -4,6 +4,7 @@ import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
 import {ref} from "vue";
+import {baseUrl} from "@/bootstrap";
 
 addIcons(RiUser3Line, HiMail, IoAddOutline);
 
@@ -13,7 +14,6 @@ defineProps<{
 }>();
 
 const user = usePage().props.auth.user;
-const baseUrl = window.location.origin;
 
 const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
 const inputFile = ref<File | null>();
