@@ -166,7 +166,7 @@ const uploadFile = (val: File) => {
                               <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img" class="max-w-3xl h-auto" />
                               <div v-if="MessageType.File === message.type">
                                   <v-icon name="fa-regular-file" />
-                                  {{ message.mdata }}
+                                  {{ baseUrl + message.mdata }}
                               </div>
 
                               <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">

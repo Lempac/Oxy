@@ -6,6 +6,7 @@ import backgroundImage from '../../../public/images/background.svg';
 import { CoChatBubble } from "oh-vue-icons/icons";
 import { RiComputerFill } from "oh-vue-icons/icons";
 import { addIcons } from "oh-vue-icons";
+import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 addIcons(CoChatBubble, RiComputerFill);
 
 // Reactive state for showing/hiding the login popup
@@ -87,9 +88,12 @@ const submitRegister = () => {
     <body class="bg-cover bg-center min-h-screen" :style="`background-image: url(${backgroundImage})`">
         <div class="card card-body">
             <header>
-                <div class="navbar flex justify-between">
-                    <img src="/images/oxy.png" class="block h-16 w-auto fill-current"/>
-                    <div>
+                <div class="navbar mx-0 px-0">
+                    <div class="navbar-start">
+                        <img src="/images/oxy.png" class="block h-16 w-auto fill-current"/>
+                    </div>
+                    <ApplicationLogo class="navbar-center mb-1.5" />
+                    <div class="navbar-end">
                         <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
                             Home
                         </Link>
