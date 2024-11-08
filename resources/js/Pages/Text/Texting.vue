@@ -7,13 +7,12 @@ import echo from "@/echo";
 import {MessageType} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
-import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined} from "oh-vue-icons/icons";
+import {FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile} from "oh-vue-icons/icons";
 import {baseUrl} from "@/bootstrap";
 import {defaultIcon} from "@/bootstrap";
+import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
-addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined);
-
-const baseUrl = window.location.origin;
+addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
 
 function formatDate(dateString: string): string {
     const date = new Date(dateString);
@@ -58,8 +57,9 @@ const clearFile = () => {
 }
 
 const createMessage = async () => {
-    if (typeof(form.mdata) !== "string") {
-        form.type = MessageType.Image;
+    console.log(form.mdata)
+    if (typeof(form.mdata) === "string") {
+        form.type = MessageType.Text;
     }
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => {
         clearFile()
@@ -128,10 +128,15 @@ const mdata = ref<string | null>(null);
 const uploadFile = (val: File) => {
     inputFile.value = val;
     form.mdata = inputFile.value;
+    if (form.mdata.type === 'image/jpeg' || form.mdata.type === 'image/png') {
+        form.type = MessageType.Image;
+    }
+    else {
+        form.type = MessageType.File;
+    }
     mdata.value = URL.createObjectURL(inputFile.value);
     isDisabled = true;
 }
-
 </script>
 
 <template>
@@ -159,11 +164,22 @@ const uploadFile = (val: File) => {
                               <div v-if="MessageType.Text === message.type">
                                   {{ message.mdata }}
                               </div>
-                              <img v-else :src="message.mdata" alt="img" class="max-w-3xl h-auto" />
+                              <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img" class="max-w-3xl h-auto" />
+                              <div v-if="MessageType.File === message.type">
+                                  <v-icon name="fa-regular-file" />
+                                  {{ message.mdata }}
+                              </div>
+
                               <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
-                                  <button @click.prevent="deleteMessage(message.id)" class="indicator-item badge badge-error h-auto w-auto p-0.5">
+                                  <button class="indicator-item badge badge-error h-auto w-auto p-0.5">
                                       <v-icon name="md-deleteforever-outlined"/>
                                   </button>
+<!--                                  <ConfirmDialog-->
+<!--                                      :title="'Delete Message'"-->
+<!--                                      :description="'Are you sure you want to delete this message?'"-->
+<!--                                      :cancel="() => {}"-->
+<!--                                      :confirm="() => deleteMessage(message.id)"-->
+<!--                                  />-->
                               </div>
                               <div v-if="message.user_id === $page.props.auth.user.id && MessageType.Text === message.type" class="indicator-item indicator-bottom absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
                                   <button @click="openModal(message.id, message.mdata)" class="indicator-item badge badge-warning h-auto w-auto p-0.5">

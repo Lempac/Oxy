@@ -31,7 +31,6 @@ function handleSave() {
 }
 
 function deleteServer() {
-  showModal.value = false;
   router.delete(route('server.destroy', { id: selected_server?.id }), {
     onSuccess: () => {
       router.visit('/home');
@@ -39,7 +38,6 @@ function deleteServer() {
   });
 }
 
-const showModal = ref(false);
 </script>
 
 <template>
@@ -132,13 +130,12 @@ const showModal = ref(false);
                         <input type="checkbox" class="toggle toggle-primary"/>
                     </div>
                 </div>
-                <button @click="showModal = true" class="btn btn-danger mt-10 bg-red-500 text-white">Delete Server</button>
+                <button @click.prevent="showModal = true" class="btn btn-danger mt-10 bg-red-500 text-white">Delete Server</button>
                 <ConfirmDialog
-                  v-if="showModal"
-                  :title="'Delete Server'"
-                  :description="'Are you sure you want to delete this server?'"
-                  :cancel="() => showModal = false"
-                  :confirm="deleteServer"
+                    :title="'Delete Message'"
+                    :description="'Are you sure you want to delete this message?'"
+                    :cancel="() => {}"
+                    :confirm="deleteServer"
                 />
               </div>
         </div>
