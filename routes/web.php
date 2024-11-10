@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\Api\RoleController;
 
 Route::get('/', fn() => Inertia::render('Welcome'))->name('welcome');
+Route::get('manual', fn() => Inertia::render('Manual'))->name('manual');
+
 #Server/home routes
 Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->prefix('home')->name('home')->group(function () {
@@ -18,7 +20,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/{server}/text/{channel}/{message}', 'message')->name('.message');
 
         Route::get('/{server}/voice', 'voice')->name('.voice');
-
     });
 
     #Setting routes
