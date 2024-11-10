@@ -3,11 +3,8 @@
 namespace App\Events\Messages;
 
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class MessageDeleted implements ShouldBroadcast
 {
@@ -16,17 +13,20 @@ class MessageDeleted implements ShouldBroadcast
         public int $channelId,
         public int $serverId,
         public int $userId
-    )
-    {
-    }
+    ) {}
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function broadcastOn(): array|Channel|string
     {
         return [
-            new PrivateChannel('messages.' . $this->channelId),
+            new PrivateChannel('messages.'.$this->channelId),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'MessageDeleted';
     }
 }

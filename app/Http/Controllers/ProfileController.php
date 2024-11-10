@@ -35,7 +35,7 @@ class ProfileController extends Controller
             $path = $request->file('icon')->store('uploads', 'public');
         }
 
-        if (!empty($path) && $path != $val['icon']) {
+        if (! empty($path) && $path != $val['icon']) {
             $val['icon'] = Storage::url($path);
         }
 

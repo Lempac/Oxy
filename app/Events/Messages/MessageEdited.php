@@ -23,12 +23,17 @@ class MessageEdited implements ShouldBroadcast
     ) {}
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function broadcastOn(): array|Channel|string
     {
         return [
             new PrivateChannel('messages.'.$this->channelId),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'MessageEdited';
     }
 }

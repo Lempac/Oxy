@@ -16,13 +16,13 @@ class MessageController
     public function create(Request $request, int $channelId)
     {
         $request->validate([
-            'type' => 'required|in:' . implode(',', array_column(MessageType::cases(), 'value')),
+            'type' => 'required|in:'.implode(',', array_column(MessageType::cases(), 'value')),
             'mdata' => 'required',
         ]);
 
         $channel = Channel::find($channelId);
 
-        if (!$channel) {
+        if (! $channel) {
             return response()->json(['message' => 'Channel not found'], 404);
         }
 
@@ -37,7 +37,7 @@ class MessageController
             'user_id' => $request->user()->id,
         ]);
 
-        broadcast(new MessageCreated($request->mdata, $request->user()->id, $channel->id));
+        //        broadcast(new MessageCreated($request->mdata, $request->user()->id, $channel->id));
 
         return response()->json(['message' => 'Message created'], 201);
     }
@@ -50,7 +50,7 @@ class MessageController
 
         $message = Message::find($messageId);
 
-        if (!$message) {
+        if (! $message) {
             return response()->json(['message' => 'Message not found'], 404);
         }
 
@@ -72,7 +72,7 @@ class MessageController
     {
         $message = Message::find($messageId);
 
-        if (!$message) {
+        if (! $message) {
             return response()->json(['message' => 'Message not found'], 404);
         }
 
@@ -81,7 +81,6 @@ class MessageController
         }
 
         $message->delete();
-
 
         $serverId = $message->channel->server->id;
 
@@ -94,5 +93,4 @@ class MessageController
 
         return response()->json(['message' => 'Message deleted'], 201);
     }
-
 }

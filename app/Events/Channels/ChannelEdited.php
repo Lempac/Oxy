@@ -21,12 +21,17 @@ class ChannelEdited implements ShouldBroadcast
     ) {}
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function broadcastOn(): array|Channel|string
     {
         return [
             new PrivateChannel('channels.'.$this->serverId),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'ChannelEdited';
     }
 }

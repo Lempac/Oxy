@@ -19,7 +19,7 @@ class ServerFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'description' => fake()->text(maxNbChars: 40)
+            'description' => fake()->text(maxNbChars: 40),
         ];
     }
 }

@@ -27,7 +27,7 @@ const joinForm = useForm({
 const createServer = async () => {
     axios.postForm(route('server.create'), form.data()).then(() => {
         serverModal.value?.close();
-        router.reload()
+        router.reload({only: ['servers']})
     });
 };
 

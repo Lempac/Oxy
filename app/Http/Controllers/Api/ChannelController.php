@@ -16,12 +16,12 @@ class ChannelController
     {
         $request->validate([
             'name' => 'required|string|max:50',
-            'type' => 'required|in:'.implode(',', array_column(ChannelType::cases(), 'value'))
+            'type' => 'required|in:'.implode(',', array_column(ChannelType::cases(), 'value')),
         ]);
 
         $server = Server::find($serverId);
 
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
@@ -44,7 +44,7 @@ class ChannelController
 
         $channel = Channel::find($channelId);
 
-        if (!$channel) {
+        if (! $channel) {
             return response()->json(['message' => 'Channel not found.'], 404);
         }
 
@@ -59,7 +59,7 @@ class ChannelController
     public function delete(Request $request, int $channelId)
     {
         $channel = Channel::find($channelId);
-        if (!$channel) {
+        if (! $channel) {
             return response()->json(['message' => 'Channel not found.'], 404);
         }
 

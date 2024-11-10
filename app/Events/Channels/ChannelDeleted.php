@@ -2,7 +2,6 @@
 
 namespace App\Events\Channels;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -21,12 +20,17 @@ class ChannelDeleted implements ShouldBroadcast
     ) {}
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function broadcastOn(): array
     {
         return [
             new PrivateChannel('channels.'.$this->serverId),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'ChannelDeleted';
     }
 }

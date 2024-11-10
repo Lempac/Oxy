@@ -10,8 +10,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Server;
 use Auth;
 use Illuminate\Http\Request;
-use Storage;
 use Inertia\Inertia;
+use Storage;
 
 class ServerController extends Controller
 {
@@ -49,11 +49,17 @@ class ServerController extends Controller
         $data = explode('#', $request->code);
         $serverId = $data[0];
         $code = $data[1];
-        if (hash('xxh32', $serverId) !== $code) return response()->json(['message' => 'Code is invalid.'], 404);
+        if (hash('xxh32', $serverId) !== $code) {
+            return response()->json(['message' => 'Code is invalid.'], 404);
+        }
 
         $server = Server::find($serverId);
-        if (!$server) return response()->json(['message' => 'Server not found.'], 404);
-        if ($server->users->has(Auth::id())) return response()->json(['message' => 'Server has already been added.'], 409);
+        if (! $server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+        if ($server->users->has(Auth::id())) {
+            return response()->json(['message' => 'Server has already been added.'], 409);
+        }
 
         $server->users()->attach(Auth::id());
 
@@ -61,7 +67,6 @@ class ServerController extends Controller
 
         return response()->json(['message' => 'User added to server successfully.']);
     }
-
 
     public function removeUser(Request $request, int $serverId)
     {
@@ -71,7 +76,7 @@ class ServerController extends Controller
 
         $server = Server::find($serverId);
 
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
@@ -92,9 +97,11 @@ class ServerController extends Controller
 
         $server = Server::find($serverId);
 
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
+
+        $user = Auth::user();
 
         $server->update($request->only(['name', 'description', 'icon']));
 
@@ -106,7 +113,7 @@ class ServerController extends Controller
     public function showSettings($serverId)
     {
         $server = Server::find($serverId);
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
@@ -117,7 +124,7 @@ class ServerController extends Controller
     {
         $server = Server::find($serverId);
 
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
@@ -135,7 +142,9 @@ class ServerController extends Controller
         ]);
 
         $server = Server::find($serverId);
-        if (!$server) return redirect()->back()->withErrors(['message' => 'Server not found.']);
+        if (! $server) {
+            return redirect()->back()->withErrors(['message' => 'Server not found.']);
+        }
 
         if ($request->file('icon')?->isValid()) {
             $path = $request->file('icon')->store('uploads', 'public');
@@ -154,7 +163,7 @@ class ServerController extends Controller
     {
         $server = Server::find($serverId);
 
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 

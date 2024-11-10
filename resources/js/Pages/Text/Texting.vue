@@ -32,29 +32,21 @@ const form = useForm({
 
 let channel = usePage().props.selected_channel
 if(channel !== undefined){
-    echo.channel(`messages.${channel?.id}`)
+    echo.private(`messages.${channel?.id}`)
         .listen('.MessageCreated', () => {
-            router.reload({only: ['messages']});
-            scrollToBottom();
+            console.log("New message!");
+            router.reload();
         });
-
-    // echo.private(`messages.${channel?.id}`)
-    //     .listen('MessageCreated', () => {
-    //         console.log("New message!");
-    //         router.reload({only: ['messages']});
-    //     });
 }
 
 const createMessage = async () => {
     axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => form.reset());
 };
 
-const messageContainer = ref<HTMLElement | null>(null);
+const messageContainer = ref<HTMLElement>();
 
 const scrollToBottom = () => {
-    if (messageContainer.value) {
-        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
-    }
+    if (messageContainer.value) messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
 };
 
 onMounted(() => {
@@ -78,7 +70,7 @@ watch(
 
 const deleteMessage = async (messageId: number) => {
     axios.delete(route('message.delete', {message: messageId})).then(() => {
-        router.reload()
+        router.reload({only: ['message']})
     });
 };
 

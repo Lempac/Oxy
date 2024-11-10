@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\Roles\RoleCreated;
+use App\Events\Roles\RoleDeleted;
+use App\Events\Roles\RoleEdited;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Server;
 use Illuminate\Http\Request;
-use App\Events\Roles\RoleCreated;
-use App\Events\Roles\RoleEdited;
-use App\Events\Roles\RoleDeleted;
 use Inertia\Inertia;
 
 class RoleController extends Controller
@@ -16,7 +16,7 @@ class RoleController extends Controller
     public function index($serverId)
     {
         $server = Server::with('roles')->find($serverId);
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
@@ -34,7 +34,7 @@ class RoleController extends Controller
 
         $server = Server::find($serverId);
 
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
@@ -48,9 +48,9 @@ class RoleController extends Controller
         // Attach the role to the server
         $server->roles()->attach($role->id);
         broadcast(new RoleCreated($role));
+
         return response()->json(['message' => 'Role added to server successfully.', 'role' => $role], 201);
     }
-
 
     public function edit(Request $request, int $roleId)
     {
@@ -64,7 +64,7 @@ class RoleController extends Controller
 
         $role = Role::find($roleId);
 
-        if (!$role) {
+        if (! $role) {
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
@@ -79,7 +79,7 @@ class RoleController extends Controller
     {
         $role = Role::find($roleId);
 
-        if (!$role) {
+        if (! $role) {
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
@@ -93,11 +93,10 @@ class RoleController extends Controller
     public function showSettings($serverId)
     {
         $server = Server::find($serverId);
-        if (!$server) {
+        if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
         return Inertia::render('Settings/Role')->with(['selected_server' => $server]);
     }
-
 }
