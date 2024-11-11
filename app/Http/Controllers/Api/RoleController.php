@@ -47,7 +47,7 @@ class RoleController extends Controller
 
         // Attach the role to the server
         $server->roles()->attach($role->id);
-//        broadcast(new RoleCreated($role));
+        //        broadcast(new RoleCreated($role));
 
         return response()->json(['message' => 'Role added to server successfully.', 'role' => $role], 201);
     }
@@ -85,7 +85,7 @@ class RoleController extends Controller
 
         $role->delete();
 
-//        broadcast(new RoleDeleted($role));
+        //        broadcast(new RoleDeleted($role));
 
         return response()->json(['message' => 'Role deleted successfully.']);
     }

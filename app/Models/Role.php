@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PermsType;
 use App\Events\Roles\RoleCreated;
 use App\Events\Roles\RoleDeleted;
 use App\Events\Roles\RoleEdited;
@@ -39,5 +40,27 @@ class Role extends Model
         return $this->belongsTo(Server::class, 'role_server_user')
             ->withPivot('user_id')
             ->withTimestamps();
+    }
+
+    /**
+     * @param  PermsType|PermsType[]  $permsType
+     */
+    public function hasPerms(array|PermsType|int $permsType): bool
+    {
+        return ($this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value)) === $this->perms;
+    }
+    public function hasAnyPerms(array|PermsType|int $permsType): bool
+    {
+        return ($this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value)) !== 0;
+    }
+
+    public function addPerms(array|PermsType|int $permsType): void
+    {
+        $this->perms |= $this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value);
+    }
+
+    public function removePerms(array|PermsType|int $permsType): void
+    {
+        $this->perms &= $this->perms & is_array($permsType) ? ~array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? ~$permsType : ~$permsType->value);
     }
 }

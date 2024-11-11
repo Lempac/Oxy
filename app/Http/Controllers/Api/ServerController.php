@@ -35,7 +35,7 @@ class ServerController extends Controller
 
         $server->users()->attach(Auth::id());
 
-//        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
+        //        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
 
         return response()->json(['message' => 'Server created successfully.']);
     }
@@ -105,7 +105,7 @@ class ServerController extends Controller
 
         $server->update($request->only(['name', 'description', 'icon']));
 
-//        broadcast(new ServerEdited($serverId, $server->name, $server->description, $server->icon));
+        //        broadcast(new ServerEdited($serverId, $server->name, $server->description, $server->icon));
 
         return response()->json(['message' => 'Server updated successfully.']);
     }

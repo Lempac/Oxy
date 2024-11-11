@@ -4,11 +4,12 @@ import {ref} from "vue";
 import axios from "axios";
 import {Channel, ChannelType} from "@/types";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
+import {MdDeleteforeverOutlined, OiPlus} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
+
 addIcons(OiPlus, MdDeleteforeverOutlined);
 
-const { selected_server } = usePage().props;
+const {selected_server} = usePage().props;
 const serverId = selected_server?.id;
 
 const channelModal = ref<HTMLDialogElement>();
@@ -30,7 +31,7 @@ const openModal = (channel?: Channel) => {
         form.name = '';
     }
     channelModal.value?.showModal();
-};``
+};
 
 const createText = async () => {
     axios.postForm(route('channel.create', {server: serverId}), form.data()).then(() => {
@@ -68,12 +69,14 @@ const editText = async (channelId: number) => {
                 </ConfirmDialog>
             </div>
             <div class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
-                <button @click.prevent="openModal(channel)" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                <button @click.prevent="openModal(channel)"
+                        class="indicator-item badge badge-warning h-auto w-auto p-0.5">
                     <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
             <Link :href="route('home.channel', {server : serverId, channel : channel.id})">
-                <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
+                <button class="btn btn-outline btn-sm"
+                        :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
                     {{ channel.name }}
                 </button>
             </Link>
@@ -90,7 +93,8 @@ const editText = async (channelId: number) => {
                     <label class="label">
                         <span class="label-text">Text Channel Name</span>
                     </label>
-                    <input v-model="form.name" type="text" placeholder="Enter channel name" class="input input-bordered"/>
+                    <input v-model="form.name" type="text" placeholder="Enter channel name"
+                           class="input input-bordered"/>
                 </div>
                 <div class="modal-action">
                     <button type="submit" class="btn btn-primary w-full mt-2">
@@ -99,7 +103,9 @@ const editText = async (channelId: number) => {
                 </div>
             </form>
             <div class="modal-action">
-                <button @click="() => channelModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                <button @click="() => channelModal?.close()"
+                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
+                </button>
             </div>
         </div>
     </dialog>
