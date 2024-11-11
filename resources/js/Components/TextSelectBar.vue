@@ -72,7 +72,7 @@ const editText = async (channelId: number) => {
                     <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
-            <Link :href="route('home.channel', {server : serverId, channel : channel.id})">
+            <Link :href="route('home.text.channel', {server : serverId, channel : channel.id})">
                 <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
                     {{ channel.name }}
                 </button>
