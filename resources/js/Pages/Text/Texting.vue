@@ -50,7 +50,6 @@ const clearFile = () => {
 }
 
 const createMessage = async () => {
-    console.log(form.mdata)
     if (typeof(form.mdata) === "string") {
         form.type = MessageType.Text;
     }

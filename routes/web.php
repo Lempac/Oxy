@@ -1,14 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\Api\ServerController;
-use App\Http\Controllers\Api\RoleController;
 
-Route::get('/', fn() => Inertia::render('Welcome'))->name('welcome');
-Route::get('manual', fn() => Inertia::render('Manual'))->name('manual');
+Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
+Route::get('manual', fn () => Inertia::render('Manual'))->name('manual');
 
 //Server/home routes
 Route::middleware('auth')->group(function () {
@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/{server}/voice', 'voice')->name('.voice');
     });
+
     //Setting routes
     Route::prefix('settings')->group(function () {
         Route::controller(ServerController::class)->prefix('server')->group(function () {

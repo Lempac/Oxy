@@ -31,7 +31,7 @@ class ChannelController
             'server_id' => $serverId,
         ]);
 
-        broadcast(new ChannelCreated($serverId));
+//        broadcast(new ChannelCreated($serverId));
 
         return response()->json(['message' => 'Channel added to server successfully.']);
     }
@@ -51,7 +51,7 @@ class ChannelController
         $channel->name = $request->get('name');
         $channel->save();
 
-        broadcast(new ChannelEdited($channelId));
+//        broadcast(new ChannelEdited($channelId));
 
         return response()->json(['message' => 'Channel updated successfully.']);
     }
@@ -65,7 +65,7 @@ class ChannelController
 
         $channel->delete();
 
-        broadcast(new ChannelDeleted($channelId));
+//        broadcast(new ChannelDeleted($channelId));
 
         return response()->json(['message' => 'Channel deleted successfully.']);
     }

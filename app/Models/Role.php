@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Events\Roles\RoleCreated;
+use App\Events\Roles\RoleDeleted;
+use App\Events\Roles\RoleEdited;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +19,12 @@ class Role extends Model
         'color',
         'perms',
         'importance',
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => RoleCreated::class,
+        'updated' => RoleEdited::class,
+        'deleted' => RoleDeleted::class,
     ];
 
     public function users(): BelongsToMany

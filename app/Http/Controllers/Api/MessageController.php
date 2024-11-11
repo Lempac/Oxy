@@ -63,7 +63,7 @@ class MessageController
         ]);
         $message->save();
 
-        broadcast(new MessageEdited($message->id, $message->channel_id, $request->user()->id));
+//        broadcast(new MessageEdited($message->id, $message->channel_id, $request->user()->id));
 
         return response()->json(['message' => 'Message updated'], 201);
     }
@@ -84,12 +84,12 @@ class MessageController
 
         $serverId = $message->channel->server->id;
 
-        broadcast(new MessageDeleted(
-            $message->id,
-            $message->channel->id,
-            $serverId,
-            $request->user()->id
-        ));
+//        broadcast(new MessageDeleted(
+//            $message->id,
+//            $message->channel->id,
+//            $serverId,
+//            $request->user()->id
+//        ));
 
         return response()->json(['message' => 'Message deleted'], 201);
     }

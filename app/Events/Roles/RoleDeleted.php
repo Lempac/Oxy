@@ -3,7 +3,6 @@
 namespace App\Events\Roles;
 
 use App\Models\Role;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -18,7 +17,7 @@ class RoleDeleted implements ShouldBroadcast
         public Role $role
     ) {}
 
-    public function broadcastOn(): Channel
+    public function broadcastOn(): PrivateChannel
     {
         return new PrivateChannel('roles.'.$this->role->server->id);
     }

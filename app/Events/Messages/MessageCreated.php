@@ -18,10 +18,7 @@ class MessageCreated implements ShouldBroadcast
      * Create a new event instance.
      */
     public function __construct(
-        public Message $message,
-        //        public string $text,
-        //        public int $userId,
-        //        public int $channelId
+        public Message $message
     ) {}
 
     public function broadcastOn(): Channel

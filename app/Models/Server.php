@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Events\Servers\ServerCreated;
+use App\Events\Servers\ServerEdited;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,6 +18,11 @@ class Server extends Model
         'name',
         'description',
         'icon',
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => ServerCreated::class,
+        'updated' => ServerEdited::class,
     ];
 
     public function users(): BelongsToMany

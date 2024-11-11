@@ -2,27 +2,19 @@
 
 namespace App\Events\Messages;
 
-use Illuminate\Broadcasting\Channel;
+use App\Models\Message;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class MessageDeleted implements ShouldBroadcast
 {
     public function __construct(
-        public int $messageId,
-        public int $channelId,
-        public int $serverId,
-        public int $userId
+        public Message $message
     ) {}
 
-    /**
-     * {@inheritDoc}
-     */
-    public function broadcastOn(): array|Channel|string
+    public function broadcastOn(): PrivateChannel
     {
-        return [
-            new PrivateChannel('messages.'.$this->channelId),
-        ];
+        return new PrivateChannel('messages.'.$this->message->channel_id);
     }
 
     public function broadcastAs(): string
