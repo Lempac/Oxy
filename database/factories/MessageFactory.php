@@ -21,10 +21,6 @@ class MessageFactory extends Factory
         $type = fake()->randomElement(array_column(MessageType::cases(), 'value'));
 
         //TODO: Add faker for images
-        //        if ($type === MessageType::Image) {
-        //            fake()->image('image.jpg');
-        //        }
-        //        dd([$type, $type == MessageType::Text->value]);
         return [
             'type' => $type,
             'mdata' => $type == MessageType::Text->value ? fake()->text(maxNbChars: 100) : 'https://picsum.photos/'.random_int(120, 1920).'/'.random_int(120, 1080),

@@ -82,7 +82,7 @@ class MessageController
 
         $message->delete();
 
-        $serverId = $message->channel->server->id;
+        //        $serverId = $message->channel->server->id;
 
         //        broadcast(new MessageDeleted(
         //            $message->id,

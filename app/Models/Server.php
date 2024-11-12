@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Events\Servers\ServerCreated;
 use App\Events\Servers\ServerEdited;
+use Database\Factories\ServerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -47,5 +48,15 @@ class Server extends Model
         return $this->belongsToMany(Role::class, 'role_server_user')
             ->withPivot('user_id')
             ->withTimestamps();
+    }
+
+    protected static function newFactory(): ServerFactory
+    {
+        return ServerFactory::new()->hasRoles(1, [
+            'name' => 'Owner',
+            'perms' => PHP_INT_MAX,
+            'importance' => 0,
+            'color' => '#ffffff',
+        ]);
     }
 }

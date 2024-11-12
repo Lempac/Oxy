@@ -7,6 +7,7 @@ use App\Events\Servers\ServerEdited;
 use App\Events\Servers\ServerJoined;
 use App\Events\Servers\ServerLeft;
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\Server;
 use Auth;
 use Illuminate\Http\Request;
@@ -33,7 +34,15 @@ class ServerController extends Controller
             'icon' => empty($path) ? null : Storage::url($path),
         ]);
 
+        $role = Role::create([
+            'name' => 'Owner',
+            'perms' => PHP_INT_MAX,
+            'importance' => 0,
+        ]);
+
+        $server->roles()->attach($role);
         $server->users()->attach(Auth::id());
+        Auth::user()->roles()->attach($role);
 
         //        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
 
