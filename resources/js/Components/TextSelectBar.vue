@@ -4,9 +4,9 @@ import {ref} from "vue";
 import axios from "axios";
 import {Channel, ChannelType} from "@/types";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
+import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-addIcons(OiPlus, MdDeleteforeverOutlined);
+addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
@@ -30,7 +30,7 @@ const openModal = (channel?: Channel) => {
         form.name = '';
     }
     channelModal.value?.showModal();
-};``
+};
 
 const createText = async () => {
     axios.postForm(route('channel.create', {server: serverId}), form.data()).then(() => {

@@ -84,6 +84,7 @@ class HomeController extends Controller
             'servers' => $request->user()->servers,
             'selected_server' => $serverObj,
             'selected_server.users' => $serverObj->users,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Voice)->get(),
             'invite_code' => $server.'#'.hash('xxh32', $server),
         ]);
     }
