@@ -17,7 +17,8 @@ const serverSettingsModal = ref<HTMLDialogElement>();
         <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
             <Link :href="route('home.text', { server: serverId })">
                 <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
-                    :class="{ 'border-b-2 border-white text-white': $page.url.includes('/text') }">
+                    :class="{ 'border-b-2 border-white text-white': $page.url.includes('/text') }"
+                >
                     <svg class="h-5 w-5">
                         <v-icon name="bi-chat-text" />
                     </svg>
@@ -32,13 +33,16 @@ const serverSettingsModal = ref<HTMLDialogElement>();
                 </button>
             </Link>
 
-            <button class="flex flex-col items-center justify-center gap-1 p-2 relative text-gray-600"
-                :class="{ 'border-b-2 border-white text-white': $page.url.includes('/voice') }">
-                <svg class="h-5 w-5">
-                    <v-icon name="ri-chat-voice-line" />
-                </svg>
-                <span class="text-sm">Voice Channels</span>
-            </button>
+            <Link :href="route('home.voice', { server: serverId })">
+                <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+                        :class="{ 'border-b-2 border-white text-white': $page.url.includes('/voice') }"
+                >
+                    <svg class="h-5 w-5">
+                        <v-icon name="ri-chat-voice-line" />
+                    </svg>
+                    <span class="text-sm">Voice Channels</span>
+                </button>
+            </Link>
 
             <button class="flex flex-col items-center justify-center gap-1 p-2 relative text-gray-600"
                 :class="{ 'border-b-2 border-white text-white': $page.url.includes('/board') }">

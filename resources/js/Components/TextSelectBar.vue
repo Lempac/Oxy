@@ -4,9 +4,9 @@ import {ref} from "vue";
 import axios from "axios";
 import {Channel, ChannelType} from "@/types";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus, MdDeleteforeverOutlined} from "oh-vue-icons/icons";
+import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-addIcons(OiPlus, MdDeleteforeverOutlined);
+addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
@@ -30,7 +30,7 @@ const openModal = (channel?: Channel) => {
         form.name = '';
     }
     channelModal.value?.showModal();
-};``
+};
 
 const createText = async () => {
     axios.postForm(route('channel.create', {server: serverId}), form.data()).then(() => {
@@ -72,7 +72,7 @@ const editText = async (channelId: number) => {
                     <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
-            <Link :href="route('home.channel', {server : serverId, channel : channel.id})">
+            <Link :href="route('home.text.channel', {server : serverId, channel : channel.id})">
                 <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
                     {{ channel.name }}
                 </button>
