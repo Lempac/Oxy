@@ -44,5 +44,7 @@ Route::middleware(['web'])->group(function () {
         Route::post('/{server}', 'create')->name('.create');
         Route::patch('/{role}', 'edit')->name('.edit');
         Route::delete('/{role}', 'delete')->name('.delete');
+        Route::post('/{role}/add-user/{user}', 'addUser')->name('.add-user');
+        Route::delete('/{role}/remove-user/{user}', 'removeUser')->name('.remove-user');
     });
 });

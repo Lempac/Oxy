@@ -1,4 +1,7 @@
 import axios from 'axios';
+import './echo.ts';
+import {router} from "@inertiajs/vue3";
+import {Perms} from "@/types";
 
 window.axios = axios;
 
@@ -30,6 +33,3 @@ export const joinServer = (code: string) => {
     })
 }
 
-import './echo.ts';
-import {router} from "@inertiajs/vue3";
-import {Perms, PermType} from "@/types";

@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\MessageType;
+use App\Enums\PermsType;
 use App\Events\Messages\MessageCreated;
 use App\Events\Messages\MessageDeleted;
 use App\Events\Messages\MessageEdited;
 use App\Models\Channel;
 use App\Models\Message;
+use App\Models\Role;
+use Auth;
 use Illuminate\Http\Request;
 use Storage;
 
@@ -26,13 +29,24 @@ class MessageController
             return response()->json(['message' => 'Channel not found'], 404);
         }
 
-        if ($request->file('mdata')?->isValid()) {
-            $path = $request->file('mdata')->store('uploads', 'public');
+        $roles = $channel->server->roles->intersect(Auth::user()->roles);
+
+        //TODO: Add checking for levels for message create
+        if ($roles->contains(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_CREATE_MESSAGE);
+        })) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        if ($request->type === MessageType::File->value && $request->file('mdata')?->isValid()) {
+            $file = $request->file('mdata');
+            $name = $file->getClientOriginalName();
+            $path = $file->store('uploads', 'public');
         }
 
         Message::create([
             'type' => $request->type,
-            'mdata' => $request->type == MessageType::Text->value ? $request->mdata : Storage::url($path),
+            'mdata' => $request->type === MessageType::Text->value ? $request->mdata : (MessageType::File->value === $request->type ? $name.'|*|'.Storage::url($path) : Storage::url($path)),
             'channel_id' => $channel->id,
             'user_id' => $request->user()->id,
         ]);
@@ -78,6 +92,14 @@ class MessageController
 
         if ($message->type != MessageType::Text->value) {
             Storage::disk('public')->delete($message->mdata);
+        }
+
+        $roles = $message->channel->server->roles->intersect(Auth::user()->roles);
+
+        if ($roles->contains(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_MESSAGE);
+        })) {
+            return response()->json(['message' => 'Forbidden.'], 403);
         }
 
         $message->delete();

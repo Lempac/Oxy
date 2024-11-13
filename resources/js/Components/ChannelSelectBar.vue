@@ -6,10 +6,12 @@ import { ref } from "vue";
 
 addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill);
 
-const { selected_server } = usePage().props;
-const serverId = selected_server?.id;
-
 const serverSettingsModal = ref<HTMLDialogElement>();
+
+defineProps<{
+    serverId?: number,
+}>();
+
 </script>
 
 <template>
@@ -26,7 +28,7 @@ const serverSettingsModal = ref<HTMLDialogElement>();
             </Link>
 
             <!-- Server settings -->
-            <Link :href="route('settings.server', { serverId: serverId })" class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
+            <Link :href="route('settings.server', { id: serverId })" class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
                 <button @click="serverSettingsModal?.show()" class="flex items-center justify-center h-10 w-10">
                     <v-icon name="bi-gear-fill" scale="1.1" animation="ring" hover />
                 </button>

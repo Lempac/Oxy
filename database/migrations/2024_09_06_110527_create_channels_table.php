@@ -16,6 +16,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->enum('type', array_column(ChannelType::cases(), 'value'));
+            $table->integer('can_see_channel')->nullable();
+            $table->integer('can_create_message')->nullable();
+            $table->integer('can_delete_message')->nullable();
             $table->timestamps();
             $table->unsignedBigInteger('server_id');
             $table->foreign('server_id')->cascadeOnUpdate()->cascadeOnDelete()->references('id')->on('servers');

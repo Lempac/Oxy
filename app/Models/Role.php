@@ -8,7 +8,6 @@ use App\Events\Roles\RoleDeleted;
 use App\Events\Roles\RoleEdited;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
@@ -35,9 +34,9 @@ class Role extends Model
             ->withTimestamps();
     }
 
-    public function server(): BelongsTo
+    public function server(): BelongsToMany
     {
-        return $this->belongsTo(Server::class, 'role_server_user')
+        return $this->belongsToMany(Server::class, 'role_server_user')
             ->withPivot('user_id')
             ->withTimestamps();
     }

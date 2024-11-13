@@ -4,8 +4,12 @@ import {Link, router, usePage} from '@inertiajs/vue3';
 import {useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {baseUrl} from "@/bootstrap";
+import SettingsHeader from "@/Components/SettingsHeader.vue";
+import {Server} from "@/types";
 
-const {selected_server} = usePage().props;
+const {selected_server} = defineProps<{
+    selected_server: Server,
+}>();
 
 const icon = ref<string | null>(selected_server?.icon ? baseUrl + selected_server?.icon : null);
 const inputFile = ref<File | null>(null);
@@ -38,37 +42,21 @@ function deleteServer() {
     });
 }
 
-const showModal = ref(false);
-
 </script>
 
 <template>
     <div class="flex flex-col items-center justify-center">
         <div class="w-full max-w-6xl p-6">
             <!-- navbar -->
-            <div class="navbar bg-gray-800 text-white rounded-lg mb-6 py-4 px-6">
-                <div class="flex-1">
-                    <h1 class="text-2xl truncate max-w-[50%]" :title="selected_server?.name">
-                        {{ selected_server?.name }}</h1>
-                </div>
-                <div class="flex space-x-6">
-                    <Link :href="route('settings.server', { serverId: selected_server?.id })"
-                          class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
-                        Server
-                    </Link>
-                    <Link :href="route('settings.role', { id: selected_server?.id })"
-                          class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
-                        Roles
-                    </Link>
-                </div>
-            </div>
+            <SettingsHeader :selected_server/>
 
             <div class="flex justify-end mb-6 space-x-4">
-                <button @click="handleSave" :class="`btn ${form.isDirty ? 'btn-neutral' : ''} px-6`">Save Changes
+                <button @click="handleSave" :class="`btn ${form.isDirty ? 'btn-neutral' : ''} px-6`">
+                    Save Changes
                 </button>
-                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-neutral">Cancel
+                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-neutral">
+                    Cancel
                 </Link>
-
             </div>
 
             <div class="bg-gray-700 p-8 rounded-lg shadow-lg">

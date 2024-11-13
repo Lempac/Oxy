@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import {ref} from 'vue';
+import {defineProps, ref} from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import axios, {AxiosResponse} from 'axios';
-import {Role} from "@/types";
+import {Role, Server} from "@/types";
+import SettingsHeader from "@/Components/SettingsHeader.vue";
 
-const server = usePage().props.selected_server;
+const {selected_server} = defineProps<{
+    selected_server: Server,
+}>();
 
 const roles = ref<Role[]>([]);
 const newRole = ref({
@@ -19,7 +22,7 @@ const isModalOpen = ref(false);
 
 const fetchRoles = async () => {
     try {
-        const response: AxiosResponse<Role[] | null> = await axios.get(route('roles.index', {server: server?.id}));
+        const response: AxiosResponse<Role[] | null> = await axios.get(route('roles.index', {server: selected_server?.id}));
         roles.value = response.data ?? []; // Default to empty array if undefined
         // Sort roles by importance
         roles.value.sort((a, b) => a.importance - b.importance);
@@ -57,7 +60,7 @@ const updateRole = async () => {
 
 const addRole = async () => {
     try {
-        await axios.post(route('roles.create', {server: server?.id}), {
+        await axios.post(route('roles.create', {server: selected_server?.id}), {
             name: newRole.value.name,
             color: newRole.value.color,
             perms: newRole.value.perms,
@@ -89,24 +92,10 @@ fetchRoles();
     <div class="flex flex-col items-center justify-center">
         <div class="w-full max-w-6xl p-6">
             <!-- Navbar for Navigation -->
-            <div class="navbar bg-gray-800 text-white rounded-lg mb-6 py-4 px-6">
-                <div class="flex-1">
-                    <h1 class="text-2xl truncate" :title="server?.name" style="max-width: 50%;">{{ server?.name }}</h1>
-                </div>
-                <div class="flex space-x-6">
-                    <Link :href="route('settings.server', { serverId: server?.id })"
-                          class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
-                        Server
-                    </Link>
-                    <Link :href="route('settings.role', { id: server?.id })"
-                          class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
-                        Roles
-                    </Link>
-                </div>
-            </div>
+            <SettingsHeader :selected_server/>
 
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="route('home.server', { server: server?.id })" class="btn btn-circle bg-red-500">X
+                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-circle bg-red-500">X
                 </Link>
             </div>
 

@@ -6,9 +6,14 @@ import {baseUrl, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
+import {Server} from "@/types";
 addIcons(OiPlus);
 
 const isHomePage = computed(() => usePage().component === 'Home' || usePage().component === 'Text/Texting');
+
+defineProps<{
+    servers?: Server[]
+}>();
 
 
 const serverModal = ref<HTMLDialogElement>();
@@ -51,9 +56,9 @@ const updateIcon = (val: File) => {
             </Link>
         </div>
         <div class="navbar-center">
-            <div v-for="server in $page.props.servers" :key="server.id">
+            <div v-for="server in servers" :key="server.id">
                 <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                    <Link :href="`/home/${server.id}`">
+                    <Link :href="route('home.server', { id: server.id})">
                         <div class="tooltip tooltip-bottom" :data-tip="server.name">
                             <div class="btn btn-ghost btn-circle avatar">
                                 <div class="w-14 rounded-full">
@@ -74,12 +79,12 @@ const updateIcon = (val: File) => {
         <div class="navbar-end gap-2">
             <div class="dropdown dropdown-end">
                 <div tabindex="0" role="button" class="flex items-center btn btn-ghost">
-                    <div class="mr-2">{{ $page.props.auth.user.name }}</div>
+                    <div class="mr-2">{{ $page.props.user?.name }}</div>
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img
                                 alt="User Avatar"
-                                :src="$page.props.auth.user.icon ? `${baseUrl}${$page.props.auth.user.icon}` : defaultIcon"/>
+                                :src="$page.props.user?.icon ? `${baseUrl}${$page.props.user?.icon}` : defaultIcon"/>
                         </div>
                     </div>
                 </div>

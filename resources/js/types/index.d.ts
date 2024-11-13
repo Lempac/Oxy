@@ -26,11 +26,11 @@ export enum PermType {
     CAN_CREATE_MESSAGE = 1 << 5,
     CAM_CREATE_ATTACHMENTS = 1 << 6,
     CAN_DELETE_MESSAGE = 1 << 7,
-    CAN_EDIT_MESSAGE = 1 << 8,
+    CAN_MANAGE_CHANNEL = 1 << 8,
     CAN_CREATE_ROLE = 1 << 9,
     CAN_DELETE_ROLE = 1 << 10,
     CAN_EDIT_ROLE = 1 << 11,
-    CAN_MANAGE_MESSAGE = 1 << 12,
+    // CAN_MANAGE_MESSAGE = 1 << 12,
     CAN_MANAGE_ROLE = 1 << 13,
     CAN_MANAGE_SERVER = 1 << 14,
     CAN_SEE_CHANNEL = 1 << 15,
@@ -107,15 +107,13 @@ export interface User {
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
-    auth: {
-        user: User;
-    };
-    readonly servers: Server[] | null | undefined;
-    readonly channels: Channel[] | null | undefined;
-    readonly messages: Message[] | null | undefined;
-    readonly selected_server: Server | null | undefined;
-    readonly selected_channel: Channel | null | undefined;
-    readonly selected_message: Message | null | undefined;
-    readonly invite_code: string | undefined;
+    user: User | null;
+    // readonly servers: Server[] | null | undefined;
+    // readonly channels: Channel[] | null | undefined;
+    // readonly messages: Message[] | null | undefined;
+    // readonly selected_server: Server | null | undefined;
+    // readonly selected_channel: Channel | null | undefined;
+    // readonly selected_message: Message | null | undefined;
+    // readonly invite_code: string | undefined;
     ziggy: Config & { location: string };
 };

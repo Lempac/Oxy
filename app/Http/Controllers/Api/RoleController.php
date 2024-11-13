@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\Roles\RoleCreated;
-use App\Events\Roles\RoleDeleted;
+use App\Enums\PermsType;
 use App\Events\Roles\RoleEdited;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Server;
+use App\Models\User;
+use Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -36,6 +37,14 @@ class RoleController extends Controller
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        $roles = $server->roles->intersect(Auth::user()->roles);
+
+        if ($roles->contains(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_CREATE_ROLE);
+        })) {
+            return response()->json(['message' => 'Forbidden.'], 403);
         }
 
         $role = Role::create([
@@ -68,6 +77,14 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
+        $roles = $role->server->roles->intersect(Auth::user()->roles);
+
+        if ($roles->contains(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_EDIT_ROLE);
+        })) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
         $role->update($request->only(['name', 'color', 'perms', 'importance']));
 
         broadcast(new RoleEdited($role));
@@ -83,6 +100,14 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
+        $roles = $role->server->roles->intersect(Auth::user()->roles);
+
+        if ($roles->contains(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_ROLE);
+        })) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
         $role->delete();
 
         //        broadcast(new RoleDeleted($role));
@@ -90,7 +115,7 @@ class RoleController extends Controller
         return response()->json(['message' => 'Role deleted successfully.']);
     }
 
-    public function showSettings($serverId)
+    public function showSettings(int $serverId)
     {
         $server = Server::find($serverId);
         if (! $server) {
@@ -98,5 +123,56 @@ class RoleController extends Controller
         }
 
         return Inertia::render('Settings/Role')->with(['selected_server' => $server]);
+    }
+
+    public function showMembers(int $serverId)
+    {
+        $server = Server::find($serverId);
+        if (! $server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        return Inertia::render('Settings/Members')->with([
+            'selected_server' => $server,
+            'selected_server.users' => $server->users->each(function (User $user) use ($server) {
+                $user['rolesWithServer'] = $user->roles->intersect($server->roles);
+            }),
+        ]);
+    }
+
+    public function addUser(int $roleId, int $userId)
+    {
+        $user = User::find($userId);
+        $role = Role::find($roleId);
+
+        if (! $role) {
+            return response()->json(['message' => 'Role not found.'], 404);
+        }
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        $user->roles()->attach($role);
+
+        return response()->json(['message' => 'Role deleted successfully.']);
+    }
+
+    public function removeUser(int $roleId, int $userId)
+    {
+        $user = User::find($userId);
+        $role = Role::find($roleId);
+
+        if (! $role) {
+            return response()->json(['message' => 'Role not found.'], 404);
+        }
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        $user->roles()->detach($role);
+
+        return response()->json(['message' => 'Role deleted successfully.']);
     }
 }

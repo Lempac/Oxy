@@ -2,15 +2,19 @@
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import axios from "axios";
-import {Channel, ChannelType} from "@/types";
+import {Channel, ChannelType, Server} from "@/types";
 import {addIcons} from "oh-vue-icons";
 import {MdDeleteforeverOutlined, OiPlus} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
 addIcons(OiPlus, MdDeleteforeverOutlined);
 
-const {selected_server} = usePage().props;
-const serverId = selected_server?.id;
+const {selected_server} = defineProps<{
+    channels?: Channel[],
+    selected_server?: Server,
+    selected_channel?: Channel,
+}>()
+
 
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
@@ -34,7 +38,7 @@ const openModal = (channel?: Channel) => {
 };
 
 const createText = async () => {
-    axios.postForm(route('channel.create', {server: serverId}), form.data()).then(() => {
+    axios.postForm(route('channel.create', {server: selected_server?.id}), form.data()).then(() => {
         channelModal.value?.close();
         router.reload()
     });
@@ -57,7 +61,7 @@ const editText = async (channelId: number) => {
 
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
-        <div class="indicator relative group" v-for="channel in $page.props.channels" :key="channel.id">
+        <div class="indicator relative group" v-for="channel in channels" :key="channel.id">
             <div class="indicator-item indicator-top absolute hidden group-hover:block">
                 <ConfirmDialog
                     title="Delete Channel"
@@ -74,9 +78,9 @@ const editText = async (channelId: number) => {
                     <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
-            <Link :href="route('home.channel', {server : serverId, channel : channel.id})">
+            <Link :href="route('home.channel', {server : selected_server?.id, channel : channel.id})">
                 <button class="btn btn-outline btn-sm"
-                        :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
+                        :class="{'bg-gray-400 text-black' : selected_channel?.id === channel.id}">
                     {{ channel.name }}
                 </button>
             </Link>
