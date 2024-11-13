@@ -84,6 +84,7 @@ class HomeController extends Controller
     public function voice(Request $request, int $server)
     {
         $serverObj = Server::find($server);
+
         return Inertia::render('Voice/Speaking', [
             'servers' => $request->user()->servers,
             'selected_server' => $serverObj,

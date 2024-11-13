@@ -98,7 +98,6 @@ class ServerController extends Controller
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-
         $server->users()->detach($request->user_id);
 
         broadcast(new ServerLeft($request->user_id, $serverId));
