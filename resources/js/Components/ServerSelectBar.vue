@@ -9,7 +9,7 @@ import {OiPlus} from "oh-vue-icons/icons";
 import {Server} from "@/types";
 addIcons(OiPlus);
 
-const isHomePage = computed(() => usePage().component === 'Home' || usePage().component === 'Text/Texting');
+const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
 
 defineProps<{
     servers?: Server[]

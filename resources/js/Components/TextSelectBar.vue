@@ -4,10 +4,10 @@ import {ref} from "vue";
 import axios from "axios";
 import {Channel, ChannelType, Server} from "@/types";
 import {addIcons} from "oh-vue-icons";
-import {MdDeleteforeverOutlined, OiPlus} from "oh-vue-icons/icons";
+import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
+addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
-addIcons(OiPlus, MdDeleteforeverOutlined);
 
 const {selected_server} = defineProps<{
     channels?: Channel[],
@@ -78,9 +78,9 @@ const editText = async (channelId: number) => {
                     <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
-            <Link :href="route('home.channel', {server : selected_server?.id, channel : channel.id})">
-                <button class="btn btn-outline btn-sm"
-                        :class="{'bg-gray-400 text-black' : selected_channel?.id === channel.id}">
+
+            <Link :href="route('home.text.channel', {server : selected_server?.id, channel : channel.id})">
+                <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : selected_channel?.id === channel.id}">
                     {{ channel.name }}
                 </button>
             </Link>

@@ -83,6 +83,30 @@ class HomeController extends Controller
 
     public function voice(Request $request, int $server)
     {
-        return Inertia::render('Voice/Speaking');
+        $serverObj = Server::find($server);
+        return Inertia::render('Voice/Speaking', [
+            'servers' => $request->user()->servers,
+            'selected_server' => $serverObj,
+            'selected_server.users' => $serverObj->users,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Voice)->get(),
+            'invite_code' => $server.'#'.hash('xxh32', $server),
+        ]);
+    }
+
+    public function vchannel(Request $request, int $server, int $channel): Response
+    {
+        $serverObj = Server::find($server);
+
+        return Inertia::render('Text/Texting', [
+            'selected_server' => $serverObj,
+            'selected_channel' => Channel::find($channel),
+            'servers' => $request->user()->servers,
+            'selected_server.users' => $serverObj->users,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Voice)->get(),
+            'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
+                $message['sender'] = fn (): User => $message->user;
+            }),
+            'invite_code' => $server.'#'.hash('xxh32', $server),
+        ]);
     }
 }

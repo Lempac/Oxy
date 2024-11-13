@@ -16,10 +16,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'home')->middleware('verified');
         Route::get('/{server}', 'server')->name('.server');
         Route::get('/{server}/text', 'text')->name('.text');
-        Route::get('/{server}/text/{channel}', 'channel')->name('.channel');
-        Route::get('/{server}/text/{channel}/{message}', 'message')->name('.message');
+        Route::get('/{server}/text/{channel}', 'channel')->name('.text.channel');
+        Route::get('/{server}/text/{channel}/{message}', 'message')->name('.text.channel.message');
 
         Route::get('/{server}/voice', 'voice')->name('.voice');
+        Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
     });
 
     //Setting routes

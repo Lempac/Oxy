@@ -215,7 +215,7 @@ const uploadFile = (val: File) => {
                 </div>
 
                 <div class="join w-full items-center">
-                    <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled"
+                    <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled" @keydown.enter="createMessage"
                            class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
                     />
                     <button class="btn join-item mr-5 mb-5">
