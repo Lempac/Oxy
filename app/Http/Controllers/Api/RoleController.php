@@ -63,7 +63,6 @@ class RoleController extends Controller
 
     public function edit(Request $request, int $roleId)
     {
-
         $request->validate([
             'name' => 'nullable|string|max:255',
             'color' => 'nullable|string|size:7',
@@ -77,7 +76,7 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $roles = $role->server->roles->intersect(Auth::user()->roles);
+        $roles = $role->server->first()->roles->intersect(Auth::user()->roles);
 
         if ($roles->contains(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_EDIT_ROLE);

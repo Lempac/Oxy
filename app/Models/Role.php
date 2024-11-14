@@ -43,7 +43,7 @@ class Role extends Model
 
     public function hasPerms(array|PermsType|int $permsType): bool
     {
-        return ($this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value)) === $this->perms;
+        return ($this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value)) === $permsType;
     }
 
     public function hasAnyPerms(array|PermsType|int $permsType): bool
@@ -62,4 +62,8 @@ class Role extends Model
         $this->perms &= $this->perms & is_array($permsType) ? ~array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? ~$permsType : ~$permsType->value);
         $this->save();
     }
+
+    protected $casts = [
+        'perms' => 'string',
+    ];
 }

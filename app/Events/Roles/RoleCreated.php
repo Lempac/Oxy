@@ -19,6 +19,7 @@ class RoleCreated implements ShouldBroadcast
 
     public function broadcastOn(): PrivateChannel
     {
+        $this->role->server = $this->role->load('server');
         return new PrivateChannel('roles.'.$this->role->server->id);
     }
 

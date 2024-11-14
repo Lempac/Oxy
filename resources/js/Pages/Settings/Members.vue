@@ -33,7 +33,6 @@ const toggleRole = (roleId: number, userId: number, state: boolean) => {
             router.reload({only: ['selected_server']});
         })
     }
-
 };
 
 const kickMember = (userId: number) => {
@@ -84,7 +83,7 @@ const kickMember = (userId: number) => {
                                 <ul tabindex="0"
                                     class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow gap-y-1">
                                     <li v-for="role in selected_server.roles"><button @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))"
-                                        :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-gray-700' : ''">
+                                        :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-gray-700' : ''" class="btn">
                                         <v-icon name="bi-check-lg"
                                                 v-if="user.rolesWithServer.find(objRole => objRole.id === role.id)"/>
                                         {{ role.name }}</button></li>

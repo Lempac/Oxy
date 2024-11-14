@@ -37,6 +37,7 @@ class ServerController extends Controller
 
         $role = Role::create([
             'name' => 'Owner',
+            'color' => '#ffffff',
             'perms' => PHP_INT_MAX,
             'importance' => 0,
         ]);

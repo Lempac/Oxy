@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import {defineProps, ref} from 'vue';
-import {Link, usePage} from '@inertiajs/vue3';
+import {Link, router, usePage} from '@inertiajs/vue3';
 import axios, {AxiosResponse} from 'axios';
-import {Role, Server} from "@/types";
+import {PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
+import {bigIntToPerms} from "@/bootstrap";
+import {addIcons} from "oh-vue-icons";
+import {BiCheckLg} from "oh-vue-icons/icons";
+
+addIcons(BiCheckLg);
 
 const {selected_server} = defineProps<{
     selected_server: Server,
@@ -14,7 +19,7 @@ const newRole = ref({
     name: '',
     color: '#ffffff',
     importance: 0,
-    perms: 0,
+    perms: "0",
 } as Role);
 
 const editingRole = ref<Role | null>(null);
@@ -36,7 +41,7 @@ const closeModal = () => {
     newRole.value.name = '';
     newRole.value.color = '#ffffff'; // Reset color
     newRole.value.importance = 0; // Reset importance
-    newRole.value.perms = 0;
+    newRole.value.perms = "0";
 };
 
 const editRole = (role: Role) => {
@@ -86,6 +91,15 @@ const deleteRole = async (role: Role) => {
 // Fetch roles when component mounts
 fetchRoles();
 
+const togglePerm = (perm: PermType, state: boolean) => {
+    if (editingRole.value?.perms === undefined) return;
+    let currentPerm = bigIntToPerms(BigInt(editingRole.value?.perms))
+    state ? currentPerm.add(perm) : currentPerm.remove(perm)
+    editingRole.value.perms = currentPerm.perm.toString()
+};
+
+let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'number') as [string, number][]
+
 </script>
 
 <template>
@@ -107,13 +121,14 @@ fetchRoles();
                 <button @click="isModalOpen = true" class="btn mb-6">Add Role</button>
 
                 <!-- Roles Table -->
-                <table class="min-w-full bg-gray-100 rounded-lg">
+                <table class="min-w-full bg-base-300 rounded-lg">
                     <thead class="bg-gray-500">
                     <tr>
                         <th class="py-2 px-4 text-left text-white">Role Name</th>
                         <th class="py-2 px-4 text-left text-white" v-if="editingRole">Color</th>
                         <th class="py-2 px-4 text-left text-white">Importance</th>
-                        <th class="py-2 px-4 text-white text-end">Actions</th>
+                        <th class="py-2 px-4 text-left text-white">Perms</th>
+                        <th class="py-2 px-4 text-end text-white">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -131,7 +146,30 @@ fetchRoles();
                             <input v-if="editingRole === role" v-model="newRole.importance" type="number" min="0"
                                    max="100" class="p-1 text-black"/>
                         </td>
-                        <td class="py-2 px-4 text-right">
+                        <td class="py-2 px-4 text-black">
+                            <div class="dropdown">
+                                <button tabindex="0"
+                                        class="btn m-1">
+                                    {{
+                                        roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).map(roleobj => roleobj[0]).slice(0, 3).join(', ') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length > 3 ? ' +' + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length-3).toString() + ' others' : '')
+                                    }}
+                                </button>
+                                <ul tabindex="0"
+                                    class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1">
+                                    <li v-for="perm in roleArray">
+                                        <button
+                                            @click="() => togglePerm(perm[1], !bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])))"
+                                            :class="(bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])) ? 'bg-gray-700' : '')" class="btn"
+                                            :disabled="editingRole !== role"
+                                        >
+                                            <v-icon name="bi-check-lg" v-if="bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1]))"/>
+                                            {{ perm[0] }}
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                        <td class="py-2 px-4 text-end">
                             <div class="flex justify-end space-x-2">
                                 <button v-if="editingRole !== role" @click="editRole(role)"
                                         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Edit

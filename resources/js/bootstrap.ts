@@ -10,19 +10,19 @@ export const defaultIcon = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9
 
 export const baseUrl = window.location.origin;
 
-export const numberToPerms = (newPrem: number): Perms => ({
+export const bigIntToPerms = (newPrem: bigint): Perms => ({
     perm: newPrem,
     add(addPerm) {
-        this.perm |= Array.isArray(addPerm) ? addPerm.reduce((accumulator, currentValue) => accumulator | currentValue) : addPerm
+        this.perm |= Array.isArray(addPerm) ? addPerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : BigInt(addPerm)
     },
     has(otherPerm) {
-        return (this.perm & (Array.isArray(otherPerm) ? otherPerm.reduce((accumulator, currentValue) => accumulator | currentValue) : otherPerm)) === this.perm
+        return (this.perm & (Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : BigInt(otherPerm))) === otherPerm
     },
     hasAny(otherPerm) {
-        return (this.perm & (Array.isArray(otherPerm) ? otherPerm.reduce((accumulator, currentValue) => accumulator | currentValue) : otherPerm)) !== 0
+        return (this.perm & (Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : BigInt(otherPerm))) !== BigInt(0)
     },
     remove(removePerm) {
-        this.perm &= Array.isArray(removePerm) ? ~removePerm.reduce((accumulator, currentValue) => accumulator | currentValue) : ~removePerm
+        this.perm &= Array.isArray(removePerm) ? ~removePerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : ~BigInt(removePerm)
     }
 });
 

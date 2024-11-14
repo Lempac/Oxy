@@ -41,7 +41,7 @@ export enum PermType {
 export interface Role extends Object {
     name: string;
     color: string;
-    perms: number;
+    perms: string;
     importance: number;
     readonly created_at: string;
     users: User[] | null;
@@ -75,11 +75,11 @@ export interface Server extends Object {
 }
 
 export interface Perms {
-    perm: number;
-    has: (perm: number | PermType | PermType[]) => boolean;
-    hasAny: (perm: number | PermType | PermType[]) => boolean;
-    add: (perm: number | PermType | PermType[]) => void;
-    remove: (perm: number | PermType | PermType[]) => void;
+    perm: bigint;
+    has: (perm: bigint | PermType | PermType[]) => boolean;
+    hasAny: (perm: bigint | PermType | PermType[]) => boolean;
+    add: (perm: bigint | PermType | PermType[]) => void;
+    remove: (perm: bigint | PermType | PermType[]) => void;
 }
 
 export interface Message extends Object {

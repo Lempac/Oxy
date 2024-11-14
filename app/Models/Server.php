@@ -54,9 +54,9 @@ class Server extends Model
     {
         return ServerFactory::new()->hasRoles(1, [
             'name' => 'Owner',
+            'color' => '#ffffff',
             'perms' => PHP_INT_MAX,
             'importance' => 0,
-            'color' => '#ffffff',
         ]);
     }
 }

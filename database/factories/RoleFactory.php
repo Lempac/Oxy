@@ -19,6 +19,9 @@ class RoleFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'color' => fake()->hexColor(),
+            'perms' => 0,
+            'importance' => 0,
         ];
     }
 }
