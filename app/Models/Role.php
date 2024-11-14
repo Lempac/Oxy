@@ -59,7 +59,7 @@ class Role extends Model
 
     public function removePerms(array|PermsType|int $permsType): void
     {
-        $this->perms &= $this->perms & (is_array($permsType) ? ~array_reduce(array_column($permsType, 'value'), fn(int $a, int $b) => $a | $b) : (is_numeric($permsType) ? ~$permsType : ~$permsType->value));
+        $this->perms &= $this->perms & (is_array($permsType) ? ~array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? ~$permsType : ~$permsType->value));
         $this->save();
     }
 
@@ -74,6 +74,7 @@ class Role extends Model
     {
         $data = parent::jsonSerialize();
         $data['perms'] = (string) $this->perms; // Cast to string when serializing
+
         return $data;
     }
 }

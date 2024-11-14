@@ -41,7 +41,7 @@ class RoleController extends Controller
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->doesntContain(function (Role $role) use ($request) {
+        if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_CREATE_ROLE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
