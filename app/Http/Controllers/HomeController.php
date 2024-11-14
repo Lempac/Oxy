@@ -98,7 +98,7 @@ class HomeController extends Controller
     {
         $serverObj = Server::find($server);
 
-        return Inertia::render('Text/Texting', [
+        return Inertia::render('Voice/Speaking', [
             'selected_server' => $serverObj,
             'selected_channel' => Channel::find($channel),
             'servers' => $request->user()->servers,
