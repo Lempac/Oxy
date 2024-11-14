@@ -7,6 +7,7 @@ import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
 import {addIcons} from "oh-vue-icons";
 import {BiCheckLg} from "oh-vue-icons/icons";
+import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
 addIcons(BiCheckLg);
 
@@ -151,7 +152,7 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                                 <button tabindex="0"
                                         class="btn m-1">
                                     {{
-                                        roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).map(roleobj => roleobj[0]).slice(0, 3).join(', ') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length > 3 ? ' +' + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length-3).toString() + ' others' : '')
+                                        roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).map(roleobj => roleobj[0]).slice(0, 3).join(', ') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length > 3 ? ' +' + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length-3).toString() + ' others' : '') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length === 0 ? 'None' : '')
                                     }}
                                 </button>
                                 <ul tabindex="0"
@@ -177,9 +178,7 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                                 <button v-if="editingRole === role" @click="updateRole"
                                         class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">Save
                                 </button>
-                                <button @click="deleteRole(role)"
-                                        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700">Delete
-                                </button>
+                                <ConfirmDialog title="Are you sure?" description="Are you sure you want to delete this role?" class-name="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700" :confirm="() => deleteRole(role)" text="Delete"/>
                             </div>
                         </td>
                     </tr>

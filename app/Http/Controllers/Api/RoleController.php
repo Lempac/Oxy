@@ -41,8 +41,8 @@ class RoleController extends Controller
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_CREATE_ROLE);
+        if ($roles->doesntContain(function (Role $role) use ($request) {
+            return $role->hasPerms(PermsType::CAN_CREATE_ROLE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -78,8 +78,8 @@ class RoleController extends Controller
 
         $roles = $role->server->first()->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_ROLE);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_EDIT_ROLE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -99,10 +99,9 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $roles = $role->server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_ROLE);
+        $roles = $role->server->first()->roles->intersect(Auth::user()->roles);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_ROLE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }

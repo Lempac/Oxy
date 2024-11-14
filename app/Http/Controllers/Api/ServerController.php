@@ -93,8 +93,8 @@ class ServerController extends Controller
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_SERVER);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_KICK->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -122,8 +122,8 @@ class ServerController extends Controller
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_SERVER);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -162,8 +162,8 @@ class ServerController extends Controller
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_SERVER);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -188,8 +188,8 @@ class ServerController extends Controller
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_SERVER);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -217,8 +217,8 @@ class ServerController extends Controller
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_SERVER);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }

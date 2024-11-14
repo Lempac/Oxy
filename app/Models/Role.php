@@ -43,27 +43,37 @@ class Role extends Model
 
     public function hasPerms(array|PermsType|int $permsType): bool
     {
-        return ($this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value)) === $permsType;
+        return ($this->perms & (is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value))) === $permsType;
     }
 
     public function hasAnyPerms(array|PermsType|int $permsType): bool
     {
-        return ($this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value)) !== 0;
+        return ($this->perms & (is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value))) !== 0;
     }
 
     public function addPerms(array|PermsType|int $permsType): void
     {
-        $this->perms |= $this->perms & is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value);
+        $this->perms |= $this->perms & (is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value));
         $this->save();
     }
 
     public function removePerms(array|PermsType|int $permsType): void
     {
-        $this->perms &= $this->perms & is_array($permsType) ? ~array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? ~$permsType : ~$permsType->value);
+        $this->perms &= $this->perms & (is_array($permsType) ? ~array_reduce(array_column($permsType, 'value'), fn(int $a, int $b) => $a | $b) : (is_numeric($permsType) ? ~$permsType : ~$permsType->value));
         $this->save();
     }
 
-    protected $casts = [
-        'perms' => 'string',
-    ];
+    // Accessor for the perms attribute
+    public function getPermsAttribute($value)
+    {
+        return (int) $value; // Keep it as an integer in the backend
+    }
+
+    // Custom serialization method
+    public function jsonSerialize(): mixed
+    {
+        $data = parent::jsonSerialize();
+        $data['perms'] = (string) $this->perms; // Cast to string when serializing
+        return $data;
+    }
 }

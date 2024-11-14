@@ -32,8 +32,8 @@ class MessageController
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
         //TODO: Add checking for levels for message create
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_CREATE_MESSAGE);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_CREATE_MESSAGE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -82,7 +82,7 @@ class MessageController
         return response()->json(['message' => 'Message updated'], 201);
     }
 
-    public function delete(Request $request, int $messageId)
+    public function delete(int $messageId)
     {
         $message = Message::find($messageId);
 
@@ -96,8 +96,8 @@ class MessageController
 
         $roles = $message->channel->server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_MESSAGE);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_MESSAGE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }

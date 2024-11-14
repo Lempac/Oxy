@@ -4,9 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\ChannelType;
 use App\Enums\PermsType;
-use App\Events\Channels\ChannelCreated;
-use App\Events\Channels\ChannelDeleted;
-use App\Events\Channels\ChannelEdited;
 use App\Models\Channel;
 use App\Models\Role;
 use App\Models\Server;
@@ -30,8 +27,8 @@ class ChannelController
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_CREATE_CHANNEL);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_CREATE_CHANNEL->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -61,8 +58,8 @@ class ChannelController
 
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_CHANNEL);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_EDIT_CHANNEL->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -75,7 +72,7 @@ class ChannelController
         return response()->json(['message' => 'Channel updated successfully.']);
     }
 
-    public function delete(Request $request, int $channelId)
+    public function delete(int $channelId)
     {
         $channel = Channel::find($channelId);
         if (! $channel) {
@@ -84,8 +81,8 @@ class ChannelController
 
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->contains(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_CHANNEL);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_CHANNEL->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
