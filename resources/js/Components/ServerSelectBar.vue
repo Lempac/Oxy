@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import {baseUrl, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus} from "oh-vue-icons/icons";
-addIcons(OiPlus);
+import {OiPlus, HiSolidSun, RiMoonClearFill} from "oh-vue-icons/icons";
+addIcons(OiPlus, HiSolidSun, RiMoonClearFill);
 
 const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
 
@@ -72,6 +72,12 @@ const updateIcon = (val: File) => {
 
         <!-- User Profile -->
         <div class="navbar-end gap-2">
+<!--            <label class="btn btn-circle swap swap-rotate">-->
+<!--                <input type="checkbox" />-->
+<!--                <v-icon name="hi-solid-sun" scale="1.5" class="swap-on fill-current"></v-icon>-->
+<!--                <v-icon name="ri-moon-clear-fill" scale="1.5" class="swap-off fill-current"></v-icon>-->
+<!--            </label>-->
+
             <div class="dropdown dropdown-end">
                 <div tabindex="0" role="button" class="flex items-center btn btn-ghost">
                     <div class="mr-2">{{ $page.props.auth.user.name }}</div>

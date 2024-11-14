@@ -73,12 +73,12 @@ const editText = async (channelId: number) => {
                 </button>
             </div>
             <Link :href="route('home.text.channel', {server : serverId, channel : channel.id})">
-                <button class="btn btn-outline btn-sm" :class="{'bg-gray-400 text-black' : $page.props.selected_channel?.id === channel.id}">
+                <button class="btn btn-outline btn-sm" :class="{'bg-gray-800 text-white dark:bg-gray-400 dark:text-gray-800' : $page.props.selected_channel?.id === channel.id}">
                     {{ channel.name }}
                 </button>
             </Link>
         </div>
-        <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="openModal()">
+        <button class="btn btn-sm btn-square btn-outline mx-9" @click="openModal()">
             <v-icon name="oi-plus"/>
         </button>
     </div>

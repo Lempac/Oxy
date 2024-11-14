@@ -17,7 +17,7 @@ const serverSettingsModal = ref<HTMLDialogElement>();
         <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
             <Link :href="route('home.text', { server: serverId })">
                 <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
-                    :class="{ 'border-b-2 border-white text-white': $page.url.includes('/text') }"
+                    :class="{ 'border-b-2 border-black text-black dark:border-white dark:text-white': $page.url.includes('/text') }"
                 >
                     <svg class="h-5 w-5">
                         <v-icon name="bi-chat-text" />
@@ -27,15 +27,15 @@ const serverSettingsModal = ref<HTMLDialogElement>();
             </Link>
 
             <!-- Server settings -->
-            <Link :href="route('settings.server', { serverId: serverId })" class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
-                <button @click="serverSettingsModal?.show()" class="flex items-center justify-center h-10 w-10">
+            <Link :href="route('settings.server', { serverId: serverId })" class="right-2 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
+                <button @click="serverSettingsModal?.show()" class="flex items-center justify-center h-10 w-auto my-auto">
                     <v-icon name="bi-gear-fill" scale="1.1" animation="ring" hover />
                 </button>
             </Link>
 
             <Link :href="route('home.voice', { server: serverId })">
                 <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
-                        :class="{ 'border-b-2 border-white text-white': $page.url.includes('/voice') }"
+                        :class="{ 'border-b-2 border-black text-black dark:border-white dark:text-white': $page.url.includes('/voice') }"
                 >
                     <svg class="h-5 w-5">
                         <v-icon name="ri-chat-voice-line" />

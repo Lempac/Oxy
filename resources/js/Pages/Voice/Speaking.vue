@@ -61,6 +61,7 @@ const editText = async (channelId: number) => {
     <AuthenticatedLayout>
 
         <div class="mt-3 pb-20">
+            <div class="flex items-center justify-center mx-auto text-5xl my-5">IN DEVELOPMENT!!!</div>
             <div class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7" v-for="channel in $page.props.channels" :key="channel.id">
                 <span class="indicator-item indicator-top absolute hidden group-hover:block">
                     <ConfirmDialog
@@ -79,13 +80,13 @@ const editText = async (channelId: number) => {
                     </button>
                 </span>
 
-                <div class="w-full rounded-lg dark:bg-gray-800">
+                <div class="w-full rounded-lg bg-white dark:bg-gray-800">
                     <div class="flex items-center justify-center text-xl pt-2">
                         {{channel.name}}
                     </div>
 
                     <div class="grid grid-cols-3 gap-1 p-3">
-                        <div v-for="user in $page.props.selected_server?.users" :key="user.id" class="avatar rounded-lg dark:bg-gray-700 items-center justify-center h-16">
+                        <div v-for="user in $page.props.selected_server?.users" :key="user.id" class="avatar rounded-lg items-center justify-center h-16 bg-gray-100 dark:bg-gray-700">
                             <div class="flex w-10 h-auto rounded-full ml-5">
                                 <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" />
                             </div>
@@ -101,7 +102,7 @@ const editText = async (channelId: number) => {
                 </div>
             </div>
 
-            <button class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center" @click="openModal()">
+            <button class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-white dark:bg-gray-800" @click="openModal()">
                 <v-icon name="oi-plus" scale="3" />
             </button>
 

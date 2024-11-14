@@ -55,14 +55,25 @@ const clearFile = () => {
     isDisabled = false;
 }
 
+let loading = ref(false);
+
 const createMessage = async () => {
-    console.log(form.mdata)
-    if (typeof(form.mdata) === "string") {
-        form.type = MessageType.Text;
+    if (loading.value) return;
+    loading.value = true;
+
+    try {
+        if (typeof(form.mdata) === "string") {
+            form.type = MessageType.Text;
+        }
+        axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => {
+            clearFile()
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+    } catch (error) {
+        console.error('Error sending message:', error);
+    } finally {
+        loading.value = false;
     }
-    axios.postForm(route('message.create', { channel: channel?.id }), form.data()).then(() => {
-        clearFile()
-    });
 };
 
 const messageContainer = ref<HTMLElement | null>(null);
@@ -136,13 +147,14 @@ const uploadFile = (val: File) => {
     mdata.value = URL.createObjectURL(inputFile.value);
     isDisabled = true;
 }
+
 </script>
 
 <template>
     <AuthenticatedLayout>
       <TextSelectBar/>
 
-      <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] m-5 rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
+      <div class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-white dark:bg-gray-800 m-5 rounded-lg mx-auto mt-3 flex flex-col" v-if="$page.url.match(/\/text\/\d+/)">
           <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
               <div v-if="$page.props.messages && $page.props.messages.length > 0">
                   <div v-for="message in $page.props.messages" :key="message.id" :class="{'chat chat-start': message.user_id !== $page.props.auth.user.id, 'chat chat-end': message.user_id === $page.props.auth.user.id}">
@@ -159,14 +171,16 @@ const uploadFile = (val: File) => {
                       </div>
 
                       <div class="indicator">
-                          <div class="chat-bubble group max-w-full">
+                          <div class="chat-bubble group max-w-full bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
                               <div v-if="MessageType.Text === message.type">
                                   {{ message.mdata }}
                               </div>
                               <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img" class="max-w-3xl h-auto" />
                               <div v-if="MessageType.File === message.type">
                                   <v-icon name="fa-regular-file" />
-                                  {{ baseUrl + message.mdata }}
+                                  <a :href="baseUrl + message.mdata" download>
+                                      {{ message.mdata }}
+                                  </a>
                               </div>
 
                               <div v-if="message.user_id === $page.props.auth.user.id" class="indicator-item indicator-top absolute hidden group-hover:block" :class="{'indicator-end': message.user_id !== $page.props.auth.user.id, 'indicator-start': message.user_id === $page.props.auth.user.id}">
@@ -194,21 +208,21 @@ const uploadFile = (val: File) => {
           </div>
 
           <form @submit.prevent="createMessage" class="flex items-center mt-1">
-    <!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
-    <!--                  <v-icon name="md-fileupload-outlined"/>-->
-    <!--              </label>-->
-              <div class="items-center inline-flex">
+              <label for="file-upload" class="btn join-item ml-5 mb-5">
+                  <v-icon name="md-fileupload-outlined"/>
+              </label>.
+              <div class="items-center hidden">
                   <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])" ref="fileInput"
                          class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
                   />
-                  <button @click.prevent="clearFile" class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕</button>
               </div>
+              <button @click.prevent="clearFile" class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕</button>
 
               <div class="join w-full items-center">
-                  <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled" @keydown.enter="createMessage"
+                  <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="loading || isDisabled" @keydown.enter="createMessage"
                          class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
                   />
-                  <button class="btn join-item mr-5 mb-5">
+                  <button class="btn join-item mr-5 mb-5" :disabled="loading">
                       <v-icon name="fa-regular-paper-plane" />
                   </button>
               </div>
@@ -229,7 +243,7 @@ const uploadFile = (val: File) => {
                     <button type="submit" class="btn btn-primary w-full mt-2">Edit Message</button>
                 </div>
                 <div class="modal-action">
-                    <button @click="() => messageModal?.close() && form.reset()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    <button @click.prevent="() => { messageModal?.close(); form.reset()}" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                 </div>
             </form>
         </div>
