@@ -11,7 +11,7 @@ use App\Models\Server;
 use Auth;
 use Illuminate\Http\Request;
 use Storage;
-
+use Inertia\Inertia;
 
 class ServerController extends Controller
 {
@@ -43,7 +43,7 @@ class ServerController extends Controller
     public function addUser(Request $request)
     {
         $request->validate([
-           'code' => 'required|string|max:20',
+            'code' => 'required|string|max:20',
         ]);
 
         $data = explode('#', $request->code);
@@ -52,8 +52,8 @@ class ServerController extends Controller
         if (hash('xxh32', $serverId) !== $code) return response()->json(['message' => 'Code is invalid.'], 404);
 
         $server = Server::find($serverId);
-        if(!$server) return response()->json(['message' => 'Server not found.'], 404);
-        if($server->users->has(Auth::id())) return response()->json(['message' => 'Server has already been added.'], 409);
+        if (!$server) return response()->json(['message' => 'Server not found.'], 404);
+        if ($server->users->has(Auth::id())) return response()->json(['message' => 'Server has already been added.'], 409);
 
         $server->users()->attach(Auth::id());
 
@@ -103,7 +103,17 @@ class ServerController extends Controller
         return response()->json(['message' => 'Server updated successfully.']);
     }
 
-    public function delete(Request $request, int $serverId)
+    public function showSettings($serverId)
+    {
+        $server = Server::find($serverId);
+        if (!$server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        return Inertia::render('Settings/Server')->with(['selected_server' => $server]);
+    }
+
+    public function destroy(int $serverId)
     {
         $server = Server::find($serverId);
 
@@ -113,7 +123,46 @@ class ServerController extends Controller
 
         $server->delete();
 
-        return response()->json(['message' => 'Server deleted successfully.']);
+        return redirect('/home');
     }
 
+    public function update(Request $request, int $serverId)
+    {
+        $request->validate([
+            'name' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:255',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $server = Server::find($serverId);
+        if (!$server) return redirect()->back()->withErrors(['message' => 'Server not found.']);
+
+        if ($request->file('icon')?->isValid()) {
+            $path = $request->file('icon')->store('uploads', 'public');
+            $server->icon = Storage::url($path);
+        }
+
+        $server->name = $request->input('name', $server->name);
+        $server->description = $request->input('description', $server->description);
+        $server->save();
+
+        return redirect()->route('settings.server', ['serverId' => $serverId])
+            ->with('message', 'Server updated successfully.');
+    }
+
+    public function delete(int $serverId)
+    {
+        $server = Server::find($serverId);
+
+        if (!$server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        $server->roles->each(function ($role) {
+            $role->delete();
+        });
+        $server->delete();
+
+        return response()->json(['message' => 'Server deleted successfully.']);
+    }
 }

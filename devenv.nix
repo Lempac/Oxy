@@ -10,9 +10,17 @@
         xdebug.discover_client_host = 1
         xdebug.client_host = 127.0.0.1
     '';
-    languages.javascript.enable = true  ;
+    languages.javascript.enable = true;
     languages.javascript.package = pkgs.nodejs_20;
 
+    processes = {
+        vite.exec = "npm run dev";
+        php-serve.exec = "php artisan serve";
+        php-queue.exec = "php artisan queue:work";
+        php-reverb.exec = "php artisan reverb:start";
+    };
+
+    services.mailpit.enable = true;
     services.mysql.enable = true;
     services.mysql.ensureUsers = [
         {

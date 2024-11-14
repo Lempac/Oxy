@@ -1,8 +1,8 @@
 import {Config} from 'ziggy-js';
 
 interface Object {
-    id: number;
-    update_at: string;
+    readonly id: number;
+    readonly update_at: string;
 }
 
 export enum ChannelType {
@@ -14,6 +14,15 @@ export enum ChannelType {
 export enum MessageType {
     Text = 'text',
     Image = 'image',
+    File = 'file',
+}
+
+export interface Role extends Object{
+    name: string;
+    color: string;
+    importance: number;
+    perms: number;
+    readonly created_at: string;
 }
 
 export interface Note extends Object {
@@ -38,6 +47,18 @@ export interface Server extends Object {
     name: string;
     description: string;
     icon: string | null;
+    users: User[] | null;
+    roles: Role[] | null;
+}
+
+export interface Role extends Object {
+    name: string;
+    color: string;
+    perms: number;
+    importance: number;
+    created_at: string;
+    users: User[] | null;
+    server: Server | null;
 }
 
 export interface Message extends Object {
@@ -60,6 +81,8 @@ export interface User {
     name: string;
     email: string;
     email_verified_at: string | null;
+    roles: Role[] | null;
+    servers: Server[] | null;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {

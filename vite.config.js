@@ -3,6 +3,7 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 
+/** @type {import('vite').UserConfig} */
 export default defineConfig({
     plugins: [
         laravel({
@@ -22,6 +23,11 @@ export default defineConfig({
     resolve: {
         alias: {
             "@/types": path.resolve(__dirname, './resources/js/types/index.d.ts')
+        }
+    },
+    server:{
+        watch: {
+            ignored: [ "**/.devenv/**" ],
         }
     }
 });

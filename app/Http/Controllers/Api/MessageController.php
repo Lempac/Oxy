@@ -9,6 +9,7 @@ use App\Events\Messages\MessageEdited;
 use App\Models\Channel;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Storage;
 
 class MessageController
 {
@@ -16,7 +17,7 @@ class MessageController
     {
         $request->validate([
             'type' => 'required|in:' . implode(',', array_column(MessageType::cases(), 'value')),
-            'mdata' => 'required|string',
+            'mdata' => 'required',
         ]);
 
         $channel = Channel::find($channelId);
@@ -25,9 +26,13 @@ class MessageController
             return response()->json(['message' => 'Channel not found'], 404);
         }
 
+        if ($request->file('mdata')?->isValid()) {
+            $path = $request->file('mdata')->store('uploads', 'public');
+        }
+
         Message::create([
             'type' => $request->type,
-            'mdata' => $request->mdata,
+            'mdata' => $request->type == MessageType::Text->value ? $request->mdata : Storage::url($path),
             'channel_id' => $channel->id,
             'user_id' => $request->user()->id,
         ]);
@@ -49,6 +54,10 @@ class MessageController
             return response()->json(['message' => 'Message not found'], 404);
         }
 
+        if ($message->type != MessageType::Text->value) {
+            return response()->json(['message' => 'Message can not be edited'], 400);
+        }
+
         $message->update([
             'mdata' => $request->mdata,
         ]);
@@ -60,26 +69,30 @@ class MessageController
     }
 
     public function delete(Request $request, int $messageId)
-{
-    $message = Message::find($messageId);
+    {
+        $message = Message::find($messageId);
 
-    if (!$message) {
-        return response()->json(['message' => 'Message not found'], 404);
-    }
+        if (!$message) {
+            return response()->json(['message' => 'Message not found'], 404);
+        }
 
-    $message->delete();
+        if ($message->type != MessageType::Text->value) {
+            Storage::disk('public')->delete($message->mdata);
+        }
+
+        $message->delete();
 
 
-    $serverId = $message->channel->server->id;
+        $serverId = $message->channel->server->id;
 
-    broadcast(new MessageDeleted(
-        $message->id,
-        $message->channel->id,
-        $serverId,
-        $request->user()->id
-    ));
+        broadcast(new MessageDeleted(
+            $message->id,
+            $message->channel->id,
+            $serverId,
+            $request->user()->id
+        ));
 
-    return response()->json(['message' => 'Message deleted'], 201);
+        return response()->json(['message' => 'Message deleted'], 201);
     }
 
 }

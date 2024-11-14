@@ -19,15 +19,8 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-# Devenv
-.devenv*
-devenv.local.nix
+bun.lockb
 
-# direnv
-.direnv
-
-# pre-commit
-.pre-commit-config.yaml
 # Devenv
 .devenv*
 devenv.local.nix

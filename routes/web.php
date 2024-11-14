@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\KanbanBoardController;
@@ -8,20 +10,33 @@ use App\Http\Controllers\KanbanTaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn() => Inertia::render('Welcome'))->name('welcome');
+Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
+Route::get('manual', fn () => Inertia::render('Manual'))->name('manual');
 
+//Server/home routes
 Route::middleware('auth')->group(function () {
-    Route::controller(HomeController::class)->prefix('home')->group(function () {
-        Route::get('/', 'home')->middleware('verified')->name('home');
-        Route::get('/{server}', 'server')->name('home.server');
-        Route::get('/{server}/text', 'text')->name('home.text');
-        Route::get('/{server}/text/{channel}', 'channel')->name('home.channel');
-        Route::get('/{server}/text/{channel}/{message}', 'message')->name('home.message');
+    Route::controller(HomeController::class)->prefix('home')->name('home')->group(function () {
+        Route::get('/', 'home')->middleware('verified');
+        Route::get('/{server}', 'server')->name('.server');
+        Route::get('/{server}/text', 'text')->name('.text');
+        Route::get('/{server}/text/{channel}', 'channel')->name('.text.channel');
+        Route::get('/{server}/text/{channel}/{message}', 'message')->name('.text.channel.message');
+
+        Route::get('/{server}/voice', 'voice')->name('.voice');
+        Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
     });
 
-    Route::get('/settings/server', fn() => Inertia::render('Settings/Server'))->name('settings.server');
-    Route::get('/settings/role', fn() => Inertia::render('Settings/Role'))->name('settings.role');
+    //Setting routes
+    Route::prefix('settings')->group(function () {
+        Route::controller(ServerController::class)->prefix('server')->group(function () {
+            Route::get('/{serverId}', 'showSettings')->name('settings.server');
+            Route::post('/{id}', 'update')->name('server.update');
+            Route::delete('/{id}', 'destroy')->name('server.destroy');
+        });
+        Route::get('/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
+    });
 
+    //Profile routes
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
         Route::post('/', 'update')->name('profile.update');
@@ -39,4 +54,4 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

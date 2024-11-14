@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Role extends Model
 {
     use HasFactory;
@@ -25,13 +25,12 @@ class Role extends Model
             ->withTimestamps();
     }
 
-    public function servers(): BelongsTo
+    public function server(): BelongsTo
     {
-        return $this->belongsToMany(Server::class, 'role_server_user')
+        return $this->belongsTo(Server::class, 'role_server_user')
             ->withPivot('user_id')
             ->withTimestamps();
     }
-
 }
 
 
