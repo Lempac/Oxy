@@ -2,12 +2,14 @@
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import axios from "axios";
+import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {Channel, ChannelType} from "@/types";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
+let loading = ref(false);
 const { selected_server } = usePage().props;
 const serverId = selected_server?.id;
 
@@ -33,10 +35,24 @@ const openModal = (channel?: Channel) => {
 };
 
 const createText = async () => {
-    axios.postForm(route('channel.create', {server: serverId}), form.data()).then(() => {
-        channelModal.value?.close();
-        router.reload()
-    });
+    if (loading.value) return;
+    loading.value = true;
+
+    try {
+        form.post(route('channel.create', {server: serverId}), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    channelModal.value?.close();
+                    router.reload();
+                    form.reset();
+                }
+            })
+        await new Promise((resolve) => setTimeout(resolve, 2500))
+    } catch (error) {
+        console.error('Error creating server:', error);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const deleteText = async (channelId: number) => {
@@ -46,10 +62,24 @@ const deleteText = async (channelId: number) => {
 };
 
 const editText = async (channelId: number) => {
-    axios.patch(route('channel.edit', {channel: channelId}), form.data()).then(() => {
-        channelModal.value?.close();
-        router.reload()
-    });
+    if (loading.value) return;
+    loading.value = true;
+
+    try {
+        form.patch(route('channel.edit', { channel: channelId }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                channelModal.value?.close();
+                router.reload();
+                form.reset();
+            }
+        });
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+    } catch (error) {
+        console.error('Error editing channel:', error);
+    } finally {
+        loading.value = false;
+    }
 };
 
 </script>
@@ -91,9 +121,10 @@ const editText = async (channelId: number) => {
                         <span class="label-text">Text Channel Name</span>
                     </label>
                     <input v-model="form.name" type="text" placeholder="Enter channel name" class="input input-bordered"/>
-                </div>
+                <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
+            </div>
                 <div class="modal-action">
-                    <button type="submit" class="btn btn-primary w-full mt-2">
+                    <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-2">
                         {{ isEditing ? 'Edit Text Channel' : 'Create Text Channel' }}
                     </button>
                 </div>

@@ -21,7 +21,7 @@ const form = useForm({
 
 // Countdown state
 const countdown = ref('');
-const targetDate = new Date('2024-11-15T08:30:00');
+const targetDate = new Date('2024-11-22T08:30:00');
 let countdownInterval: number | undefined; // Store the interval ID as a number
 
 const calculateTimeLeft = () => {

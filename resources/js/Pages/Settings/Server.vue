@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {defineProps, ref} from 'vue';
+import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {Link, router, usePage} from '@inertiajs/vue3';
 import {useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
@@ -27,7 +28,16 @@ const updateIcon = (file: File | null) => {
 };
 
 function handleSave() {
-    form.post(route('server.update', {id: selected_server?.id}));
+    if (!form.name || form.name.trim() === "") {
+        form.setError("name", "Server name cannot be empty.");
+        return;
+    }
+    form.clearErrors(); // Clear any existing errors
+    form.post(route('server.update', { id: selected_server?.id }), {
+        onSuccess: () => {
+            router.reload(); // This will reload the current Inertia page without a full page reload
+        },
+    });
 }
 
 function deleteServer() {
@@ -92,7 +102,7 @@ const showModal = ref(false);
                             />
                         </label>
 
-                        <div class="ml-auto">
+                        <div class="w-full ml-[15%]">
                             <label for="serverName" class="text-white">Server Name</label>
                             <input
                                 type="text"
@@ -101,6 +111,7 @@ const showModal = ref(false);
                                 v-model="form.name"
                                 placeholder="Enter your server name"
                             />
+                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2" />
                             <label for="description" class="text-white mt-auto">Description</label>
                             <input
                                 type="text"

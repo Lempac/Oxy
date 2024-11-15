@@ -33,7 +33,7 @@ class ChannelController
 
         broadcast(new ChannelCreated($serverId));
 
-        return response()->json(['message' => 'Channel added to server successfully.']);
+        //return response()->json(['message' => 'Channel added to server successfully.']);
     }
 
     public function edit(Request $request, int $channelId)
@@ -53,7 +53,7 @@ class ChannelController
 
         broadcast(new ChannelEdited($channelId));
 
-        return response()->json(['message' => 'Channel updated successfully.']);
+        //return response()->json(['message' => 'Channel updated successfully.']);
     }
 
     public function delete(Request $request, int $channelId)

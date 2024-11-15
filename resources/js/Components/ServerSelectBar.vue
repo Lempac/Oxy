@@ -4,6 +4,7 @@ import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
 import {baseUrl, defaultIcon} from "@/bootstrap";
 import axios from "axios";
+import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
 addIcons(OiPlus);
@@ -24,11 +25,27 @@ const joinForm = useForm({
     code: ''
 })
 
+let loading = ref(false);
+
 const createServer = async () => {
-    axios.postForm(route('server.create'), form.data()).then(() => {
-        serverModal.value?.close();
-        router.reload()
-    });
+    if (loading.value) return;
+    loading.value = true;
+
+    try {
+        form.post(route('server.create'), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    serverModal.value?.close();
+                    router.reload();
+                    form.reset();
+                }
+            })
+        await new Promise((resolve) => setTimeout(resolve, 8000))
+    } catch (error) {
+        console.error('Error creating server:', error);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const icon = ref<string | null>(null);
@@ -100,13 +117,16 @@ const updateIcon = (val: File) => {
         <div class="modal-box">
             <!-- Create Server-->
             <div class="tabs flex justify-center">
+                <div class="modal-action items-center justify-center">
+                    <button @click="() => serverModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </div>
                 <button
                     @click="activeTab = 'create'"
                     :class="{
                             'tab-active border-b-2 border-blue-500': activeTab === 'create',
                             'tab-bordered': activeTab !== 'create'
                         }"
-                    class="tab px-3 py-2 mr-9 text-lg">Create Server
+                    class="tab px-3 py-1 mr-9 text-lg">Create Server
                 </button>
                 <button
                     @click="activeTab = 'join'"
@@ -114,73 +134,70 @@ const updateIcon = (val: File) => {
                             'tab-active border-b-2 border-blue-500': activeTab === 'join',
                             'tab-bordered': activeTab !== 'join'
                         }"
-                    class="tab px-3 py-2 ml-9 text-lg">Join Server
+                    class="tab px-3 py-1 ml-9 text-lg">Join Server
                 </button>
             </div>
 
             <!-- Tab Contents -->
             <div class="py-4">
-                <!-- Create Server Tab Content -->
-                <div v-if="activeTab === 'create'">
-                    <!-- Create Server Form -->
-                    <form @submit.prevent="createServer">
-                        <div class="form-control flex flex-row items-center gap-4">
-                            <label
-                                class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
-                                for="serverIcon">
-                                <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
-                                <v-icon v-else name="oi-plus" scale="3.333"/>
-                            </label>
-                            <label for="serverIcon" class="cursor-pointer">Upload server icon</label>
-                            <input
-                                ref="inputFile"
-                                id="serverIcon"
-                                type="file"
-                                class="hidden"
-                                accept="image/png, image/jpeg"
-                                @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
-                            />
-                        </div>
-                        <div class="form-control mb-4">
-                            <label class="label">
-                                <span class="label-text">Server Name</span>
-                            </label>
-                            <input v-model="form.name" type="text" placeholder="Enter server name"
-                                   class="input input-bordered"/>
-                        </div>
-                        <div class="form-control mb-4">
-                            <label class="label">
-                                <span class="label-text">Description (Optional)</span>
-                            </label>
-                            <input v-model="form.description" type="text" placeholder="Enter server description"
-                                   class="input input-bordered"/>
-                        </div>
-                        <div class="modal-action">
-                            <button type="submit" class="btn btn-primary w-full mt-2">Create Server</button>
-                        </div>
-                    </form>
 
+        <!-- Create Server Tab Content -->
+        <div v-if="activeTab === 'create'">
+            <form @submit.prevent="createServer">
+                <div class="form-control flex flex-row items-center gap-4">
+                    <label
+                        class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
+                        for="serverIcon">
+                        <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
+                        <v-icon v-else name="oi-plus" scale="3.333"/>
+                    </label>
+                    <label for="serverIcon" class="cursor-pointer">Upload server icon</label>
+                    <input
+                        ref="inputFile"
+                        id="serverIcon"
+                        type="file"
+                        class="hidden"
+                        accept="image/png, image/jpeg"
+                        @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
+                    />
                 </div>
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">Server Name</span>
+                    </label>
 
-                <!-- Join Server Tab Content -->
-                <div v-if="activeTab === 'join'">
-                    <form @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
-                        <div class="form-control mb-4">
-                            <label class="label" for="code">
-                                <span class="label-text">Server Invite Code</span>
-                            </label>
-                            <input type="text" name="code" id="code" v-model="joinForm.code" placeholder="Enter invite code" class="input input-bordered"/>
-                        </div>
-                        <div class="modal-action">
-                            <button type="submit" class="btn btn-secondary w-full">Join Server</button>
-                        </div>
-                    </form>
+                    <input v-model="form.name" type="text" 
+                           class="input input-bordered"/>
+                           <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
                 </div>
-                <!-- Close Button -->
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">Description (Optional)</span>
+                    </label>
+                    <input v-model="form.description" type="text" 
+                           class="input input-bordered"/>
+                </div>
                 <div class="modal-action">
-                    <button @click="() => serverModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-2">Create Server</button>
                 </div>
-            </div>
+                
+            </form>
+        </div>
+    </div>
+<!-- Join Server Tab Content -->
+<div v-if="activeTab === 'join'">
+    <form @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
+        <div class="form-control mb-4">
+            <label class="label" for="code">
+                <span class="label-text">Server Invite Code</span>
+            </label>
+            <input type="text" name="code" id="code" v-model="joinForm.code" placeholder="Enter invite code" class="input input-bordered"/>
+        </div>
+        <div class="modal-action">
+            <button type="submit" class="btn btn-secondary w-full">Join Server</button>
+        </div>
+    </form>
+</div>
         </div>
     </dialog>
 </template>
