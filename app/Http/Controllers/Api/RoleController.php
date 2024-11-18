@@ -86,7 +86,7 @@ class RoleController extends Controller
 
         $role->update($request->only(['name', 'color', 'perms', 'importance']));
 
-//        broadcast(new RoleEdited($role));
+        //        broadcast(new RoleEdited($role));
 
         return response()->json(['message' => 'Role updated successfully.', 'role' => $role]);
     }
