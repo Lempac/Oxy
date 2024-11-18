@@ -7,6 +7,7 @@ import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
 import {Server} from "@/types";
+import ErrorAlert from "@/Components/ErrorAlert.vue";
 
 addIcons(OiPlus);
 
@@ -31,7 +32,6 @@ const joinForm = useForm({
 })
 
 let loading = ref(false);
-
 const createServer = async () => {
     if (loading.value) return;
     loading.value = true;
@@ -42,6 +42,9 @@ const createServer = async () => {
             form.reset();
         })
         .catch((err) => {
+            for (const [name, errors] of (Object.entries(err.response.data.errors) as [name: string, errors: string[]][] )) {
+                errors.forEach((error: any) => form.setError(name as "description" | "icon" | "name", error))
+            }
             console.error('Error creating server:', err);
         })
         .finally(() => {
@@ -165,6 +168,7 @@ const updateIcon = (val: File) => {
                             </label>
                             <input v-model="form.name" type="text" placeholder="Enter server name"
                                    class="input input-bordered"/>
+                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2" />
                         </div>
                         <div class="form-control mb-4">
                             <label class="label">
