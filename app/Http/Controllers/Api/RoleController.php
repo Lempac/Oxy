@@ -86,7 +86,7 @@ class RoleController extends Controller
 
         $role->update($request->only(['name', 'color', 'perms', 'importance']));
 
-        broadcast(new RoleEdited($role));
+//        broadcast(new RoleEdited($role));
 
         return response()->json(['message' => 'Role updated successfully.', 'role' => $role]);
     }
@@ -120,7 +120,11 @@ class RoleController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        return Inertia::render('Settings/Role')->with(['selected_server' => $server]);
+        return Inertia::render('Settings/Role')->with([
+            'selected_server' => $server,
+            'selected_server.users' => $server->users,
+            'selected_server.roles' => $server->roles,
+        ]);
     }
 
     public function showMembers(int $serverId)
@@ -135,6 +139,7 @@ class RoleController extends Controller
             'selected_server.users' => $server->users->each(function (User $user) use ($server) {
                 $user['rolesWithServer'] = $user->roles->intersect($server->roles);
             }),
+            'selected_server.roles' => $server->roles,
         ]);
     }
 

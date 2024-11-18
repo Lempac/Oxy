@@ -1,13 +1,15 @@
 <script setup lang="ts">
 
-import {Link, router} from "@inertiajs/vue3";
-import {Role, Server, User} from "@/types";
+import {Link, router, usePage} from "@inertiajs/vue3";
+import {Perms, PermType, Role, Server, User} from "@/types";
 import {BiCheckLg} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import axios from "axios";
 import { GiBootKick } from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
+import {ref} from "vue";
+import {bigIntToPerms} from "@/bootstrap";
 
 addIcons(BiCheckLg, GiBootKick);
 
@@ -22,6 +24,8 @@ interface customServer extends Server {
 const {selected_server} = defineProps<{
     selected_server: customServer,
 }>();
+
+const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const toggleRole = (roleId: number, userId: number, state: boolean) => {
     if(state){
@@ -41,6 +45,10 @@ const kickMember = (userId: number) => {
     })
 }
 
+if (selected_server && selected_server.roles !== null){
+    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+}
+
 </script>
 
 <template>
@@ -50,8 +58,8 @@ const kickMember = (userId: number) => {
             <SettingsHeader :selected_server/>
 
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-circle bg-red-500">
-                    X
+                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-neutral">
+                    Cancel
                 </Link>
             </div>
 
@@ -82,7 +90,7 @@ const kickMember = (userId: number) => {
                                 </button>
                                 <ul tabindex="0"
                                     class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow gap-y-1">
-                                    <li v-for="role in selected_server.roles"><button @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))"
+                                    <li v-for="role in selected_server.roles"><button :disabled="!perms.has(PermType.CAN_EDIT_MEMBER_ROLES)" @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))"
                                         :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-gray-700' : ''" class="btn">
                                         <v-icon name="bi-check-lg"
                                                 v-if="user.rolesWithServer.find(objRole => objRole.id === role.id)"/>
@@ -91,7 +99,7 @@ const kickMember = (userId: number) => {
                             </div>
                         </td>
                         <td class="py-2 px-4 text-end">
-                            <ConfirmDialog title="Are you sure?" description="Are you sure you want to kick this member?" class-name="btn btn-error" :confirm="() => kickMember(user.id)">
+                            <ConfirmDialog title="Are you sure?" description="Are you sure you want to kick this member?" :class-name="`btn btn-error ${!perms.has(PermType.CAN_KICK) ? 'btn-disabled' : ''}`" :confirm="() => kickMember(user.id)">
                                 <v-icon name="gi-boot-kick"/>
                             </ConfirmDialog>
                         </td>

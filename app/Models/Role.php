@@ -63,18 +63,15 @@ class Role extends Model
         $this->save();
     }
 
-    // Accessor for the perms attribute
-    public function getPermsAttribute($value)
+    public function toArray(): array
     {
-        return (int) $value; // Keep it as an integer in the backend
-    }
+        $array = parent::toArray();
 
-    // Custom serialization method
-    public function jsonSerialize(): mixed
-    {
-        $data = parent::jsonSerialize();
-        $data['perms'] = (string) $this->perms; // Cast to string when serializing
+        // Cast the specific field to string
+        if (isset($array['perms'])) {
+            $array['perms'] = (string) $array['perms'];
+        }
 
-        return $data;
+        return $array;
     }
 }

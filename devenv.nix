@@ -1,6 +1,7 @@
 { pkgs, lib, config, inputs, ... }:
 
 {
+    name = "Oxy";
 #    dotenv.enable = true;
     languages.php.enable = true;
     languages.php.version = "8.3";

@@ -13,16 +13,17 @@ export const baseUrl = window.location.origin;
 export const bigIntToPerms = (newPrem: bigint): Perms => ({
     perm: newPrem,
     add(addPerm) {
-        this.perm |= Array.isArray(addPerm) ? addPerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : BigInt(addPerm)
+        this.perm |= Array.isArray(addPerm) ? addPerm.map(perm => BigInt(perm)).reduce((acc, curr) => acc | curr) : BigInt(addPerm)
     },
     has(otherPerm) {
-        return (this.perm & (Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : BigInt(otherPerm))) === otherPerm
+        let comOtherPerm = Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((acc, curr) => acc | curr) : BigInt(otherPerm);
+        return (this.perm & comOtherPerm) === comOtherPerm;
     },
     hasAny(otherPerm) {
-        return (this.perm & (Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : BigInt(otherPerm))) !== BigInt(0)
+        return (this.perm & (Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((acc, curr) => acc | curr) : BigInt(otherPerm))) !== BigInt(0)
     },
     remove(removePerm) {
-        this.perm &= Array.isArray(removePerm) ? ~removePerm.map(perm => BigInt(perm)).reduce((accumulator, currentValue) => accumulator | currentValue) : ~BigInt(removePerm)
+        this.perm &= Array.isArray(removePerm) ? ~removePerm.map(perm => BigInt(perm)).reduce((acc, curr) => acc | curr) : ~BigInt(removePerm)
     }
 });
 

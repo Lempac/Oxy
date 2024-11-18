@@ -16,10 +16,11 @@ enum PermsType: int
     case CAN_CREATE_ROLE = 1 << 9;
     case CAN_DELETE_ROLE = 1 << 10;
     case CAN_EDIT_ROLE = 1 << 11;
-    //    case CAN_MANAGE_MESSAGE = 1 << 12;
+    case CAN_MANAGE_MEMBERS = 1 << 12;
     case CAN_MANAGE_ROLE = 1 << 13;
     case CAN_MANAGE_SERVER = 1 << 14;
     case CAN_SEE_CHANNEL = 1 << 15;
     case CAN_INVITE = 1 << 16;
     case CAN_KICK = 1 << 17;
+    case CAN_EDIT_MEMBER_ROLES = 1 << 18;
 }

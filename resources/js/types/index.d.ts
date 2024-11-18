@@ -30,12 +30,13 @@ export enum PermType {
     CAN_CREATE_ROLE = 1 << 9,
     CAN_DELETE_ROLE = 1 << 10,
     CAN_EDIT_ROLE = 1 << 11,
-    // CAN_MANAGE_MESSAGE = 1 << 12,
+    CAN_MANAGE_MEMBERS = 1 << 12,
     CAN_MANAGE_ROLE = 1 << 13,
     CAN_MANAGE_SERVER = 1 << 14,
-    CAN_SEE_CHANNEL = 1 << 15,
+    CAN_SEE_CHANNEL = 1 << 15, //TODO: Add logic for minimum role to see channel
     CAN_INVITE = 1 << 16,
     CAN_KICK = 1 << 17,
+    CAN_EDIT_MEMBER_ROLES = 1 << 18,
 }
 
 export interface Role extends Object {

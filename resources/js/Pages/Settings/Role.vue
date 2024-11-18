@@ -2,7 +2,7 @@
 import {defineProps, ref} from 'vue';
 import {Link, router, usePage} from '@inertiajs/vue3';
 import axios, {AxiosResponse} from 'axios';
-import {PermType, Role, Server} from "@/types";
+import {Perms, PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
 import {addIcons} from "oh-vue-icons";
@@ -25,6 +25,7 @@ const newRole = ref({
 
 const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
+const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const fetchRoles = async () => {
     try {
@@ -32,6 +33,10 @@ const fetchRoles = async () => {
         roles.value = response.data ?? []; // Default to empty array if undefined
         // Sort roles by importance
         roles.value.sort((a, b) => a.importance - b.importance);
+
+        if (selected_server && selected_server.roles !== null){
+            perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+        }
     } catch (error) {
         console.error('Error fetching roles:', error);
     }
@@ -61,6 +66,7 @@ const updateRole = async () => {
 
         editingRole.value = null;
         closeModal(); // Reset modal state
+        await fetchRoles();
     }
 };
 
@@ -99,7 +105,7 @@ const togglePerm = (perm: PermType, state: boolean) => {
     editingRole.value.perms = currentPerm.perm.toString()
 };
 
-let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'number') as [string, number][]
+let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'number') as [string, number][];
 
 </script>
 
@@ -108,9 +114,9 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
         <div class="w-full max-w-6xl p-6">
             <!-- Navbar for Navigation -->
             <SettingsHeader :selected_server/>
-
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-circle bg-red-500">X
+                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-neutral">
+                    Cancel
                 </Link>
             </div>
 
@@ -119,7 +125,7 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                 <h1 class="text-3xl text-white mb-6">Role Settings</h1>
 
                 <!-- Button to Open Modal -->
-                <button @click="isModalOpen = true" class="btn mb-6">Add Role</button>
+                <button :disabled="!perms.has(PermType.CAN_CREATE_ROLE)" @click="isModalOpen = true" class="btn mb-6">Add Role</button>
 
                 <!-- Roles Table -->
                 <table class="min-w-full bg-base-300 rounded-lg">
@@ -152,7 +158,7 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                                 <button tabindex="0"
                                         class="btn m-1">
                                     {{
-                                        roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).map(roleobj => roleobj[0]).slice(0, 3).join(', ') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length > 3 ? ' +' + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length-3).toString() + ' others' : '') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length === 0 ? 'None' : '')
+                                        roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).map(roleobj => roleobj[0]).slice(0, 3).join(', ') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length > 3 ? ' +' + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length - 3).toString() + ' others' : '') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length === 0 ? 'None' : '')
                                     }}
                                 </button>
                                 <ul tabindex="0"
@@ -160,10 +166,12 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                                     <li v-for="perm in roleArray">
                                         <button
                                             @click="() => togglePerm(perm[1], !bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])))"
-                                            :class="(bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])) ? 'bg-gray-700' : '')" class="btn"
+                                            :class="(bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])) ? 'bg-gray-700' : '')"
+                                            class="btn"
                                             :disabled="editingRole !== role"
                                         >
-                                            <v-icon name="bi-check-lg" v-if="bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1]))"/>
+                                            <v-icon name="bi-check-lg"
+                                                    v-if="bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1]))"/>
                                             {{ perm[0] }}
                                         </button>
                                     </li>
@@ -172,13 +180,16 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                         </td>
                         <td class="py-2 px-4 text-end">
                             <div class="flex justify-end space-x-2">
-                                <button v-if="editingRole !== role" @click="editRole(role)"
-                                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Edit
+                                <button v-if="editingRole !== role" :disabled="!perms.has(PermType.CAN_EDIT_ROLE)" @click="editRole(role)"
+                                        class="btn hover:btn-info px-4 py-2 ">Edit
                                 </button>
                                 <button v-if="editingRole === role" @click="updateRole"
-                                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700">Save
+                                        class="btn hover:btn-success px-4 py-2">Save
                                 </button>
-                                <ConfirmDialog title="Are you sure?" description="Are you sure you want to delete this role?" class-name="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700" :confirm="() => deleteRole(role)" text="Delete"/>
+                                <ConfirmDialog title="Are you sure?"
+                                               description="Are you sure you want to delete this role?"
+                                               :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has(PermType.CAN_DELETE_ROLE) ? 'btn-disabled' : ''}`"
+                                               :confirm="() => deleteRole(role)" text="Delete"/>
                             </div>
                         </td>
                     </tr>

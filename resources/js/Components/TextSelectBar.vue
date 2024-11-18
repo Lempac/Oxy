@@ -2,10 +2,11 @@
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import axios from "axios";
-import {Channel, ChannelType, Server} from "@/types";
+import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
+import {bigIntToPerms} from "@/bootstrap";
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 
@@ -19,6 +20,7 @@ const {selected_server} = defineProps<{
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<Function>();
+const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const form = useForm({
     type: ChannelType.Text,
@@ -57,12 +59,16 @@ const editText = async (channelId: number) => {
     });
 };
 
+if (selected_server && selected_server.roles !== null){
+    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+}
+
 </script>
 
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
         <div class="indicator relative group" v-for="channel in channels" :key="channel.id">
-            <div class="indicator-item indicator-top absolute hidden group-hover:block">
+            <div class="indicator-item indicator-top absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)">
                 <ConfirmDialog
                     title="Delete Channel"
                     :description="`Are you sure you want to delete ${channel.name} channel?`"
@@ -72,7 +78,7 @@ const editText = async (channelId: number) => {
                     <v-icon name="md-deleteforever-outlined"/>
                 </ConfirmDialog>
             </div>
-            <div class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
+            <div class="indicator-item indicator-top indicator-start absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)">
                 <button @click.prevent="openModal(channel)"
                         class="indicator-item badge badge-warning h-auto w-auto p-0.5">
                     <v-icon name="md-modeeditoutline-outlined"/>
@@ -85,7 +91,7 @@ const editText = async (channelId: number) => {
                 </button>
             </Link>
         </div>
-        <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="openModal()">
+        <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="openModal()" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)">
             <v-icon name="oi-plus"/>
         </button>
     </div>

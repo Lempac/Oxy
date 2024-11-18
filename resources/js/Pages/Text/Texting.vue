@@ -4,7 +4,7 @@ import TextSelectBar from "@/Components/TextSelectBar.vue";
 import {addIcons} from "oh-vue-icons";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
-import {Channel, Message, MessageType, Server} from "@/types";
+import {Channel, Message, MessageType, Perms, PermType, Role, Server} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 import {
@@ -14,12 +14,12 @@ import {
     MdFileuploadOutlined,
     FaRegularFile
 } from "oh-vue-icons/icons";
-import {baseUrl, defaultIcon} from "@/bootstrap";
+import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
 addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
 
-const {selected_channel, messages} = defineProps<{
+const {selected_channel, messages, selected_server} = defineProps<{
     servers: Server[],
     selected_server?: Server,
     channels?: Channel[],
@@ -27,6 +27,15 @@ const {selected_channel, messages} = defineProps<{
     messages?: Message[],
     invite_code?: string,
 }>();
+
+let isDisabled = false;
+const fileInput = ref<HTMLInputElement | null>(null);
+const messageContainer = ref<HTMLElement>();
+const messageModal = ref<HTMLDialogElement>();
+const messageIdToEdit = ref<number | null>(null);
+const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const inputFile = ref<File | null>();
+const mdata = ref<string | null>(null);
 
 function formatDate(dateString: string): string {
     const date = new Date(dateString);
@@ -54,10 +63,6 @@ if (selected_channel) {
         });
 }
 
-
-let isDisabled = false;
-const fileInput = ref<HTMLInputElement | null>(null);
-
 const clearFile = () => {
     fileInput.value!.value = '';
     form.reset();
@@ -72,8 +77,6 @@ const createMessage = async () => {
         clearFile()
     });
 };
-
-const messageContainer = ref<HTMLElement>();
 
 const scrollToBottom = () => {
     if (messageContainer.value) messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
@@ -104,9 +107,6 @@ const deleteMessage = async (messageId: number) => {
     });
 };
 
-const messageModal = ref<HTMLDialogElement>();
-const messageIdToEdit = ref<number | null>(null);
-
 const editMessage = async () => {
     if (messageIdToEdit.value !== null) {
         await axios.patch(route('message.edit', {message: messageIdToEdit.value}), {mdata: form.mdata});
@@ -122,9 +122,6 @@ const openModal = (messageId: number, messageContent: string) => {
     messageModal.value?.showModal();
 };
 
-const inputFile = ref<File | null>();
-const mdata = ref<string | null>(null);
-
 const uploadFile = (val: File) => {
     inputFile.value = val;
     form.mdata = inputFile.value;
@@ -136,6 +133,11 @@ const uploadFile = (val: File) => {
     mdata.value = URL.createObjectURL(inputFile.value);
     isDisabled = true;
 }
+
+if (selected_server && selected_server.roles !== null){
+    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+}
+
 </script>
 
 <template>
@@ -172,7 +174,7 @@ const uploadFile = (val: File) => {
                                     {{ baseUrl + message.mdata }}
                                 </div>
 
-                                <div v-if="message.user_id === $page.props.user?.id"
+                                <div v-if="message.user_id === $page.props.user?.id || perms.has(PermType.CAN_DELETE_MESSAGE)"
                                      class="indicator-item indicator-top absolute hidden group-hover:block"
                                      :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}">
                                     <ConfirmDialog
@@ -209,16 +211,17 @@ const uploadFile = (val: File) => {
                 <div class="items-center inline-flex">
                     <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
                            ref="fileInput"
+                           :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)"
                            class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
                     />
-                    <button @click.prevent="clearFile" class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕</button>
+                    <button @click.prevent="clearFile" :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)" class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕</button>
                 </div>
 
                 <div class="join w-full items-center">
-                    <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled" @keydown.enter="createMessage"
+                    <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled || !perms.has(PermType.CAN_CREATE_MESSAGE)" @keydown.enter="createMessage"
                            class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
                     />
-                    <button class="btn join-item mr-5 mb-5">
+                    <button class="btn join-item mr-5 mb-5" :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)">
                         <v-icon name="fa-regular-paper-plane"/>
                     </button>
                 </div>

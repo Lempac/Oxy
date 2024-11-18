@@ -149,7 +149,11 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        return Inertia::render('Settings/Server')->with(['selected_server' => $server]);
+        return Inertia::render('Settings/Server')->with([
+            'selected_server' => $server,
+            'selected_server.users' => $server->users,
+            'selected_server.roles' => $server->roles,
+        ]);
     }
 
     public function destroy(int $serverId)

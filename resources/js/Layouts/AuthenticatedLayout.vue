@@ -6,7 +6,8 @@ import {addIcons} from "oh-vue-icons";
 import {HiClipboardCopy} from "oh-vue-icons/icons";
 import {ref} from "vue";
 import MembersList from "@/Components/MembersList.vue";
-import {Server} from "@/types";
+import {Perms, PermType, Role, Server} from "@/types";
+import {bigIntToPerms} from "@/bootstrap";
 
 addIcons(HiClipboardCopy);
 
@@ -15,12 +16,17 @@ const copyToClipboard = (text: string) => {
 }
 
 const toggle = ref(false);
+const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
-defineProps<{
+const {selected_server} = defineProps<{
     servers?: Server[];
     invite_code?: string,
     selected_server?: Server,
 }>();
+
+if (selected_server && selected_server.roles !== null){
+    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+}
 
 </script>
 
@@ -28,7 +34,7 @@ defineProps<{
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         <ServerSelectBar :servers/>
         <header v-if="$page.url.startsWith('/home')">
-            <ChannelSelectBar :server-id="selected_server?.id"/>
+            <ChannelSelectBar :selected_server/>
         </header>
 
         <main>
@@ -36,7 +42,7 @@ defineProps<{
         </main>
 
         <footer v-if="$page.url.match(/\/home\/\d+/)">
-            <div v-if="invite_code !== undefined" class="toast truncate mb-16">
+            <div v-if="invite_code !== undefined && perms.has(PermType.CAN_INVITE)" class="toast truncate mb-16">
                 <div class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0"
                      @mouseenter="toggle = true" @mouseleave="toggle = false">
                     <span :class="`font-bold p-2  ${toggle ? '' : 'hidden'}`">{{ invite_code }}</span>

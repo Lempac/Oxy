@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, useForm, usePage} from "@inertiajs/vue3";
-import {baseUrl, defaultIcon} from "@/bootstrap";
+import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {ref} from "vue";
-import {Channel, ChannelType, Server} from "@/types";
+import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
@@ -21,6 +21,7 @@ const {selected_server} = defineProps<{
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<Function>();
+const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const form = useForm({
     type: ChannelType.Voice,
@@ -59,6 +60,10 @@ const editText = async (channelId: number) => {
     });
 };
 
+if (selected_server && selected_server.roles !== null){
+    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+}
+
 </script>
 
 <template>
@@ -66,7 +71,7 @@ const editText = async (channelId: number) => {
         <div class="mt-3 pb-20">
             <div class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7"
                  v-for="channel in channels" :key="channel.id">
-                <span class="indicator-item indicator-top absolute hidden group-hover:block">
+                <span class="indicator-item indicator-top absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)">
                     <ConfirmDialog
                         title="Delete Channel"
                         :description="`Are you sure you want to delete ${channel.name} channel?`"
@@ -77,7 +82,7 @@ const editText = async (channelId: number) => {
                     </ConfirmDialog>
                 </span>
 
-                <span class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
+                <span class="indicator-item indicator-top indicator-start absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)">
                     <button @click.prevent="openModal(channel)"
                             class="indicator-item badge badge-warning h-auto w-auto p-0.5">
                         <v-icon name="md-modeeditoutline-outlined"/>
@@ -108,7 +113,7 @@ const editText = async (channelId: number) => {
             </div>
 
             <button class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center"
-                    @click="openModal()">
+                    @click="openModal()" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)">
                 <v-icon name="oi-plus" scale="3"/>
             </button>
         </div>
