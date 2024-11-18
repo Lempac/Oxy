@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Events\Messages;
 
 use App\Models\Message;
@@ -19,14 +18,12 @@ class MessageCreated implements ShouldBroadcast
      * Create a new event instance.
      */
     public function __construct(
-        public string $text,
-        public int $userId,
-        public int $channelId
+        public Message $message
     ) {}
 
     public function broadcastOn(): Channel
     {
-        return new Channel('messages.'.$this->channelId);
+        return new PrivateChannel('messages.'.$this->message->channel_id);
     }
 
     public function broadcastAs(): string

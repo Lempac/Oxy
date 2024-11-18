@@ -10,21 +10,19 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Sanctum\NewAccessToken;
-use function Pest\Laravel\post;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
      * Display the login view.
      */
-//    public function create(): Response
-//    {
-//        return Inertia::render('Auth/Login', [
-//            'canResetPassword' => Route::has('password.request'),
-//            'status' => session('status'),
-//        ]);
-//    }
+    //    public function create(): Response
+    //    {
+    //        return Inertia::render('Auth/Login', [
+    //            'canResetPassword' => Route::has('password.request'),
+    //            'status' => session('status'),
+    //        ]);
+    //    }
 
     /**
      * Handle an incoming authentication request.
