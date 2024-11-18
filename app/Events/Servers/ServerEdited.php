@@ -2,33 +2,27 @@
 
 namespace App\Events\Servers;
 
+use App\Models\Server;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Broadcasting\PrivateChannel;
 
 class ServerEdited implements ShouldBroadcast
 {
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public int $id,
-        public ?string $name,
-        public ?string $description,
-        public ?string $icon
-    )
+        public Server $server
+    ) {}
+
+    public function broadcastOn(): PrivateChannel
     {
+        return new PrivateChannel('servers.'.$this->server->id);
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array
-     */
-    public function broadcastOn(): array
+    public function broadcastAs(): string
     {
-        return [
-            new PrivateChannel('servers.' . $this->name),
-        ];
+        return 'ServerEdited';
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Events\Channels;
 
-use Illuminate\Broadcasting\Channel;
+use App\Models\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -17,16 +17,16 @@ class ChannelCreated implements ShouldBroadcast
      * Create a new event instance.
      */
     public function __construct(
-        public int $serverId,
+        public Channel $channel
     ) {}
 
-    /**
-     * @inheritDoc
-     */
-    public function broadcastOn(): array
+    public function broadcastOn(): PrivateChannel
     {
-        return [
-            new PrivateChannel('channels.'.$this->serverId),
-        ];
+        return new PrivateChannel('channels.'.$this->channel->server_id);
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'ChannelCreated';
     }
 }

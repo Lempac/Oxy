@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {ref, defineProps} from "vue";
-import {usePage} from "@inertiajs/vue3";
 
 const modal = ref<HTMLDialogElement>();
 
@@ -16,8 +15,6 @@ withDefaults(defineProps<{
     confirm: (_: MouseEvent) => {},
 });
 
-
-
 </script>
 
 <template>
@@ -25,7 +22,7 @@ withDefaults(defineProps<{
         <span v-if="text" v-text="text"></span>
         <slot v-else/>
     </button>
-    <Teleport to="body">
+    <Teleport to="#teleported">
         <dialog ref="modal" class="modal">
             <div class="modal-box">
                 <h2 class="text-lg font-bold" v-text="title"></h2>

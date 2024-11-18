@@ -1,22 +1,27 @@
 <script setup lang="ts">
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, useForm, usePage} from "@inertiajs/vue3";
-import {baseUrl, defaultIcon} from "@/bootstrap";
+import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {ref} from "vue";
-import {Channel, ChannelType} from "@/types";
+import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
-const { selected_server } = usePage().props;
-const serverId = selected_server?.id;
+const {selected_server} = defineProps<{
+    servers: Server[],
+    selected_server?: Server,
+    channels?: Channel[],
+    invite_code?: string,
+}>()
 
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<Function>();
+const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const form = useForm({
     type: ChannelType.Voice,
@@ -36,7 +41,7 @@ const openModal = (channel?: Channel) => {
 };
 
 const createText = async () => {
-    axios.postForm(route('channel.create', {server: serverId}), form.data()).then(() => {
+    axios.postForm(route('channel.create', {server: selected_server?.id}), form.data()).then(() => {
         channelModal.value?.close();
         router.reload()
     });
@@ -55,14 +60,18 @@ const editText = async (channelId: number) => {
     });
 };
 
+if (selected_server && selected_server.roles !== null){
+    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+}
+
 </script>
 
 <template>
-    <AuthenticatedLayout>
-
+    <AuthenticatedLayout :selected_server :servers :invite_code>
         <div class="mt-3 pb-20">
-            <div class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7" v-for="channel in $page.props.channels" :key="channel.id">
-                <span class="indicator-item indicator-top absolute hidden group-hover:block">
+            <div class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7"
+                 v-for="channel in channels" :key="channel.id">
+                <span class="indicator-item indicator-top absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)">
                     <ConfirmDialog
                         title="Delete Channel"
                         :description="`Are you sure you want to delete ${channel.name} channel?`"
@@ -73,21 +82,23 @@ const editText = async (channelId: number) => {
                     </ConfirmDialog>
                 </span>
 
-                <span class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
-                    <button @click.prevent="openModal(channel)" class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                <span class="indicator-item indicator-top indicator-start absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)">
+                    <button @click.prevent="openModal(channel)"
+                            class="indicator-item badge badge-warning h-auto w-auto p-0.5">
                         <v-icon name="md-modeeditoutline-outlined"/>
                     </button>
                 </span>
 
                 <div class="w-full rounded-lg dark:bg-gray-800">
                     <div class="flex items-center justify-center text-xl pt-2">
-                        {{channel.name}}
+                        {{ channel.name }}
                     </div>
 
                     <div class="grid grid-cols-3 gap-1 p-3">
-                        <div v-for="user in $page.props.selected_server?.users" :key="user.id" class="avatar rounded-lg dark:bg-gray-700 items-center justify-center h-16">
+                        <div v-for="user in selected_server?.users" :key="user.id"
+                             class="avatar rounded-lg dark:bg-gray-700 items-center justify-center h-16">
                             <div class="flex w-10 h-auto rounded-full ml-5">
-                                <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" />
+                                <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon"/>
                             </div>
                             <div class="flex items-center h-full w-full p-4">
                                 {{ user.name }}
@@ -101,12 +112,11 @@ const editText = async (channelId: number) => {
                 </div>
             </div>
 
-            <button class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center" @click="openModal()">
-                <v-icon name="oi-plus" scale="3" />
+            <button class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center"
+                    @click="openModal()" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)">
+                <v-icon name="oi-plus" scale="3"/>
             </button>
-
         </div>
-
     </AuthenticatedLayout>
 
     <dialog ref="channelModal" class="modal">
@@ -116,7 +126,8 @@ const editText = async (channelId: number) => {
                     <label class="label">
                         <span class="label-text">Text Channel Name</span>
                     </label>
-                    <input v-model="form.name" type="text" placeholder="Enter channel name" class="input input-bordered"/>
+                    <input v-model="form.name" type="text" placeholder="Enter channel name"
+                           class="input input-bordered"/>
                 </div>
                 <div class="modal-action">
                     <button type="submit" class="btn btn-primary w-full mt-2">
@@ -125,7 +136,9 @@ const editText = async (channelId: number) => {
                 </div>
             </form>
             <div class="modal-action">
-                <button @click="() => channelModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                <button @click="() => channelModal?.close()"
+                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
+                </button>
             </div>
         </div>
     </dialog>

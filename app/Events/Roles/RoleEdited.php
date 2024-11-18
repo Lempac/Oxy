@@ -2,13 +2,13 @@
 
 namespace App\Events\Roles;
 
-
 use App\Models\Role;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+
 class RoleEdited implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
@@ -20,9 +20,9 @@ class RoleEdited implements ShouldBroadcast
         public Role $role
     ) {}
 
-    public function broadcastOn(): Channel
+    public function broadcastOn(): PrivateChannel
     {
-        return new Channel('roles');
+        return new PrivateChannel('roles.'.$this->role->server->id);
     }
 
     public function broadcastAs(): string

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Head, Link, useForm} from '@inertiajs/vue3';
+import {Head, Link, useForm, usePage} from '@inertiajs/vue3';
 import {ref, onMounted, onUnmounted} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
@@ -92,7 +92,7 @@ const submitRegister = () => {
                     </div>
                     <ApplicationLogo class="navbar-center mb-1.5" />
                     <div class="navbar-end">
-                        <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
+                        <Link v-if="$page.props.user" :href="route('home')" class="btn btn-lg">
                             Home
                         </Link>
                         <template v-else>
@@ -150,7 +150,7 @@ const submitRegister = () => {
                             Join now!!!
                         </p>
                         <div>
-                            <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
+                            <Link v-if="$page.props.user" :href="route('home')" class="btn btn-lg">
                                 Home
                             </Link>
                             <template v-else>
@@ -236,7 +236,7 @@ const submitRegister = () => {
                 </ul>
                 </div>
                 </div>
-                
+
             </main>
 
             <footer class="footer footer-center mt-10 text-white">

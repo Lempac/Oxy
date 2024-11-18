@@ -15,10 +15,10 @@ class Message extends Model
     use HasFactory;
 
     /**
-     * @var ?Closure
      * @returns User
      */
     public ?Closure $sender;
+
     protected $fillable = [
         'type',
         'mdata',
@@ -26,13 +26,13 @@ class Message extends Model
         'channel_id',
     ];
 
-//    protected $dispatchesEvents = [
-//        'created' => MessageCreated::class,
-//        'updated' => MessageEdited::class,
-//        'deleted' => MessageDeleted::class,
-//    ];
+    protected $dispatchesEvents = [
+        'created' => MessageCreated::class,
+        'updated' => MessageEdited::class,
+        'deleted' => MessageDeleted::class,
+    ];
 
-    public function channel() : BelongsTo
+    public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
     }

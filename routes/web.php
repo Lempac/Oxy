@@ -26,11 +26,12 @@ Route::middleware('auth')->group(function () {
     //Setting routes
     Route::prefix('settings')->group(function () {
         Route::controller(ServerController::class)->prefix('server')->group(function () {
-            Route::get('/{serverId}', 'showSettings')->name('settings.server');
+            Route::get('/{id}', 'showSettings')->name('settings.server');
             Route::post('/{id}', 'update')->name('server.update');
             Route::delete('/{id}', 'destroy')->name('server.destroy');
         });
         Route::get('/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
+        Route::get('/members/{id}', [RoleController::class, 'showMembers'])->name('settings.members');
     });
 
     //Profile routes
