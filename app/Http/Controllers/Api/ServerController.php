@@ -48,7 +48,7 @@ class ServerController extends Controller
 
         //        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
 
-        //return response()->json(['message' => 'Server created successfully.']);
+        return response()->json(['message' => 'Server created successfully.']);
     }
 
     public function addUser(Request $request)
