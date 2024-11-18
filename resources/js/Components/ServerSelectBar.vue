@@ -7,6 +7,8 @@ import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus} from "oh-vue-icons/icons";
 import {Server} from "@/types";
+import ErrorAlert from "@/Components/ErrorAlert.vue";
+
 addIcons(OiPlus);
 
 const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
@@ -29,11 +31,25 @@ const joinForm = useForm({
     code: ''
 })
 
+let loading = ref(false);
 const createServer = async () => {
-    axios.postForm(route('server.create'), form.data()).then(() => {
-        serverModal.value?.close();
-        router.reload({only: ['servers']})
-    });
+    if (loading.value) return;
+    loading.value = true;
+    axios.postForm(route('server.create'), form.data())
+        .then(() => {
+            serverModal.value?.close();
+            router.reload({only: ['servers']});
+            form.reset();
+        })
+        .catch((err) => {
+            for (const [name, errors] of (Object.entries(err.response.data.errors) as [name: string, errors: string[]][] )) {
+                errors.forEach((error: any) => form.setError(name as "description" | "icon" | "name", error))
+            }
+            console.error('Error creating server:', err);
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 };
 
 const icon = ref<string | null>(null);
@@ -152,6 +168,7 @@ const updateIcon = (val: File) => {
                             </label>
                             <input v-model="form.name" type="text" placeholder="Enter server name"
                                    class="input input-bordered"/>
+                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2" />
                         </div>
                         <div class="form-control mb-4">
                             <label class="label">
@@ -169,12 +186,14 @@ const updateIcon = (val: File) => {
 
                 <!-- Join Server Tab Content -->
                 <div v-if="activeTab === 'join'">
-                    <form @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
+                    <form
+                        @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
                         <div class="form-control mb-4">
                             <label class="label" for="code">
                                 <span class="label-text">Server Invite Code</span>
                             </label>
-                            <input type="text" name="code" id="code" v-model="joinForm.code" placeholder="Enter invite code" class="input input-bordered"/>
+                            <input type="text" name="code" id="code" v-model="joinForm.code"
+                                   placeholder="Enter invite code" class="input input-bordered"/>
                         </div>
                         <div class="modal-action">
                             <button type="submit" class="btn btn-secondary w-full">Join Server</button>
@@ -183,7 +202,9 @@ const updateIcon = (val: File) => {
                 </div>
                 <!-- Close Button -->
                 <div class="modal-action">
-                    <button @click="() => serverModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    <button @click="() => serverModal?.close()"
+                            class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
+                    </button>
                 </div>
             </div>
         </div>
