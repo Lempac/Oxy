@@ -12,15 +12,11 @@ class KanbanColumn extends Model
 
     protected $fillable = ['name', 'kanban_board_id', 'position'];
 
-    /**
-     */
     public function board(): BelongsTo
     {
         return $this->belongsTo(KanbanBoard::class, 'kanban_board_id');
     }
 
-    /**
-     */
     public function tasks(): HasMany
     {
         return $this->hasMany(KanbanTask::class, 'kanban_column_id')->orderBy('position');

@@ -11,6 +11,7 @@ class KanbanBoardController extends Controller
     public function index()
     {
         $boards = KanbanBoard::with('columns.tasks')->get();
+
         return Inertia::render('Kanban/Index', [
             'boards' => $boards,
         ]);
@@ -76,6 +77,7 @@ class KanbanBoardController extends Controller
     public function show(KanbanBoard $board)
     {
         $board->load('columns.tasks');
+
         return Inertia::render('Kanban/BoardDetail', [
             'board' => $board,
         ]);

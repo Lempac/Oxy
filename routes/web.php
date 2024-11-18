@@ -3,10 +3,8 @@
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\KanbanBoardController;
-use App\Http\Controllers\KanbanColumnController;
-use App\Http\Controllers\KanbanTaskController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

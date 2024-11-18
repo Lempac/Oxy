@@ -22,8 +22,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('kanban_board_id')
-                  ->constrained('kanban_boards')
-                  ->onDelete('cascade');
+                ->constrained('kanban_boards')
+                ->onDelete('cascade');
             $table->integer('position')->default(0);
             $table->timestamps();
         });
@@ -33,8 +33,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->foreignId('kanban_column_id')
-                  ->constrained('kanban_columns')
-                  ->onDelete('cascade');
+                ->constrained('kanban_columns')
+                ->onDelete('cascade');
             $table->integer('position')->default(0);
             $table->timestamps();
         });

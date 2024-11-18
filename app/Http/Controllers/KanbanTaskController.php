@@ -12,6 +12,7 @@ class KanbanTaskController extends Controller
     public function index(KanbanColumn $kanbanColumn)
     {
         $tasks = $kanbanColumn->tasks;
+
         return Inertia::render('Kanban/Tasks/Index', ['tasks' => $tasks, 'column' => $kanbanColumn]);
     }
 
@@ -63,6 +64,7 @@ class KanbanTaskController extends Controller
     public function destroy(KanbanTask $kanbanTask)
     {
         $kanbanTask->delete();
+
         return redirect()->route('kanban_columns.show', $kanbanTask->kanban_column_id);
     }
 }
