@@ -32,7 +32,7 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         if ($user) {
-            $user->roles = $request->user()?->roles;
+            $user = $request->user()?->load('roles');
         }
 
         return [
