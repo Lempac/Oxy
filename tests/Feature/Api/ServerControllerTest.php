@@ -51,8 +51,6 @@
 //     // Assert the error message for the name field
 //     $response->assertJsonValidationErrors(['name']);
 
-
-
 // });
 
 // // Test for user can be added to a server

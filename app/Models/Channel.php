@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Events\Channels\ChannelCreated;
+use App\Events\Channels\ChannelDeleted;
+use App\Events\Channels\ChannelEdited;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +18,12 @@ class Channel extends Model
         'name',
         'type',
         'server_id',
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => ChannelCreated::class,
+        'updated' => ChannelEdited::class,
+        'deleted' => ChannelDeleted::class,
     ];
 
     public function messages(): HasMany

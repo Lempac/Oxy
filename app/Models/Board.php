@@ -13,7 +13,7 @@ class Board extends Model
 
     protected $fillable = [
         'name',
-        'server_id'
+        'server_id',
     ];
 
     public function server(): BelongsTo
