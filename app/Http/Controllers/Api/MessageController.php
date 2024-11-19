@@ -38,7 +38,7 @@ class MessageController
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        if ($request->type === MessageType::File->value && $request->file('mdata')?->isValid()) {
+        if ($request->type !== MessageType::Text->value && $request->file('mdata')?->isValid()) {
             $file = $request->file('mdata');
             $name = $file->getClientOriginalName();
             $path = $file->store('uploads', 'public');

@@ -183,7 +183,9 @@ if (selected_server && selected_server.roles !== null){
                                      class="max-w-3xl h-auto"/>
                                 <div v-if="MessageType.File === message.type">
                                     <v-icon name="fa-regular-file"/>
-                                    {{  message.mdata }}
+                                    <a :href="baseUrl + message.mdata.split('|*|')[1]" download>
+                                        {{message.mdata.split('|*|')[0] }}
+                                    </a>
                                 </div>
 
                                 <div v-if="message.user_id === $page.props.user?.id || perms.has(PermType.CAN_DELETE_MESSAGE)"
@@ -219,7 +221,7 @@ if (selected_server && selected_server.roles !== null){
             <form @submit.prevent="createMessage" class="flex items-center mt-1">
                 <label for="file-upload" class="btn join-item ml-5 mb-5">
                     <v-icon name="md-fileupload-outlined"/>
-                </label>.
+                </label>
                 <div class="items-center hidden">
                     <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
                            ref="fileInput"
