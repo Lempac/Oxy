@@ -69,13 +69,25 @@ const clearFile = () => {
     isDisabled = false;
 }
 
+let loading = ref(false);
+
 const createMessage = async () => {
-    if (typeof (form.mdata) === "string") {
-        form.type = MessageType.Text;
+    if (loading.value) return;
+    loading.value = true;
+
+    try {
+        if (typeof(form.mdata) === "string") {
+            form.type = MessageType.Text;
+        }
+        axios.postForm(route('message.create', { channel: selected_channel?.id }), form.data()).then(() => {
+            clearFile();
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+    } catch (error) {
+        console.error('Error sending message:', error);
+    } finally {
+        loading.value = false;
     }
-    axios.postForm(route('message.create', {channel: selected_channel?.id}), form.data()).then(() => {
-        clearFile()
-    });
 };
 
 const scrollToBottom = () => {
@@ -144,7 +156,7 @@ if (selected_server && selected_server.roles !== null){
     <AuthenticatedLayout :selected_server :invite_code :servers>
         <TextSelectBar :selected_server :selected_channel :channels/>
         <div
-            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] m-5 rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col"
+            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-white dark:bg-gray-800 m-5 rounded-lg mx-auto mt-3 flex flex-col"
             v-if="$page.url.match(/\/text\/\d+/)">
             <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
                 <div v-if="messages && messages.length > 0">
@@ -163,7 +175,7 @@ if (selected_server && selected_server.roles !== null){
                         </div>
 
                         <div class="indicator">
-                            <div class="chat-bubble group max-w-full">
+                            <div class="chat-bubble group max-w-full bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
                                 <div v-if="MessageType.Text === message.type">
                                     {{ message.mdata }}
                                 </div>
@@ -171,7 +183,7 @@ if (selected_server && selected_server.roles !== null){
                                      class="max-w-3xl h-auto"/>
                                 <div v-if="MessageType.File === message.type">
                                     <v-icon name="fa-regular-file"/>
-                                    {{ baseUrl + message.mdata }}
+                                    {{  message.mdata }}
                                 </div>
 
                                 <div v-if="message.user_id === $page.props.user?.id || perms.has(PermType.CAN_DELETE_MESSAGE)"
@@ -205,10 +217,10 @@ if (selected_server && selected_server.roles !== null){
             </div>
 
             <form @submit.prevent="createMessage" class="flex items-center mt-1">
-                <!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
-                <!--                  <v-icon name="md-fileupload-outlined"/>-->
-                <!--              </label>-->
-                <div class="items-center inline-flex">
+                <label for="file-upload" class="btn join-item ml-5 mb-5">
+                    <v-icon name="md-fileupload-outlined"/>
+                </label>.
+                <div class="items-center hidden">
                     <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
                            ref="fileInput"
                            :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)"
@@ -218,7 +230,7 @@ if (selected_server && selected_server.roles !== null){
                 </div>
 
                 <div class="join w-full items-center">
-                    <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled || !perms.has(PermType.CAN_CREATE_MESSAGE)" @keydown.enter="createMessage"
+                    <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="loading || isDisabled || !perms.has(PermType.CAN_CREATE_MESSAGE)" @keydown.enter="createMessage"
                            class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
                     />
                     <button class="btn join-item mr-5 mb-5" :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)">
@@ -242,7 +254,7 @@ if (selected_server && selected_server.roles !== null){
                     <button type="submit" class="btn btn-primary w-full mt-2">Edit Message</button>
                 </div>
                 <div class="modal-action">
-                    <button @click="() => messageModal?.close() && form.reset()"
+                    <button @click.prevent="() => { messageModal?.close(); form.reset()}"
                             class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
                     </button>
                 </div>
