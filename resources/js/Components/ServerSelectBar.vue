@@ -6,9 +6,16 @@ import {baseUrl, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, HiSolidSun, RiMoonClearFill} from "oh-vue-icons/icons";
+import {Server} from "@/types";
+import ErrorAlert from "@/Components/ErrorAlert.vue";
+
 addIcons(OiPlus, HiSolidSun, RiMoonClearFill);
 
 const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
+
+defineProps<{
+    servers?: Server[]
+}>();
 
 
 const serverModal = ref<HTMLDialogElement>();
@@ -24,11 +31,25 @@ const joinForm = useForm({
     code: ''
 })
 
+let loading = ref(false);
 const createServer = async () => {
-    axios.postForm(route('server.create'), form.data()).then(() => {
-        serverModal.value?.close();
-        router.reload()
-    });
+    if (loading.value) return;
+    loading.value = true;
+    axios.postForm(route('server.create'), form.data())
+        .then(() => {
+            serverModal.value?.close();
+            router.reload({only: ['servers']});
+            form.reset();
+        })
+        .catch((err) => {
+            for (const [name, errors] of (Object.entries(err.response.data.errors) as [name: string, errors: string[]][] )) {
+                errors.forEach((error: any) => form.setError(name as "description" | "icon" | "name", error))
+            }
+            console.error('Error creating server:', err);
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 };
 
 const icon = ref<string | null>(null);
@@ -51,9 +72,9 @@ const updateIcon = (val: File) => {
             </Link>
         </div>
         <div class="navbar-center">
-            <div v-for="server in $page.props.servers" :key="server.id">
+            <div v-for="server in servers" :key="server.id">
                 <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                    <Link :href="`/home/${server.id}`">
+                    <Link :href="route('home.server', { id: server.id})">
                         <div class="tooltip tooltip-bottom" :data-tip="server.name">
                             <div class="btn btn-ghost btn-circle avatar">
                                 <div class="w-14 rounded-full">
@@ -80,12 +101,12 @@ const updateIcon = (val: File) => {
 
             <div class="dropdown dropdown-end">
                 <div tabindex="0" role="button" class="flex items-center btn btn-ghost">
-                    <div class="mr-2">{{ $page.props.auth.user.name }}</div>
+                    <div class="mr-2">{{ $page.props.user?.name }}</div>
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img
                                 alt="User Avatar"
-                                :src="$page.props.auth.user.icon ? `${baseUrl}${$page.props.auth.user.icon}` : defaultIcon"/>
+                                :src="$page.props.user?.icon ? `${baseUrl}${$page.props.user?.icon}` : defaultIcon"/>
                         </div>
                     </div>
                 </div>
@@ -153,6 +174,7 @@ const updateIcon = (val: File) => {
                             </label>
                             <input v-model="form.name" type="text" placeholder="Enter server name"
                                    class="input input-bordered"/>
+                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2" />
                         </div>
                         <div class="form-control mb-4">
                             <label class="label">
@@ -170,12 +192,14 @@ const updateIcon = (val: File) => {
 
                 <!-- Join Server Tab Content -->
                 <div v-if="activeTab === 'join'">
-                    <form @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
+                    <form
+                        @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
                         <div class="form-control mb-4">
                             <label class="label" for="code">
                                 <span class="label-text">Server Invite Code</span>
                             </label>
-                            <input type="text" name="code" id="code" v-model="joinForm.code" placeholder="Enter invite code" class="input input-bordered"/>
+                            <input type="text" name="code" id="code" v-model="joinForm.code"
+                                   placeholder="Enter invite code" class="input input-bordered"/>
                         </div>
                         <div class="modal-action">
                             <button type="submit" class="btn btn-secondary w-full">Join Server</button>
@@ -184,7 +208,9 @@ const updateIcon = (val: File) => {
                 </div>
                 <!-- Close Button -->
                 <div class="modal-action">
-                    <button @click="() => serverModal?.close()" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    <button @click="() => serverModal?.close()"
+                            class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
+                    </button>
                 </div>
             </div>
         </div>

@@ -11,10 +11,10 @@ class Call extends Model
     use HasFactory;
 
     protected $fillable = [
-        'channel_id'
+        'channel_id',
     ];
 
-    public function channel() : BelongsTo
+    public function channel(): BelongsTo
     {
         return $this->belongsTo(Channel::class);
     }

@@ -20,7 +20,7 @@ class ChannelFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'type' => fake()->randomElement(array_column(ChannelType::cases(), 'value'))
+            'type' => fake()->randomElement(array_column(ChannelType::cases(), 'value')),
         ];
     }
 }

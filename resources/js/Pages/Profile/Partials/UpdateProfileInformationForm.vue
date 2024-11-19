@@ -13,7 +13,7 @@ defineProps<{
     status?: String;
 }>();
 
-const user = usePage().props.auth.user;
+const user = usePage().props.user!;
 
 const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
 const inputFile = ref<File | null>();

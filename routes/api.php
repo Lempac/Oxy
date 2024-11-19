@@ -1,15 +1,15 @@
 <?php
 
-use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\Api\ChannelController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\ServerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-//Route::get('/user', function (Request $request) {
-//    return $request->user();
-//})->middleware('auth:sanctum');
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware(['auth', 'web']);
 //
 //Route::post('/tokens/create', function (Request $request) {
 //    dd($request->user());
@@ -38,12 +38,13 @@ Route::middleware(['web'])->group(function () {
         Route::patch('/{channel}', 'edit')->name('.edit');
         Route::delete('/{channel}', 'delete')->name('.delete');
     });
+
     Route::controller(RoleController::class)->prefix('roles')->name('roles')->group(function () {
         Route::get('/{server}', 'index')->name('.index');
         Route::post('/{server}', 'create')->name('.create');
         Route::patch('/{role}', 'edit')->name('.edit');
         Route::delete('/{role}', 'delete')->name('.delete');
-
+        Route::post('/{role}/add-user/{user}', 'addUser')->name('.add-user');
+        Route::delete('/{role}/remove-user/{user}', 'removeUser')->name('.remove-user');
     });
-
 });

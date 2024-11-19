@@ -35,13 +35,13 @@ class SendMessageCommand extends Command
             'type' => MessageType::Text->value,
             'mdata' => $text,
             'channel_id' => $channelId,
-            'user_id' => $userId
+            'user_id' => $userId,
         ]);
 
         event(new MessageCreated($text, $userId, $channelId));
 
         $this->info('Message sent successfully!');
         $timezone = now()->getTimezone();
-        $this->info("The current server timezone is: " . $timezone);
+        $this->info('The current server timezone is: '.$timezone);
     }
 }

@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Server;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Server>
+ * @extends Factory<Role>
  */
-class ServerFactory extends Factory
+class RoleFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -19,7 +19,9 @@ class ServerFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'description' => fake()->text(maxNbChars: 40),
+            'color' => fake()->hexColor(),
+            'perms' => 0,
+            'importance' => 0,
         ];
     }
 }

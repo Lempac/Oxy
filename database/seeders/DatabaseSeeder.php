@@ -17,29 +17,32 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $servers = Server::factory(4)->create();
-        $servers->each(function ($server) {
+        $servers->each(function (Server $server) {
             $channels = Channel::factory(4)->for($server)->create();
-            $channels->each(function ($channel) {
+            $channels->each(function (Channel $channel) {
                 Call::factory(2)->for($channel)->create();
             });
         });
-        User::factory(10)->hasAttached($servers->random(2))->create()->each(function ($user) {
-            $user->servers->each(function ($server) use ($user) {
-                $server->channels->random(2)->each(function ($channel) use ($user) {
+
+        User::factory(10)->hasAttached($servers->random(2))->create()->each(function (User $user) {
+            $user->servers->each(function (Server $server) use ($user) {
+                $server->channels->random(2)->each(function (Channel $channel) use ($user) {
                     Message::factory(10)->for($channel)->for($user)->create();
                 });
             });
         });
 
-        User::factory()->hasAttached($servers->random(2))->create([
+        $testUser = User::factory()->hasAttached($servers->random(2))->create([
             'name' => 'Test User',
             'email' => 'test@test.test',
-        ])->each(function ($user) {
-            $user->servers->each(function ($server) use ($user) {
-                $server->channels->random(2)->each(function ($channel) use ($user) {
-                    Message::factory(10)->for($channel)->for($user)->create();
-                });
+        ]);
+
+        $testUser->servers->each(function (Server $server) use ($testUser) {
+            $testUser->roles()->attach($server->roles()->first());
+            $server->channels->random(2)->each(function (Channel $channel) use ($testUser) {
+                Message::factory(10)->for($channel)->for($testUser)->create();
             });
         });
+
     }
 }
