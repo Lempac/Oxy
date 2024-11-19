@@ -4,6 +4,7 @@ import {Head} from '@inertiajs/vue3';
 import {joinServer} from "@/bootstrap";
 import {ref} from "vue";
 import {Server} from "@/types";
+import ErrorAlert from "@/Components/ErrorAlert.vue";
 
 const code = ref<HTMLInputElement>();
 
@@ -12,6 +13,8 @@ defineProps<{
     selected_server?: Server,
     invite_code?: string
 }>();
+
+const val = ref<[number, string?] | undefined>();
 
 </script>
 
@@ -25,10 +28,13 @@ defineProps<{
                         <span>Join a server!</span>
                         <div class="join flex">
                             <input ref="code" class="input input-bordered join-item" placeholder="Enter code"/>
-                            <button @click="joinServer(code!.value)" class="btn join-item ml-2">Join</button>
+                            <button @click="async () => val = await joinServer(code!.value)" class="btn join-item ml-2">
+                                Join
+                            </button>
                         </div>
                     </div>
                 </div>
+                <ErrorAlert v-if="val && val[1]" :message="val[1]" class="mt-3"/>
             </div>
         </div>
     </AuthenticatedLayout>

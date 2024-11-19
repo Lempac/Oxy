@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, {AxiosError, AxiosResponse} from 'axios';
 import './echo.ts';
 import {router} from "@inertiajs/vue3";
 import {Perms} from "@/types";
@@ -27,10 +27,14 @@ export const bigIntToPerms = (newPrem: bigint): Perms => ({
     }
 });
 
-export const joinServer = (code: string) => {
-    axios.post(route('server.addUser'), {code: code}).then(() => {
-        console.log("You're in :)");
-        router.reload();
-    })
+export const joinServer = async (code: string): Promise<[number, string?]> => {
+    return Promise.resolve(await axios.post(route('server.addUser'), {code: code})
+        .then(() => {
+            router.reload({only: ['servers']});
+            return [200] as [number, string?];
+        })
+        .catch((err: AxiosError<{ message: string }>) => {
+            return [err.status!, err.response?.data.message];
+        }))
 }
 
