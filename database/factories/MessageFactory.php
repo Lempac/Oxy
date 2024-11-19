@@ -23,7 +23,7 @@ class MessageFactory extends Factory
         //TODO: Add faker for images
         return [
             'type' => $type,
-            'mdata' => $type == MessageType::Text->value ? fake()->text(maxNbChars: 100) : 'https://picsum.photos/'.random_int(120, 1920).'/'.random_int(120, 1080),
+            'mdata' => $type == MessageType::Text->value ? fake()->text(maxNbChars: 100) : ($type == MessageType::File->value ? 'Image'.'|*|'.'https://picsum.photos/'.random_int(120, 1920).'/'.random_int(120, 1080) : 'https://picsum.photos/'.random_int(120, 1920).'/'.random_int(120, 1080)),
         ];
     }
 }
