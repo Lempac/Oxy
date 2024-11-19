@@ -43,7 +43,7 @@ if (selected_server && selected_server.roles !== null){
 
         <footer v-if="$page.url.match(/\/home\/\d+/)">
             <div v-if="invite_code !== undefined && perms.has(PermType.CAN_INVITE)" class="toast truncate mb-16">
-                <div class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0"
+                <div class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0 bg-white dark:bg-gray-800"
                      @mouseenter="toggle = true" @mouseleave="toggle = false">
                     <span :class="`font-bold p-2  ${toggle ? '' : 'hidden'}`">{{ invite_code }}</span>
                     <button class="btn tooltip" data-tip="Copy" @click="copyToClipboard(invite_code)">

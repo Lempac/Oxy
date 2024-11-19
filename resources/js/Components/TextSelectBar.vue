@@ -112,12 +112,12 @@ if (selected_server && selected_server.roles !== null) {
 
             <Link :href="route('home.text.channel', {server : selected_server?.id, channel : channel.id})">
                 <button class="btn btn-outline btn-sm"
-                        :class="{'bg-gray-400 text-black' : selected_channel?.id === channel.id}">
+                        :class="{'bg-gray-800 text-white dark:bg-gray-400 dark:text-gray-800' : selected_channel?.id === channel.id}">
                     {{ channel.name }}
                 </button>
             </Link>
         </div>
-        <button class="btn btn-sm btn-square btn-outline mx-[35px]" @click="openModal()"
+        <button class="btn btn-sm btn-square btn-outline mx-9" @click="openModal()"
                 v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)">
             <v-icon name="oi-plus"/>
         </button>
