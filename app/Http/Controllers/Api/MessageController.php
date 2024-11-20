@@ -20,7 +20,10 @@ class MessageController
     {
         $request->validate([
             'type' => 'required|in:'.implode(',', array_column(MessageType::cases(), 'value')),
-            'mdata' => 'required',
+        ]);
+
+        $request->validate([
+            'mdata' => $request->type === MessageType::Text->value ? 'required|string|max:500' : 'required|file|max:200000000',
         ]);
 
         $channel = Channel::find($channelId);

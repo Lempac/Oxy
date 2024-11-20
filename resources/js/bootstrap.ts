@@ -31,7 +31,7 @@ export const joinServer = async (code: string): Promise<[number, string?]> => {
     return Promise.resolve(await axios.post(route('server.addUser'), {code: code})
         .then(() => {
             router.reload({only: ['servers']});
-            return [200] as [number, string?];
+            return [200, 'Successfully joined to server.'] as [number, string];
         })
         .catch((err: AxiosError<{ message: string }>) => {
             return [err.status!, err.response?.data.message];
