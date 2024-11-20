@@ -11,6 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 class MessageDeleted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets;
+
     public function __construct(
         public Message $message
     ) {}
