@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import {Head, Link, useForm} from '@inertiajs/vue3';
+import {Head, Link, useForm, usePage} from '@inertiajs/vue3';
 import {ref, onMounted, onUnmounted} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
-import { CoChatBubble } from "oh-vue-icons/icons";
-import { RiComputerFill } from "oh-vue-icons/icons";
+import { RiComputerFill, CoChatBubble, FaBook} from "oh-vue-icons/icons";
 import { addIcons } from "oh-vue-icons";
-addIcons(CoChatBubble, RiComputerFill);
+import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+addIcons(CoChatBubble, RiComputerFill, FaBook);
 
-// Reactive state for showing/hiding the login popup
 const loginModel = ref<HTMLDialogElement>();
 const registerModel = ref<HTMLDialogElement>();
 
@@ -22,7 +21,7 @@ const form = useForm({
 
 // Countdown state
 const countdown = ref('');
-const targetDate = new Date('2024-11-08T08:30:00');
+const targetDate = new Date('2024-11-22T08:30:00');
 let countdownInterval: number | undefined; // Store the interval ID as a number
 
 const calculateTimeLeft = () => {
@@ -87,10 +86,13 @@ const submitRegister = () => {
     <body class="bg-cover bg-center min-h-screen" :style="`background-image: url(${backgroundImage})`">
         <div class="card card-body">
             <header>
-                <div class="navbar flex justify-between">
-                    <img src="/images/oxy.png" class="block h-16 w-auto fill-current"/>
-                    <div>
-                        <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
+                <div class="navbar mx-0 px-0">
+                    <div class="navbar-start">
+                        <img src="/images/oxy.png" class="block h-16 w-auto fill-current"/>
+                    </div>
+                    <ApplicationLogo class="navbar-center mb-1.5" />
+                    <div class="navbar-end">
+                        <Link v-if="$page.props.user" :href="route('home')" class="btn btn-lg">
                             Home
                         </Link>
                         <template v-else>
@@ -148,7 +150,7 @@ const submitRegister = () => {
                             Join now!!!
                         </p>
                         <div>
-                            <Link v-if="$page.props.auth.user" :href="route('home')" class="btn btn-lg">
+                            <Link v-if="$page.props.user" :href="route('home')" class="btn btn-lg">
                                 Home
                             </Link>
                             <template v-else>
@@ -234,12 +236,18 @@ const submitRegister = () => {
                 </ul>
                 </div>
                 </div>
+
             </main>
 
             <footer class="footer footer-center mt-10 text-white">
                 <div class="rounded-full p-4 bg-black">
                     © {{ new Date().getFullYear() }} Oxy
                 </div>
+                <Link :href="route('manual')" class="left-2 mt-3 absolute btn btn-ghost tooltip tooltip-right" data-tip="FAQ">
+                <button class="flex items-center justify-center h-10 w-5">
+                    <v-icon name="fa-book" scale="2" animation="pulse"  />
+                </button>
+            </Link>
             </footer>
         </div>
         <dialog ref="loginModel" class="modal">

@@ -5,7 +5,7 @@
 // use App\Models\User;
 
 // test('user can create message', function () {
-    // Create a user
+// Create a user
 //    $user = User::factory()->create();
 //
 //    // Act as the created user
