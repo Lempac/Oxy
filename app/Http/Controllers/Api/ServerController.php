@@ -12,15 +12,19 @@ use Auth;
 use Illuminate\Http\Request;
 use Storage;
 use Inertia\Inertia;
+use Intervention\Image\Laravel\Facades\Image;
+
+
 
 class ServerController extends Controller
 {
+
     public function create(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         if ($request->file('icon')?->isValid()) {
@@ -33,9 +37,18 @@ class ServerController extends Controller
             'icon' => empty($path) ? null : Storage::url($path),
         ]);
 
-        $server->users()->attach(Auth::id());
+        $role = Role::create([
+            'name' => 'Owner',
+            'color' => '#ffffff',
+            'perms' => PHP_INT_MAX,
+            'importance' => 0,
+        ]);
 
-        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
+        $server->roles()->attach($role);
+        $server->users()->attach(Auth::id());
+        Auth::user()->roles()->attach($role);
+
+        //        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
 
         return response()->json(['message' => 'Server created successfully.']);
     }
