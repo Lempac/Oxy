@@ -10,6 +10,8 @@
         xdebug.mode = debug
         xdebug.discover_client_host = 1
         xdebug.client_host = 127.0.0.1
+        upload_max_filesize = 200M
+        post_max_size = 200M
     '';
     languages.javascript.enable = true;
     languages.javascript.package = pkgs.nodejs_20;
