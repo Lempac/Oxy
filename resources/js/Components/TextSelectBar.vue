@@ -8,6 +8,7 @@ import {addIcons} from "oh-vue-icons";
 import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {bigIntToPerms} from "@/bootstrap";
+import echo from "@/echo";
 
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
@@ -33,7 +34,7 @@ const openModal = (channel?: Channel) => {
     if (channel) {
         isEditing.value = true;
         form.name = channel?.name || '';
-        editCurrent.value = () => editText(channel.id);
+        editCurrent.value = () => editChannel(channel.id);
     } else {
         isEditing.value = false;
         form.name = '';
@@ -41,7 +42,7 @@ const openModal = (channel?: Channel) => {
     channelModal.value?.showModal();
 };
 
-const createText = async () => {
+const createChannel = async () => {
     if (loading.value) return;
     loading.value = true;
     axios.postForm(route('channel.create', {server: selected_server?.id}), form.data())
@@ -58,13 +59,15 @@ const createText = async () => {
         });
 };
 
-const deleteText = async (channelId: number) => {
+const deleteChannel = async (channelId: number) => {
+    console.log(channelId)
     axios.delete(route('channel.delete', {channel: channelId})).then(() => {
         router.reload()
     });
 };
 
-const editText = async (channelId: number) => {
+const editChannel = async (channelId: number) => {
+    console.log(channelId)
     if (loading.value) return;
     loading.value = true;
 
@@ -85,6 +88,18 @@ const editText = async (channelId: number) => {
 if (selected_server && selected_server.roles !== null) {
     perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
+if(selected_server){
+    echo.private(`channels.${selected_server.id}`)
+        .listen('.ChannelCreated', () => {
+            router.reload({only: ['channels', 'selected_channel']});
+        })
+        .listen('.ChannelEdited', () => {
+            router.reload({only: ['channels', 'selected_channel']});
+        })
+        .listen('.ChannelDeleted', () => {
+            router.reload({only: ['channels', 'selected_channel']});
+        })
+}
 
 </script>
 
@@ -97,7 +112,7 @@ if (selected_server && selected_server.roles !== null) {
                     title="Delete Channel"
                     :description="`Are you sure you want to delete ${channel.name} channel?`"
                     class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
-                    :confirm="() => deleteText(channel.id)"
+                    :confirm="() => deleteChannel(channel.id)"
                 >
                     <v-icon name="md-deleteforever-outlined"/>
                 </ConfirmDialog>
@@ -125,7 +140,7 @@ if (selected_server && selected_server.roles !== null) {
 
     <dialog ref="channelModal" class="modal">
         <div class="modal-box">
-            <form @submit.prevent="isEditing ? editCurrent!() : createText()">
+            <form @submit.prevent="isEditing ? editCurrent!() : createChannel()">
                 <div class="form-control mb-4">
                     <label class="label">
                         <span class="label-text">Text Channel Name</span>

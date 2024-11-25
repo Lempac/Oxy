@@ -2,7 +2,7 @@
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, onMounted, ref, watch} from 'vue';
-import {baseUrl, defaultIcon} from "@/bootstrap";
+import {baseUrl, defaultIcon, joinServer} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
 import {OiPlus, HiSolidSun, RiMoonClearFill} from "oh-vue-icons/icons";
@@ -20,16 +20,14 @@ defineProps<{
 
 const serverModal = ref<HTMLDialogElement>();
 const activeTab = ref<'create' | 'join'>('create');
+const val = ref<[number, string?]>();
+const code = ref<HTMLInputElement>();
 
 const form = useForm<{ name: string, description: string, icon: File | null }>({
     name: '',
     description: '',
     icon: null
 });
-
-const joinForm = useForm({
-    code: ''
-})
 
 let loading = ref(false);
 const createServer = async () => {
@@ -42,7 +40,7 @@ const createServer = async () => {
             form.reset();
         })
         .catch((err) => {
-            for (const [name, errors] of (Object.entries(err.response.data.errors) as [name: string, errors: string[]][] )) {
+            for (const [name, errors] of (Object.entries(err.response.data.errors) as [name: string, errors: string[]][])) {
                 errors.forEach((error: any) => form.setError(name as "description" | "icon" | "name", error))
             }
             console.error('Error creating server:', err);
@@ -93,11 +91,11 @@ const updateIcon = (val: File) => {
 
         <!-- User Profile -->
         <div class="navbar-end gap-2">
-<!--            <label class="btn btn-circle swap swap-rotate">-->
-<!--                <input type="checkbox" />-->
-<!--                <v-icon name="hi-solid-sun" scale="1.5" class="swap-on fill-current"></v-icon>-->
-<!--                <v-icon name="ri-moon-clear-fill" scale="1.5" class="swap-off fill-current"></v-icon>-->
-<!--            </label>-->
+            <!--            <label class="btn btn-circle swap swap-rotate">-->
+            <!--                <input type="checkbox" />-->
+            <!--                <v-icon name="hi-solid-sun" scale="1.5" class="swap-on fill-current"></v-icon>-->
+            <!--                <v-icon name="ri-moon-clear-fill" scale="1.5" class="swap-off fill-current"></v-icon>-->
+            <!--            </label>-->
 
             <div class="dropdown dropdown-end">
                 <div tabindex="0" role="button" class="flex items-center btn btn-ghost">
@@ -174,7 +172,7 @@ const updateIcon = (val: File) => {
                             </label>
                             <input v-model="form.name" type="text" placeholder="Enter server name"
                                    class="input input-bordered"/>
-                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2" />
+                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
                         </div>
                         <div class="form-control mb-4">
                             <label class="label">
@@ -192,19 +190,15 @@ const updateIcon = (val: File) => {
 
                 <!-- Join Server Tab Content -->
                 <div v-if="activeTab === 'join'">
-                    <form
-                        @submit.prevent="axios.postForm(route('server.addUser'), joinForm.data()).then(() => { serverModal?.close(); router.reload()})">
-                        <div class="form-control mb-4">
-                            <label class="label" for="code">
-                                <span class="label-text">Server Invite Code</span>
-                            </label>
-                            <input type="text" name="code" id="code" v-model="joinForm.code"
-                                   placeholder="Enter invite code" class="input input-bordered"/>
-                        </div>
-                        <div class="modal-action">
-                            <button type="submit" class="btn btn-secondary w-full">Join Server</button>
-                        </div>
-                    </form>
+                    <div class="form-control mb-4">
+                        <label class="label" for="code">
+                            <span class="label-text">Server Invite Code</span>
+                        </label>
+                        <input ref="code" type="text" name="code" id="code"
+                               placeholder="Enter invite code" class="input input-bordered"/>
+                    </div>
+                    <button class="btn btn-secondary w-full" @click="async () => {val = await joinServer(code!.value); val[0] === 200 ? serverModal?.close() : ''; form.reset();}">Join Server</button>
+                    <ErrorAlert v-if="val && val[0] !== 200" :message="val[1]" class="mt-3"/>
                 </div>
                 <!-- Close Button -->
                 <div class="modal-action">
