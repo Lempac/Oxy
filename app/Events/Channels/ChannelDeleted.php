@@ -2,22 +2,21 @@
 
 namespace App\Events\Channels;
 
-use App\Models\Channel;
+use App\Models\Channel as ModelChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
 
 class ChannelDeleted implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, InteractsWithSockets;
 
     /**
      * Create a new event instance.
      */
     public function __construct(
-        public Channel $channel
+        public ModelChannel $channel
     ) {}
 
     public function broadcastOn(): PrivateChannel

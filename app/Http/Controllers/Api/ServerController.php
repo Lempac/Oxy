@@ -68,8 +68,9 @@ class ServerController extends Controller
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
-        if ($server->users->has(Auth::id())) {
-            return response()->json(['message' => 'Server has already been added.'], 409);
+
+        if ($server->users->contains(Auth::id())) {
+            return response()->json(['message' => 'You\'re already in the server.'], 409);
         }
 
         $server->users()->attach(Auth::id());

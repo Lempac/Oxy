@@ -2,7 +2,7 @@
 
 namespace App\Events\Channels;
 
-use App\Models\Channel;
+use App\Models\Channel as ModelChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -17,7 +17,7 @@ class ChannelCreated implements ShouldBroadcast
      * Create a new event instance.
      */
     public function __construct(
-        public Channel $channel
+        public ModelChannel $channel
     ) {}
 
     public function broadcastOn(): PrivateChannel

@@ -58,7 +58,12 @@ const form = useForm<{ type: MessageType, mdata: File | string | null }>({
 if (selected_channel) {
     echo.private(`messages.${selected_channel.id}`)
         .listen('.MessageCreated', () => {
-            console.log("New message!");
+            router.reload({only: ['messages']});
+        })
+        .listen('.MessageDeleted', () => {
+            router.reload({only: ['messages']});
+        })
+        .listen('.MessageEdited', () => {
             router.reload({only: ['messages']});
         });
 }
@@ -69,13 +74,32 @@ const clearFile = () => {
     isDisabled = false;
 }
 
+const loading = ref(false);
+const hasError = ref(false);
+
 const createMessage = async () => {
-    if (typeof (form.mdata) === "string") {
-        form.type = MessageType.Text;
+    if (loading.value) return;
+    loading.value = true;
+
+    try {
+        if (typeof (form.mdata) === "string") {
+            form.type = MessageType.Text;
+        }
+        if((form.mdata as string).length > 500){
+            hasError.value = true;
+            return;
+        }
+        axios.postForm(route('message.create', {channel: selected_channel?.id}), form.data())
+            .then(() => {
+                clearFile();
+                hasError.value = false;
+            });
+        await new Promise((resolve) => setTimeout(resolve, 500))
+    } catch (error) {
+        console.error('Error sending message:', error);
+    } finally {
+        loading.value = false;
     }
-    axios.postForm(route('message.create', {channel: selected_channel?.id}), form.data()).then(() => {
-        clearFile()
-    });
 };
 
 const scrollToBottom = () => {
@@ -102,9 +126,7 @@ watch(
 );
 
 const deleteMessage = async (messageId: number) => {
-    axios.delete(route('message.delete', {message: messageId})).then(() => {
-        router.reload({only: ['message']});
-    });
+    axios.delete(route('message.delete', {message: messageId}));
 };
 
 const editMessage = async () => {
@@ -125,7 +147,7 @@ const openModal = (messageId: number, messageContent: string) => {
 const uploadFile = (val: File) => {
     inputFile.value = val;
     form.mdata = inputFile.value;
-    if (form.mdata.type === 'image/jpeg' || form.mdata.type === 'image/png') {
+    if (form.mdata.type.startsWith('image/')) {
         form.type = MessageType.Image;
     } else {
         form.type = MessageType.File;
@@ -134,7 +156,7 @@ const uploadFile = (val: File) => {
     isDisabled = true;
 }
 
-if (selected_server && selected_server.roles !== null){
+if (selected_server && selected_server.roles !== null) {
     perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 
@@ -144,7 +166,7 @@ if (selected_server && selected_server.roles !== null){
     <AuthenticatedLayout :selected_server :invite_code :servers>
         <TextSelectBar :selected_server :selected_channel :channels/>
         <div
-            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] m-5 rounded-lg dark:bg-gray-800 mx-auto mt-3 flex flex-col"
+            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-white dark:bg-gray-800 m-5 rounded-lg mx-auto mt-3 flex flex-col"
             v-if="$page.url.match(/\/text\/\d+/)">
             <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
                 <div v-if="messages && messages.length > 0">
@@ -163,20 +185,24 @@ if (selected_server && selected_server.roles !== null){
                         </div>
 
                         <div class="indicator">
-                            <div class="chat-bubble group max-w-full">
-                                <div v-if="MessageType.Text === message.type">
+                            <div
+                                class="chat-bubble group max-w-full bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
+                                <div v-if="MessageType.Text === message.type" class="text-wrap break-all max-w-[40vw]">
                                     {{ message.mdata }}
                                 </div>
                                 <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img"
-                                     class="max-w-3xl h-auto"/>
+                                     class="max-w-[40vw] h-auto"/>
                                 <div v-if="MessageType.File === message.type">
                                     <v-icon name="fa-regular-file"/>
-                                    {{ baseUrl + message.mdata }}
+                                    <a :href="baseUrl + message.mdata.split('|*|')[1]" download>
+                                        {{ message.mdata.split('|*|')[0] }}
+                                    </a>
                                 </div>
 
-                                <div v-if="message.user_id === $page.props.user?.id || perms.has(PermType.CAN_DELETE_MESSAGE)"
-                                     class="indicator-item indicator-top absolute hidden group-hover:block"
-                                     :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}">
+                                <div
+                                    v-if="message.user_id === $page.props.user?.id || perms.has(PermType.CAN_DELETE_MESSAGE)"
+                                    class="indicator-item indicator-top absolute hidden group-hover:block"
+                                    :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}">
                                     <ConfirmDialog
                                         title="Delete Message"
                                         description="Are you sure you want to delete this message?"
@@ -205,23 +231,28 @@ if (selected_server && selected_server.roles !== null){
             </div>
 
             <form @submit.prevent="createMessage" class="flex items-center mt-1">
-                <!--              <label for="file-upload" class="btn join-item ml-5 mr-3">-->
-                <!--                  <v-icon name="md-fileupload-outlined"/>-->
-                <!--              </label>-->
-                <div class="items-center inline-flex">
+                <label for="file-upload" class="btn join-item ml-5 mb-5">
+                    <v-icon name="md-fileupload-outlined"/>
+                </label>
+                <div class="items-center hidden">
                     <input id="file-upload" type="file" @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
                            ref="fileInput"
                            :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)"
                            class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
                     />
-                    <button @click.prevent="clearFile" :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)" class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕</button>
+                    <button @click.prevent="clearFile" :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)"
+                            class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1">✕
+                    </button>
                 </div>
 
                 <div class="join w-full items-center">
-                    <input type="text" placeholder="Type here" v-model="form.mdata" :disabled="isDisabled || !perms.has(PermType.CAN_CREATE_MESSAGE)" @keydown.enter="createMessage"
-                           class="input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5"
+                    <input type="text" placeholder="Type here" v-model="form.mdata"
+                           :disabled="loading || isDisabled || !perms.has(PermType.CAN_CREATE_MESSAGE)"
+                           @keydown.enter="createMessage"
+                           :class="`input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5 ${hasError ? 'input-error' : ''}`"
                     />
-                    <button class="btn join-item mr-5 mb-5" :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)">
+                    <button class="btn join-item mr-5 mb-5"
+                            :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)">
                         <v-icon name="fa-regular-paper-plane"/>
                     </button>
                 </div>
@@ -242,7 +273,7 @@ if (selected_server && selected_server.roles !== null){
                     <button type="submit" class="btn btn-primary w-full mt-2">Edit Message</button>
                 </div>
                 <div class="modal-action">
-                    <button @click="() => messageModal?.close() && form.reset()"
+                    <button @click.prevent="() => { messageModal?.close(); form.reset()}"
                             class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
                     </button>
                 </div>

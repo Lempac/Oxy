@@ -56,7 +56,7 @@ const deleteUser = () => {
                         </p>
 
                         <div class="mt-6">
-                            <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password">Password</label>
+                            <label class="block font-medium text-sm text-gray-600 dark:text-gray-400" for="password">Password</label>
 
                             <label class="input input-bordered flex items-center gap-2">
                                 <v-icon name="md-key" class="h-4 w-4 opacity-70"/>
@@ -64,7 +64,7 @@ const deleteUser = () => {
                                        ref="passwordInput"
                                        v-model="form.password"
                                        type="password"
-                                       class="mt-1 block w-3/4"
+                                       class="mt-1 block w-3/4 text-white"
                                        placeholder="Password"
                                        @keyup.enter="deleteUser"
                                 />

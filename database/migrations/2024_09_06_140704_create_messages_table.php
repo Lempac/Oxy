@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->enum('type', array_column(MessageType::cases(), 'value'));
-            $table->string('mdata')->nullable();
+            $table->string('mdata', 500)->nullable();
             $table->timestamps();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('channel_id');

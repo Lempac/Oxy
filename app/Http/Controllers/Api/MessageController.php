@@ -20,7 +20,10 @@ class MessageController
     {
         $request->validate([
             'type' => 'required|in:'.implode(',', array_column(MessageType::cases(), 'value')),
-            'mdata' => 'required',
+        ]);
+
+        $request->validate([
+            'mdata' => $request->type === MessageType::Text->value ? 'required|string|max:500' : 'required|file|max:200000000',
         ]);
 
         $channel = Channel::find($channelId);
@@ -38,7 +41,7 @@ class MessageController
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        if ($request->type === MessageType::File->value && $request->file('mdata')?->isValid()) {
+        if ($request->type !== MessageType::Text->value && $request->file('mdata')?->isValid()) {
             $file = $request->file('mdata');
             $name = $file->getClientOriginalName();
             $path = $file->store('uploads', 'public');
