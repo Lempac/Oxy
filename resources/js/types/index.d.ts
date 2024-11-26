@@ -49,15 +49,24 @@ export interface Role extends Object {
     server: Server | null;
 }
 
-export interface Note extends Object {
+export interface Task extends Object {
     title: string;
-    text: string;
-    board_id: number;
+    description: string;
+    kanban_column_id: number;
+    position: number;
+}
+
+export interface BoardColumn extends Object {
+    name: string;
+    kanban_column_id: number;
+    position: number;
+    tasks: Task[];
 }
 
 export interface Board extends Object {
     name: string;
-    notes: Note[];
+    bio: string;
+    columns: BoardColumn[];
     server_id: number;
 }
 

@@ -52,7 +52,7 @@ if (selected_server && selected_server.roles !== null){
                 </button>
             </Link>
 
-            <Link href="/kanban">
+            <Link :href="route('kanban.index')">
               <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
                   :class="{'border-b-2 border-white text-white': $page.url.includes('/kanban') }">
                   <svg class="h-5 w-5">
