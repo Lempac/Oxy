@@ -1,3 +1,66 @@
+<script setup lang="ts">
+import {router, usePage} from '@inertiajs/vue3';
+import {ref, onMounted} from 'vue';
+
+const page = usePage();
+const loading = ref(true);
+const boards = ref([]);
+const selectedBoard = ref(null);
+const columns = ref([]);
+
+onMounted(() => {
+    if (page.props.boards) {
+        boards.value = page.props.boards;
+    }
+    loading.value = false;
+});
+
+const createBoard = () => {
+    router.get(route('kanban.create'));
+};
+
+const editBoard = (boardId) => {
+    router.get(route('kanban.edit', {board: boardId}));
+};
+
+const viewBoard = (board) => {
+    router.get(route('kanban.show', {board: board.id}));
+};
+
+
+const deleteBoard = (boardId) => {
+    router.delete(route('kanban.destroy', {board: boardId}), {
+        onSuccess: () => {
+            boards.value = boards.value.filter(board => board.id !== boardId);
+        }
+    });
+};
+
+const selectBoard = (board) => {
+    selectedBoard.value = board;
+    loading.value = true;
+
+    router.get(route('kanban.show', {board: board.id}), {
+        onSuccess: (response) => {
+            columns.value = response.props.board.columns.map(column => {
+                return {
+                    ...column,
+                    tasks: column.tasks || []
+                };
+            });
+            loading.value = false;
+        },
+        onError: () => {
+            loading.value = false;
+        }
+    });
+};
+
+const goBack = () => {
+    selectedBoard.value = null;
+};
+</script>
+
 <template>
     <div class="kanban-container">
         <h1 class="title">Kanban Boards</h1>
@@ -6,7 +69,7 @@
 
         <div v-else-if="!selectedBoard">
             <div v-for="board in boards" :key="board.id" class="board-item">
-                <router-link :href="`/kanban/${boards.id}`" class="board-link">{{ board.name }}</router-link>
+                <button @click="selectBoard(board)"  class="board-link">{{ board.name }}</button>
                 <button @click="editBoard(board.id)" class="edit-btn">Edit</button>
                 <button @click="deleteBoard(board.id)" class="delete-btn">Delete</button>
             </div>
@@ -18,7 +81,7 @@
         <div v-else>
             <h2>{{ selectedBoard.name }}</h2>
             <button @click="goBack" class="back-btn">Back to Boards</button>
-            
+
             <div class="columns-container">
                 <div v-for="column in columns" :key="column.id" class="column-item">
                     <h3>{{ column.name }}</h3>
@@ -34,74 +97,6 @@
     </div>
 </template>
 
-<script>
-import { router, usePage } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
-
-export default {
-    setup() {
-        const page = usePage();
-        const loading = ref(true);
-        const boards = ref([]);
-        const selectedBoard = ref(null);
-        const columns = ref([]);
-
-        onMounted(() => {
-            if (page.props.boards) {
-                boards.value = page.props.boards;
-            }
-            loading.value = false;
-        });
-
-        const createBoard = () => {
-            router.get('/kanban/create');
-        };
-
-        const editBoard = (boardId) => {
-            router.get(`/kanban/${boardId}/edit`);
-        };
-
-        const viewBoard = (board) => {
-            router.get(`/kanban/${board.id}`);
-        };
-
-
-        const deleteBoard = (boardId) => {
-            router.delete(`/kanban/${boardId}`, {
-                onSuccess: () => {
-                    boards.value = boards.value.filter(board => board.id !== boardId);
-                }
-            });
-        };
-
-        const selectBoard = (board) => {
-            selectedBoard.value = board;
-            loading.value = true;
-
-            router.get(`/kanban/${board.id}`, {
-                onSuccess: (response) => {
-                    columns.value = response.props.board.columns.map(column => {
-                        return { 
-                            ...column, 
-                            tasks: column.tasks || []
-                        };
-                    });
-                    loading.value = false;
-                },
-                onError: () => {
-                    loading.value = false;
-                }
-            });
-        };
-
-        const goBack = () => {
-            selectedBoard.value = null;
-        };
-
-        return { boards, createBoard, editBoard, deleteBoard, selectBoard, goBack, selectedBoard, columns, loading };
-    },
-};
-</script>
 
 <style scoped>
 .kanban-container {
