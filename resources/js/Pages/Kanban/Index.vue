@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import {router, usePage} from '@inertiajs/vue3';
+import {router} from '@inertiajs/vue3';
 import {ref, onMounted} from 'vue';
+import {Board, BoardColumn, PageProps} from "@/types";
 
-const page = usePage();
+
 const loading = ref(true);
-const boards = ref([]);
-const selectedBoard = ref(null);
-const columns = ref([]);
+const currenetBoards = ref<Board[]>([]);
+const selectedBoard = ref<Board>();
+const columns = ref<BoardColumn[]>([]);
+
+
+const {boards} = defineProps<{
+    boards: Board[];
+    board: Board;
+}>()
 
 onMounted(() => {
-    if (page.props.boards) {
-        boards.value = page.props.boards;
+    if (boards) {
+        currenetBoards.value = boards;
     }
     loading.value = false;
 });
@@ -19,30 +26,30 @@ const createBoard = () => {
     router.get(route('kanban.create'));
 };
 
-const editBoard = (boardId) => {
+const editBoard = (boardId: number) => {
     router.get(route('kanban.edit', {board: boardId}));
 };
 
-const viewBoard = (board) => {
+const viewBoard = (board: Board) => {
     router.get(route('kanban.show', {board: board.id}));
 };
 
 
-const deleteBoard = (boardId) => {
+const deleteBoard = (boardId: number) => {
     router.delete(route('kanban.destroy', {board: boardId}), {
         onSuccess: () => {
-            boards.value = boards.value.filter(board => board.id !== boardId);
+            currenetBoards.value = currenetBoards.value.filter(board => board.id !== boardId);
         }
     });
 };
 
-const selectBoard = (board) => {
+const selectBoard = (board: Board) => {
     selectedBoard.value = board;
     loading.value = true;
 
-    router.get(route('kanban.show', {board: board.id}), {
-        onSuccess: (response) => {
-            columns.value = response.props.board.columns.map(column => {
+    router.get(route('kanban.show', {board: board.id}), {}, {
+        onSuccess: (page) => {
+            columns.value = board.columns.map(column => {
                 return {
                     ...column,
                     tasks: column.tasks || []
@@ -57,7 +64,7 @@ const selectBoard = (board) => {
 };
 
 const goBack = () => {
-    selectedBoard.value = null;
+    selectedBoard.value = undefined;
 };
 </script>
 
@@ -67,7 +74,7 @@ const goBack = () => {
 
         <div v-if="loading">Loading...</div>
 
-        <div v-else-if="!selectedBoard">
+        <template v-else-if="!selectedBoard">
             <div v-for="board in boards" :key="board.id" class="board-item">
                 <button @click="selectBoard(board)"  class="board-link">{{ board.name }}</button>
                 <button @click="editBoard(board.id)" class="edit-btn">Edit</button>
@@ -76,9 +83,9 @@ const goBack = () => {
 
             <p v-if="boards.length === 0">No boards available. Click the "+" button to create a new board!</p>
             <button @click="createBoard" class="add-board-btn">+</button>
-        </div>
+        </template>
 
-        <div v-else>
+        <template v-else>
             <h2>{{ selectedBoard.name }}</h2>
             <button @click="goBack" class="back-btn">Back to Boards</button>
 
@@ -93,7 +100,7 @@ const goBack = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </template>
     </div>
 </template>
 

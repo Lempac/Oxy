@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import {router} from '@inertiajs/vue3';
 import {ref} from 'vue';
+import {Board} from "@/types";
 
-defineProps<{
-    board: Object
+const {board} = defineProps<{
+    board: Board
 }>();
 
-const boardName = ref(props.board.name);
-const boardBio = ref(props.board.bio || "");
+const boardName = ref(board.name);
+const boardBio = ref(board.bio || "");
 
 const handleEditBoard = () => {
-    router.put(route('kanban.show', {board: props.board.id}), {name: boardName.value, bio: boardBio.value}, {
+    router.put(route('kanban.show', {board: board.id}), {name: boardName.value, bio: boardBio.value}, {
         onSuccess: () => {
             router.get(route('kanban.index'));
         }

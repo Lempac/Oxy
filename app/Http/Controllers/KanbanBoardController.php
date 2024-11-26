@@ -78,7 +78,7 @@ class KanbanBoardController extends Controller
     {
         $board->load('columns.tasks');
 
-        return Inertia::render('Kanban/BoardDetail', [
+        return Inertia::render('Kanban/KanbanBoard', [
             'board' => $board,
         ]);
     }

@@ -13,7 +13,7 @@ const tasks = ref([
     {id: 3, title: 'Task 3', description: 'Description 3', column: 'done'},
 ]);
 
-const getTasksForColumn = (columnId) => {
+const getTasksForColumn = (columnId: string) => {
     return tasks.value.filter(task => task.column === columnId);
 };
 </script>
