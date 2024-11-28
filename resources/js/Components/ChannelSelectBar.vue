@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { addIcons } from "oh-vue-icons";
 import { BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill, BiDoorOpen } from "oh-vue-icons/icons";
-import { Link, usePage } from "@inertiajs/vue3";
+import {Link, router, usePage} from "@inertiajs/vue3";
 import { ref } from "vue";
 import { Perms, PermType, Role, Server } from "@/types";
 import { bigIntToPerms } from "@/bootstrap";
@@ -28,12 +28,10 @@ function leaveServer() {
         return;
     }
 
-    const serverId = selected_server.id;
-
     axios.delete(
-        route('server.leave', { id : serverId }
-    )).then(()=>{   
-        window.location.reload(); 
+        route('server.leave', { id : selected_server.id }
+    )).then(()=>{
+        router.reload();
     });
 }
 
@@ -43,14 +41,14 @@ function leaveServer() {
     <div v-if="selected_server?.id">
         <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
         <!-- Leave server -->
-        <ConfirmDialog 
+        <ConfirmDialog
         id="leave-server"
         title="Delete server"
         description="Are you sure you want to delete this server?"
         :confirm="leaveServer"
         class-name="left-2 mt-3 absolute btn btn-ghost hover:bg-red-500"
                 ><div class="tooltip tooltip-right" data-tip="Leave server"> <v-icon name="bi-door-open" scale="1.1" /> </div>
-                </ConfirmDialog> 
+                </ConfirmDialog>
 
             <Link :href="route('home.text', { server: selected_server?.id })">
                 <button class="flex flex-col items-center justify-center gap-1 p-2 relative"

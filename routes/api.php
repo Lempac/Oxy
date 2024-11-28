@@ -25,6 +25,7 @@ Route::middleware(['web'])->group(function () {
         Route::patch('/{server}', 'edit')->name('.edit');
         Route::delete('/{server}/remove-user', 'removeUser')->name('.removeUser');
         Route::delete('/', 'delete')->name('.delete');
+        Route::delete('/{id}/leave', [ServerController::class, 'leave'])->name('.leave');
     });
 
     Route::controller(MessageController::class)->prefix('message')->name('message')->group(function () {
