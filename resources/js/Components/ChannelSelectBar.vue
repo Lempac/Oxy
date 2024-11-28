@@ -1,22 +1,40 @@
 <script setup lang="ts">
 import { addIcons } from "oh-vue-icons";
-import { BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill } from "oh-vue-icons/icons";
+import { BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill, BiDoorOpen } from "oh-vue-icons/icons";
 import { Link, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
-import {Perms, PermType, Role, Server} from "@/types";
-import {bigIntToPerms} from "@/bootstrap";
+import { Perms, PermType, Role, Server } from "@/types";
+import { bigIntToPerms } from "@/bootstrap";
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import axios from "axios";
 
-addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill);
+
+addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill, BiDoorOpen);
 
 const serverSettingsModal = ref<HTMLDialogElement>();
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
-const {selected_server} = defineProps<{
-    selected_server?: Server,
+const { selected_server } = defineProps<{
+  selected_server?: Server,
 }>();
 
 if (selected_server && selected_server.roles !== null){
     perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+}
+
+function leaveServer() {
+    if (!selected_server) {
+        console.error('No server selected to leave.');
+        return;
+    }
+
+    const serverId = selected_server.id;
+
+    axios.delete(
+        route('server.leave', { id : serverId }
+    )).then(()=>{   
+        window.location.reload(); 
+    });
 }
 
 </script>
@@ -24,6 +42,16 @@ if (selected_server && selected_server.roles !== null){
 <template>
     <div v-if="selected_server?.id">
         <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
+        <!-- Leave server -->
+        <ConfirmDialog 
+        id="leave-server"
+        title="Delete server"
+        description="Are you sure you want to delete this server?"
+        :confirm="leaveServer"
+        class-name="left-2 mt-3 absolute btn btn-ghost hover:bg-red-500"
+                ><div class="tooltip tooltip-right" data-tip="Leave server"> <v-icon name="bi-door-open" scale="1.1" /> </div>
+                </ConfirmDialog> 
+
             <Link :href="route('home.text', { server: selected_server?.id })">
                 <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
                     :class="{ 'border-b-2 border-black text-black dark:border-white dark:text-white': $page.url.includes('/text') }"

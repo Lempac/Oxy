@@ -23,6 +23,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
     });
 
+    Route::delete('/{id}/leave', [ServerController::class, 'leave'])->name('server.leave');
+
     //Setting routes
     Route::prefix('settings')->group(function () {
         Route::controller(ServerController::class)->prefix('server')->group(function () {

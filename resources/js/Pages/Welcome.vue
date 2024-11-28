@@ -21,7 +21,7 @@ const form = useForm({
 
 // Countdown state
 const countdown = ref('');
-const targetDate = new Date('2024-11-22T08:30:00');
+const targetDate = new Date('2024-12-02T08:30:00');
 let countdownInterval: number | undefined; // Store the interval ID as a number
 
 const calculateTimeLeft = () => {
@@ -116,7 +116,7 @@ const submitRegister = () => {
                 <div class="text-left flex my-4 mb-10 mt-10 mr-8">
                     <div class="card shadow-lg bg-gray-500 text-white">
                         <div class="card-body p-2">
-                            <h2 class="text-2xl font-bold">Countdown to next phase</h2>
+                            <h2 class="text-2xl font-bold">Heat death of the universe</h2>
                             <p class="text-xl">{{ countdown }}</p>
                         </div>
                     </div>
