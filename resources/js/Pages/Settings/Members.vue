@@ -98,7 +98,7 @@ if (selected_server && selected_server.roles !== null){
                                 </ul>
                             </div>
                         </td>
-                        <td class="py-2 px-4 text-end">
+                        <td class="py-2 px-4 text-end" v-if="user.id !== usePage().props.user?.id">
                             <ConfirmDialog title="Are you sure?" description="Are you sure you want to kick this member?" :class-name="`btn btn-error ${!perms.has(PermType.CAN_KICK) ? 'btn-disabled' : ''}`" :confirm="() => kickMember(user.id)">
                                 <v-icon name="gi-boot-kick"/>
                             </ConfirmDialog>

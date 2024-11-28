@@ -6,10 +6,10 @@ import {Perms, PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
 import {addIcons} from "oh-vue-icons";
-import {BiCheckLg} from "oh-vue-icons/icons";
+import {BiCheckLg, CoArrowBottom, CoArrowTop} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
-addIcons(BiCheckLg);
+addIcons(BiCheckLg, CoArrowBottom, CoArrowTop);
 
 const {selected_server} = defineProps<{
     selected_server: Server,
@@ -72,14 +72,22 @@ const updateRole = async () => {
 
 const addRole = async () => {
     try {
-        await axios.post(route('roles.create', {server: selected_server?.id}), {
+        newRole.value.importance = 1;
+
+        if (roles.value.length > 0) {
+            const maxImportance = Math.max(...roles.value.map(role => role.importance));
+            newRole.value.importance = maxImportance + 1;
+        }
+
+        await axios.post(route('roles.create', { server: selected_server?.id }), {
             name: newRole.value.name,
             color: newRole.value.color,
             perms: newRole.value.perms,
             importance: newRole.value.importance,
         });
+
         closeModal();
-        await fetchRoles(); // Refresh the roles list after adding
+        await fetchRoles(); 
     } catch (error) {
         console.error('Error adding role:', error);
     }
@@ -87,13 +95,24 @@ const addRole = async () => {
 
 const deleteRole = async (role: Role) => {
     try {
-        await axios.delete(route('roles.delete', {role: role.id}));
-        // Remove the role from the local state after deletion
+        await axios.delete(route('roles.delete', { role: role.id }));
+
         roles.value = roles.value.filter(r => r.id !== role.id);
+
+        roles.value.forEach(r => {
+            if (r.importance > role.importance) {
+                r.importance -= 1;
+                axios.patch(route('roles.edit', { role: r.id }), { importance: r.importance });
+            }
+        });
+
+        roles.value.sort((a, b) => a.importance - b.importance);
+
     } catch (error) {
         console.error('Error deleting role:', error);
     }
 };
+
 
 // Fetch roles when component mounts
 fetchRoles();
@@ -106,6 +125,32 @@ const togglePerm = (perm: PermType, state: boolean) => {
 };
 
 let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'number') as [string, number][];
+
+const changeImportance = async (role: Role, direction: number) => {
+    const currentImportance = role.importance;
+    const newImportance = currentImportance + direction;
+
+    if (newImportance < 1 || newImportance >= roles.value.length) return;
+
+    let swapRole: Role | undefined;
+    if (direction === 1) { 
+        swapRole = roles.value.find(r => r.importance === currentImportance + 1);
+    } else if (direction === -1) {
+        swapRole = roles.value.find(r => r.importance === currentImportance - 1);
+    }
+
+    if (swapRole) {
+        const tempImportance = role.importance;
+        role.importance = swapRole.importance;
+        swapRole.importance = tempImportance;
+
+        await axios.patch(route('roles.edit', { role: role.id }), { importance: role.importance });
+        await axios.patch(route('roles.edit', { role: swapRole.id }), { importance: swapRole.importance });
+    }
+
+    roles.value.sort((a, b) => a.importance - b.importance);
+};
+
 
 </script>
 
@@ -148,10 +193,12 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                         <td v-if="editingRole === role" class="py-2 px-4">
                             <input v-model="newRole.color" type="color" class="ml-2 bg-transparent"/>
                         </td>
-                        <td class="py-2 px-4 text-black">
+                        <td class="py-2 px-4 text-white">
                             <span v-if="editingRole !== role">{{ role.importance }}</span>
-                            <input v-if="editingRole === role" v-model="newRole.importance" type="number" min="0"
-                                   max="100" class="p-1 text-black"/>
+                            <div  v-if="editingRole === role && role.importance !== 0" class="flex justify-center space-x-2">
+                                <button @click="changeImportance(role, -1)" class="btn"><v-icon name="co-arrow-top"></v-icon></button>
+                                <button @click="changeImportance(role, 1)" class="btn"><v-icon name="co-arrow-bottom"></v-icon></button>
+                            </div>
                         </td>
                         <td class="py-2 px-4 text-black">
                             <div class="dropdown">
@@ -225,21 +272,10 @@ let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'numb
                                 class="hidden"
                             />
                         </div>
-                        <div class="form-control">
-                            <label class="label" for="newRoleImportance">Importance</label>
-                            <input
-                                id="newRoleImportance"
-                                type="number"
-                                v-model="newRole.importance"
-                                min="0"
-                                max="100"
-                                required
-                                class="input input-bordered grow"
-                            />
-                        </div>
+                        <!-- Removed Importance Field from the Modal Form -->
                         <div class="modal-action">
                             <button @click="addRole" class="btn btn-success">Add Role</button>
-                            <button @click="closeModal" class="btn btn-error">Cancel</button>
+                            <button @click="closeModal" class="btn">Cancel</button>
                         </div>
                     </div>
                 </dialog>
