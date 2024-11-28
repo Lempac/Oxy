@@ -62,7 +62,6 @@ function leaveServer() {
                     <span class="text-sm">Text Channels</span>
                 </button>
             </Link>
-
             <!-- Server settings -->
             <Link v-if="perms.hasAny(PermType.CAN_MANAGE_SERVER | PermType.CAN_MANAGE_ROLE | PermType.CAN_MANAGE_MEMBERS)" :href="route('settings.server', { id: selected_server?.id })" class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
                 <button @click="serverSettingsModal?.show()" class="flex items-center justify-center h-10 w-auto my-auto">
@@ -81,13 +80,15 @@ function leaveServer() {
                 </button>
             </Link>
 
-            <button class="flex flex-col items-center justify-center gap-1 p-2 relative text-gray-600"
-                :class="{ 'border-b-2 border-white text-white': $page.url.includes('/board') }">
-                <svg class="h-5 w-5">
-                    <v-icon name="md-viewkanban-outlined" />
-                </svg>
-                <span class="text-sm">Kanban Board</span>
-            </button>
+            <Link :href="route('kanban.index')">
+              <button class="flex flex-col items-center justify-center gap-1 p-2 relative"
+                  :class="{'border-b-2 border-white text-white': $page.url.includes('/kanban') }">
+                  <svg class="h-5 w-5">
+                      <v-icon name="md-viewkanban-outlined"/>
+                  </svg>
+                  <span class="text-sm">Kanban Board</span>
+              </button>
+            </Link>
         </div>
     </div>
 </template>

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\KanbanBoardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,6 +42,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
         Route::post('/', 'update')->name('profile.update');
         Route::delete('/', 'destroy')->name('profile.destroy');
+    });
+
+    Route::controller(KanbanBoardController::class)->prefix('kanban')->group(function () {
+        Route::get('/', 'index')->name('kanban.index');
+        Route::get('/create', 'create')->name('kanban.create');
+        Route::post('/', 'store')->name('kanban.store');
+        Route::get('/{board}', 'show')->name('kanban.show');
+        Route::get('/{board}/edit', 'edit')->name('kanban.edit');
+        Route::put('/{board}', 'update')->name('kanban.update');
+        Route::delete('/{board}', 'destroy')->name('kanban.destroy');
     });
 });
 
