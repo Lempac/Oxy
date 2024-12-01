@@ -16,9 +16,7 @@ class ChannelCreated implements ShouldBroadcast
     /**
      * Create a new event instance.
      */
-    public function __construct(
-        public ModelChannel $channel
-    ) {}
+    public function __construct(public ModelChannel $channel) {}
 
     public function broadcastOn(): PrivateChannel
     {
