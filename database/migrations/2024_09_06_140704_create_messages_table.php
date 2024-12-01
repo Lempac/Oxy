@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('channel_id');
 
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('users');
             $table->foreign('channel_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('channels');
         });
     }
