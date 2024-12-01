@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\ChannelType;
 use App\Enums\PermsType;
+use App\Events\Voices\Status;
 use App\Models\Channel;
 use App\Models\Role;
 use App\Models\Server;
@@ -14,10 +15,7 @@ class ChannelController
 {
     public function create(Request $request, int $serverId)
     {
-        $request->validate([
-            'name' => 'required|string|max:50',
-            'type' => 'required|in:'.implode(',', array_column(ChannelType::cases(), 'value')),
-        ]);
+        $request->validate(['name' => 'required|string|max:50', 'type' => 'required|in:'.implode(',', array_column(ChannelType::cases(), 'value'))]);
 
         $server = Server::find($serverId);
 
@@ -33,11 +31,7 @@ class ChannelController
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        Channel::create([
-            'name' => $request->get('name'),
-            'type' => $request->get('type'),
-            'server_id' => $serverId,
-        ]);
+        Channel::create(['name' => $request->get('name'), 'type' => $request->get('type'), 'server_id' => $serverId]);
 
         //        broadcast(new ChannelCreated($serverId));
 
@@ -46,9 +40,7 @@ class ChannelController
 
     public function edit(Request $request, int $channelId)
     {
-        $request->validate([
-            'name' => 'required|string|max:50',
-        ]);
+        $request->validate(['name' => 'required|string|max:50']);
 
         $channel = Channel::find($channelId);
 
@@ -92,5 +84,21 @@ class ChannelController
         //        broadcast(new ChannelDeleted($channelId));
 
         return response()->json(['message' => 'Channel deleted successfully.']);
+    }
+
+    public function upload(Request $request, int $channelId)
+    {
+        $request->validate(['audio' => 'required|file']);
+
+        $channel = Channel::find($channelId);
+        if (! $channel) {
+            return response()->json(['message' => 'Channel not found.'], 404);
+        }
+
+        $audioData = file_get_contents($request->file('audio')->getRealPath());
+
+        broadcast(new Status($channel, $audioData));
+
+        return response()->json(['message' => 'Audio data sent successfully']);
     }
 }

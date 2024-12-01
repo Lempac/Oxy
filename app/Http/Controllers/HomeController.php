@@ -52,11 +52,11 @@ class HomeController extends Controller
         $serverObj = Server::find($server);
 
         return Inertia::render('Text/Texting', [
-            'selected_server' => $serverObj,
-            'selected_channel' => Channel::find($channel),
             'servers' => $request->user()->servers,
+            'selected_server' => $serverObj,
             'selected_server.users' => $serverObj->users,
             'selected_server.roles' => $serverObj->roles,
+            'selected_channel' => Channel::find($channel),
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
@@ -70,10 +70,10 @@ class HomeController extends Controller
         $serverObj = Server::find($server);
 
         return Inertia::render('Text/Texting', [
+            'servers' => $request->user()->servers,
             'selected_server' => $serverObj,
             'selected_channel' => Channel::find($channel),
             'selected_message' => Message::find($message),
-            'servers' => $request->user()->servers,
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
@@ -82,7 +82,7 @@ class HomeController extends Controller
         ]);
     }
 
-    public function voice(Request $request, int $server)
+    public function voice(Request $request, int $server): Response
     {
         $serverObj = Server::find($server);
 
@@ -101,15 +101,12 @@ class HomeController extends Controller
         $serverObj = Server::find($server);
 
         return Inertia::render('Voice/Speaking', [
-            'selected_server' => $serverObj,
-            'selected_channel' => Channel::find($channel),
             'servers' => $request->user()->servers,
+            'selected_server' => $serverObj,
             'selected_server.users' => $serverObj->users,
             'selected_server.roles' => $serverObj->roles,
+            'selected_channel' => Channel::find($channel),
             'channels' => $serverObj->channels()->where('type', ChannelType::Voice)->get(),
-            'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
-                $message['sender'] = fn (): User => $message->user;
-            }),
             'invite_code' => $server.'#'.hash('xxh32', $server),
         ]);
     }
