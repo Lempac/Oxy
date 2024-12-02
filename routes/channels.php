@@ -23,3 +23,7 @@ Broadcast::channel('servers.{serverId}', function (User $user, int $serverId): b
 Broadcast::channel('roles.{serverId}', function (User $user, int $serverId): bool {
     return $user->servers->contains($serverId);
 });
+
+Broadcast::channel('voices.{channelId}', function (User $user, int $channelId): ?array {
+    return Channel::find($channelId)->server->users->contains($user) ? ['user' => $user] : null;
+});

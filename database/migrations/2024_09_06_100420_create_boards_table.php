@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamps();
             $table->unsignedBigInteger('server_id');
 
-            $table->foreign('server_id')->references('id')->on('servers');
+            $table->foreign('server_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('servers');
         });
     }
 

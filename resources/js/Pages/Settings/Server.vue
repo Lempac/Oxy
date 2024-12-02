@@ -132,8 +132,8 @@ if (selected_server && selected_server.roles !== null){
                     </div>
                 </div>
                 <ConfirmDialog
-                    title="Delete Message"
-                    description="Are you sure you want to delete this message?"
+                    title="Delete server"
+                    description="Are you sure you want to delete this server?"
                     :confirm="deleteServer"
                     text="Delete Server"
                     :class-name="`btn hover:btn-error mt-10 ${!perms.has(PermType.CAN_DELETE_SERVER) ? 'btn-disabled' : ''}`"

@@ -25,6 +25,7 @@ Route::middleware(['web'])->group(function () {
         Route::patch('/{server}', 'edit')->name('.edit');
         Route::delete('/{server}/remove-user', 'removeUser')->name('.removeUser');
         Route::delete('/', 'delete')->name('.delete');
+        Route::delete('/{id}/leave', [ServerController::class, 'leave'])->name('.leave');
     });
 
     Route::controller(MessageController::class)->prefix('message')->name('message')->group(function () {
@@ -37,6 +38,7 @@ Route::middleware(['web'])->group(function () {
         Route::post('/{server}', 'create')->name('.create');
         Route::patch('/{channel}', 'edit')->name('.edit');
         Route::delete('/{channel}', 'delete')->name('.delete');
+        Route::post('/{channel}', 'upload')->name('.upload');
     });
 
     Route::controller(RoleController::class)->prefix('roles')->name('roles')->group(function () {
