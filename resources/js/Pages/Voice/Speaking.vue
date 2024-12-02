@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import {router, useForm, usePage} from "@inertiajs/vue3";
+import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {ref} from "vue";
@@ -28,7 +28,7 @@ const form = useForm({
     name: ''
 });
 
-const openModal = (channel?: Channel) => {
+const openModal = (channel?: Channel) => {1
     if (channel) {
         isEditing.value = true;
         form.name = channel?.name || '';
@@ -64,17 +64,49 @@ if (selected_server && selected_server.roles !== null){
     perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 
+let isInVoice = ref(false);
+let mediaRecorder: MediaRecorder | undefined;
+const chunks: Blob[] = [];
+
+const joinChannel = async () => {
+    isInVoice.value = true;
+    if (isInVoice.value) {
+        try {
+            const stream: MediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.start(100);
+            console.log("Recording started");
+
+            mediaRecorder.ondataavailable = (event: BlobEvent) => {
+                chunks.push(event.data);
+                console.log(chunks)
+            };
+
+        } catch (error) {
+            console.error("Error accessing microphone:", error);
+        }
+    }
+};
+
+const leaveChannel = async () => {
+    isInVoice.value = false;
+    if (!isInVoice.value) {
+        mediaRecorder?.stop();
+        console.log("Recording stopped");
+        console.log(chunks)
+    }
+}
+
 </script>
 
 <template>
     <AuthenticatedLayout :selected_server :servers :invite_code>
         <div class="mt-3 pb-20">
-            <div class="flex items-center justify-center mx-auto text-5xl my-5">IN DEVELOPMENT!!!</div>
             <div class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7"
                  v-for="channel in channels" :key="channel.id">
                 <span class="indicator-item indicator-top absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)">
-                    <ConfirmDialog
-                        title="Delete Channel"
+                    <ConfirmDialog title="Delete Channel"
                         :description="`Are you sure you want to delete ${channel.name} channel?`"
                         class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
                         :confirm="() => deleteText(channel.id)"
@@ -85,7 +117,8 @@ if (selected_server && selected_server.roles !== null){
 
                 <span class="indicator-item indicator-top indicator-start absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)">
                     <button @click.prevent="openModal(channel)"
-                            class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+                            class="indicator-item badge badge-warning h-auto w-auto p-0.5"
+                    >
                         <v-icon name="md-modeeditoutline-outlined"/>
                     </button>
                 </span>
@@ -97,7 +130,8 @@ if (selected_server && selected_server.roles !== null){
 
                     <div class="grid grid-cols-3 gap-1 p-3">
                         <div v-for="user in selected_server?.users" :key="user.id"
-                             class="avatar rounded-lg dark:bg-gray-700 items-center justify-center h-16 bg-gray-100 dark:bg-gray-700">
+                             class="avatar rounded-lg items-center justify-center h-16 bg-gray-100 dark:bg-gray-700"
+                        >
                             <div class="flex w-10 h-auto rounded-full ml-5">
                                 <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon"/>
                             </div>
@@ -108,7 +142,14 @@ if (selected_server && selected_server.roles !== null){
                     </div>
 
                     <div class="flex justify-end">
-                        <button class="btn btn-success btn-wide mr-3 mb-3">Join</button>
+<!--                        <Link :href="route('home.voice.channel', {server : selected_server?.id, channel : channel.id})">-->
+                            <button v-if="!isInVoice" @click="joinChannel" class="btn btn-success btn-wide mr-3 mb-3">
+                                Join
+                            </button>
+                            <button v-else @click="leaveChannel" class="btn btn-error btn-wide mr-3 mb-3">
+                                Leave
+                            </button>
+<!--                        </Link>-->
                     </div>
                 </div>
             </div>
