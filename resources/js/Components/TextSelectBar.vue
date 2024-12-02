@@ -104,8 +104,8 @@ if(selected_server){
 </script>
 
 <template>
-    <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly">
-        <div class="indicator relative group" v-for="channel in channels" :key="channel.id">
+    <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
+        <div class="indicator relative group m-2" v-for="channel in channels" :key="channel.id">
             <div class="indicator-item indicator-top absolute hidden group-hover:block"
                  v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)">
                 <ConfirmDialog
