@@ -28,7 +28,7 @@ const form = useForm({
     name: ''
 });
 
-const openModal = (channel?: Channel) => {1
+const openModal = (channel?: Channel) => {
     if (channel) {
         isEditing.value = true;
         form.name = channel?.name || '';
