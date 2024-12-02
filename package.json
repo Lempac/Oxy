@@ -23,6 +23,7 @@
         "vue-tsc": "^2.1.10"
     },
     "dependencies": {
+        "bad-words": "^4.0.0",
         "oh-vue-icons": "^1.0.0-rc3"
     }
 }

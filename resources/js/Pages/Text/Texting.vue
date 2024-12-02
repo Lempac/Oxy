@@ -16,6 +16,10 @@ import {
 } from "oh-vue-icons/icons";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
+import { Filter } from 'bad-words';
+
+const filter = new Filter({ placeHolder: '#' })
+filter.addWords()
 
 addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
 
@@ -186,7 +190,7 @@ if (selected_server && selected_server.roles !== null) {
                         <div class="indicator">
                             <div class="chat-bubble group max-w-full bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
                                 <div v-if="MessageType.Text === message.type" class="text-wrap break-all max-w-[40vw]">
-                                    {{ message.mdata }}
+                                    {{ filter.clean(message.mdata) }}
                                 </div>
                                 <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img" class="max-w-[40vw] h-auto"/>
                                 <div v-if="MessageType.File === message.type">
