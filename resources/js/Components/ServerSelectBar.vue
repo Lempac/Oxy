@@ -69,7 +69,7 @@ const updateIcon = (val: File) => {
                 <ApplicationLogo class="block h-auto w-auto fill-current ml-5"/>
             </Link>
         </div>
-        <div class="navbar-center">
+        <div class="navbar-center w-3/5 overflow-x-auto overflow-y-hidden whitespace-nowrap flex justify-center items-center">
             <div v-for="server in servers" :key="server.id">
                 <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
                     <Link :href="route('home.server', { id: server.id})">
@@ -84,7 +84,8 @@ const updateIcon = (val: File) => {
                     </Link>
                 </div>
             </div>
-            <button v-if="isHomePage" class="ml-3 btn btn-circle" @click="serverModal?.showModal">
+
+            <button v-if="isHomePage" class="btn btn-circle ml-2 mb-1" @click="serverModal?.showModal">
                 <v-icon name="oi-plus" scale="1.5"/>
             </button>
         </div>
