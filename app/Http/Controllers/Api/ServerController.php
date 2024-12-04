@@ -242,4 +242,17 @@ class ServerController extends Controller
 
         return response()->json(['message' => 'Server deleted successfully.']);
     }
+
+    public function leave(int $serverId)
+    {
+        $server = Server::find($serverId);
+
+        if (! $server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        $server->users()->detach(Auth::id());
+
+        return response()->json(['message' => 'You have left the server.'], 200);
+    }
 }
