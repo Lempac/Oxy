@@ -49,7 +49,7 @@ class MessageController
                 [$width, $height] = getimagesize($file->getRealPath());
 
                 if ($width > 1920 || $height > 1080) {
-                    return response()->json(['errors' => ['icon' => ['The image must not exceed 1920x1080 pixels.'],],'message' => 'The image must not exceed 1920x1080 pixels.'], 422);
+                    return response()->json(['errors' => ['icon' => ['The image must not exceed 1920x1080 pixels.']], 'message' => 'The image must not exceed 1920x1080 pixels.'], 422);
                 }
             }
 
