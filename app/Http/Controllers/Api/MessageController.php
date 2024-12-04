@@ -109,7 +109,7 @@ class MessageController
 
         $roles = $message->channel->server->roles->intersect(Auth::user()->roles);
 
-        if ($roles->doesntContain(function (Role $role) {
+        if ($message->user->id !== Auth::id() && $roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_DELETE_MESSAGE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
