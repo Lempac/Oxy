@@ -30,6 +30,13 @@ class ServerController extends Controller
         ]);
 
         if ($request->file('icon')?->isValid()) {
+            
+            list($width, $height) = getimagesize($request->file('icon')->getRealPath());
+
+            if ($width > 1920 || $height > 1080) {
+                return response()->json(['error' => 'The image must not exceed 1920x1080 pixels.'], 422);
+            }
+
             $path = $request->file('icon')->store('uploads', 'public');
         }
 
@@ -238,18 +245,5 @@ class ServerController extends Controller
         $server->delete();
 
         return response()->json(['message' => 'Server deleted successfully.']);
-    }
-
-    public function leave(int $serverId)
-    {
-        $server = Server::find($serverId);
-
-        if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
-
-        $server->users()->detach(Auth::id());
-
-        return response()->json(['message' => 'You have left the server.'], 200);
     }
 }
