@@ -43,6 +43,16 @@ class MessageController
 
         if ($request->type !== MessageType::Text->value && $request->file('mdata')?->isValid()) {
             $file = $request->file('mdata');
+
+            if (in_array($file->getClientOriginalExtension(), ['jpeg', 'png', 'jpg', 'gif', 'webp'])) {
+
+                list($width, $height) = getimagesize($file->getRealPath());
+
+                if ($width > 1920 || $height > 1080) {
+                    return response()->json(['error' => 'The image must not exceed 1920x1080 pixels.'], 422);
+                }
+            }
+
             $name = $file->getClientOriginalName();
             $path = $file->store('uploads', 'public');
         }
