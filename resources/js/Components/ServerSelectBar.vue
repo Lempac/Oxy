@@ -132,7 +132,7 @@ const updateIcon = (val: File) => {
                             'tab-active border-b-2 border-blue-500': activeTab === 'create',
                             'tab-bordered': activeTab !== 'create'
                         }"
-                    class="tab px-3 py-2 mr-9 text-lg">Create Server
+                    class="tab px-3 py-1 mr-9 text-lg">Create Server
                 </button>
                 <button
                     @click="activeTab = 'join'"
@@ -140,7 +140,7 @@ const updateIcon = (val: File) => {
                             'tab-active border-b-2 border-blue-500': activeTab === 'join',
                             'tab-bordered': activeTab !== 'join'
                         }"
-                    class="tab px-3 py-2 ml-9 text-lg">Join Server
+                    class="tab px-3 py-1 ml-9 text-lg">Join Server
                 </button>
             </div>
 
