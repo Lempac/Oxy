@@ -16,6 +16,10 @@ import {
 } from "oh-vue-icons/icons";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
+import { Filter } from 'bad-words';
+
+const filter = new Filter({ placeHolder: '#' })
+filter.addWords()
 
 addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
 
@@ -165,18 +169,17 @@ if (selected_server && selected_server.roles !== null) {
 <template>
     <AuthenticatedLayout :selected_server :invite_code :servers>
         <TextSelectBar :selected_server :selected_channel :channels/>
-        <div
-            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-white dark:bg-gray-800 m-5 rounded-lg mx-auto mt-3 flex flex-col"
-            v-if="$page.url.match(/\/text\/\d+/)">
+        <div v-if="$page.url.match(/\/text\/\d+/)"
+             class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-white dark:bg-gray-800 m-5 rounded-lg mx-auto mt-3 flex flex-col"
+        >
             <div class="overflow-y-auto flex-grow p-3 mx-5 mt-5" ref="messageContainer">
                 <div v-if="messages && messages.length > 0">
                     <div v-for="message in messages" :key="message.id"
-                         :class="{'chat chat-start': message.user_id !== $page.props.user?.id, 'chat chat-end': message.user_id === $page.props.user?.id}">
+                         :class="{'chat chat-start': message.user_id !== $page.props.user?.id, 'chat chat-end': message.user_id === $page.props.user?.id}"
+                    >
                         <div class="chat-image avatar">
                             <div class="w-10 rounded-full">
-                                <img :src="message.sender.icon ? baseUrl + message.sender.icon : defaultIcon"
-                                     alt="User Avatar"
-                                />
+                                <img :src="message.sender.icon ? baseUrl + message.sender.icon : defaultIcon" alt="User Avatar" />
                             </div>
                         </div>
                         <div class="chat-header">
@@ -185,13 +188,11 @@ if (selected_server && selected_server.roles !== null) {
                         </div>
 
                         <div class="indicator">
-                            <div
-                                class="chat-bubble group max-w-full bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
+                            <div class="chat-bubble group max-w-full bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
                                 <div v-if="MessageType.Text === message.type" class="text-wrap break-all max-w-[40vw]">
-                                    {{ message.mdata }}
+                                    {{ filter.clean(message.mdata) }}
                                 </div>
-                                <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img"
-                                     class="max-w-[40vw] h-auto"/>
+                                <img v-if="MessageType.Image === message.type" :src="message.mdata" alt="img" class="max-w-[40vw] h-auto"/>
                                 <div v-if="MessageType.File === message.type">
                                     <v-icon name="fa-regular-file"/>
                                     <a :href="baseUrl + message.mdata.split('|*|')[1]" download>
@@ -212,6 +213,7 @@ if (selected_server && selected_server.roles !== null) {
                                         <v-icon name="md-deleteforever-outlined"/>
                                     </ConfirmDialog>
                                 </div>
+
                                 <div
                                     v-if="message.user_id === $page.props.user?.id && MessageType.Text === message.type"
                                     class="indicator-item indicator-bottom absolute hidden group-hover:block"
@@ -252,7 +254,8 @@ if (selected_server && selected_server.roles !== null) {
                            :class="`input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5 ${hasError ? 'input-error' : ''}`"
                     />
                     <button class="btn join-item mr-5 mb-5"
-                            :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)">
+                            :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)"
+                    >
                         <v-icon name="fa-regular-paper-plane"/>
                     </button>
                 </div>

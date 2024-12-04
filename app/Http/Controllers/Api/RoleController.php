@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\PermsType;
-use App\Events\Roles\RoleEdited;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Server;

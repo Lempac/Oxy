@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ChannelController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\PDFExportController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use Illuminate\Http\Request;
@@ -48,5 +49,9 @@ Route::middleware(['web'])->group(function () {
         Route::delete('/{role}', 'delete')->name('.delete');
         Route::post('/{role}/add-user/{user}', 'addUser')->name('.add-user');
         Route::delete('/{role}/remove-user/{user}', 'removeUser')->name('.remove-user');
+    });
+
+    Route::controller(PDFExportController::class)->group(function () {
+        Route::get('/profile/export', 'exportPDF')->name('profile.export');
     });
 });
