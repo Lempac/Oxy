@@ -95,7 +95,6 @@ if (selected_server && selected_server.roles !== null){
                                 <span v-else class="text-4xl text-gray-500">+</span>
                             </div>
                         </label>
-
                         <div class="w-full ml-[15%]">
                             <label for="serverName" class="text-white">Server Name</label>
                             <input
@@ -117,8 +116,8 @@ if (selected_server && selected_server.roles !== null){
                                 placeholder="Enter server description"
                             />
                         </div>
-
                     </div>
+                    <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
                 </div>
 
                 <!-- Other Settings Section -->

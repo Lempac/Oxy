@@ -167,6 +167,7 @@ const updateIcon = (val: File) => {
                                 @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
                             />
                         </div>
+                        <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
                         <div class="form-control mb-4">
                             <label class="label">
                                 <span class="label-text">Server Name</span>
