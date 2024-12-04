@@ -32,7 +32,18 @@ class ProfileController extends Controller
     {
         $val = $request->validated();
         if ($request->file('icon')?->isValid()) {
-            $path = $request->file('icon')->store('uploads', 'public');
+            $file = $request->file('icon');
+
+            if (in_array($file->getClientOriginalExtension(), ['jpeg', 'png', 'jpg', 'gif', 'webp'])) {
+
+                [$width, $height] = getimagesize($file->getRealPath());
+
+                if ($width > 1920 || $height > 1080) {
+                    return redirect()->back()->withErrors(['icon' => 'The image must not exceed 1920x1080 pixels.']);
+                }
+            }
+
+            $path = $file->store('uploads', 'public');
         }
 
         if (! empty($path) && $path != $val['icon']) {

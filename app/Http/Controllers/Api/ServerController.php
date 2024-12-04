@@ -26,6 +26,13 @@ class ServerController extends Controller
         ]);
 
         if ($request->file('icon')?->isValid()) {
+
+            [$width, $height] = getimagesize($request->file('icon')->getRealPath());
+
+            if ($width > 1920 || $height > 1080) {
+                return response()->json(['error' => 'The image must not exceed 1920x1080 pixels.'], 422);
+            }
+
             $path = $request->file('icon')->store('uploads', 'public');
         }
 
