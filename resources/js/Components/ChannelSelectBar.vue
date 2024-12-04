@@ -43,8 +43,8 @@ function leaveServer() {
         <!-- Leave server -->
         <ConfirmDialog
         id="leave-server"
-        title="Delete server"
-        description="Are you sure you want to delete this server?"
+        title="Leave server"
+        description="Are you sure you want to leave this server?"
         :confirm="leaveServer"
         class-name="left-2 mt-3 absolute btn btn-ghost hover:bg-red-500"
                 ><div class="tooltip tooltip-right" data-tip="Leave server"> <v-icon name="bi-door-open" scale="1.1" /> </div>

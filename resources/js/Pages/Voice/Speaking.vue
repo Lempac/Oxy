@@ -166,14 +166,14 @@ const leaveChannel = async () => {
             <form @submit.prevent="isEditing ? editCurrent!() : createText()">
                 <div class="form-control mb-4">
                     <label class="label">
-                        <span class="label-text">Text Channel Name</span>
+                        <span class="label-text">Voice Channel Name</span>
                     </label>
                     <input v-model="form.name" type="text" placeholder="Enter channel name"
                            class="input input-bordered"/>
                 </div>
                 <div class="modal-action">
                     <button type="submit" class="btn btn-primary w-full mt-2">
-                        {{ isEditing ? 'Edit Text Channel' : 'Create Text Channel' }}
+                        {{ isEditing ? 'Edit Voice Channel' : 'Create Voice Channel' }}
                     </button>
                 </div>
             </form>
