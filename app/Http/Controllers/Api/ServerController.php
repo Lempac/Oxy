@@ -14,13 +14,9 @@ use Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Storage;
-use Intervention\Image\Laravel\Facades\Image;
-
-
 
 class ServerController extends Controller
 {
-
     public function create(Request $request)
     {
         $request->validate([
@@ -30,8 +26,8 @@ class ServerController extends Controller
         ]);
 
         if ($request->file('icon')?->isValid()) {
-            
-            list($width, $height) = getimagesize($request->file('icon')->getRealPath());
+
+            [$width, $height] = getimagesize($request->file('icon')->getRealPath());
 
             if ($width > 1920 || $height > 1080) {
                 return response()->json(['error' => 'The image must not exceed 1920x1080 pixels.'], 422);
