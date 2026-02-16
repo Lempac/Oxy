@@ -1,21 +1,21 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import {Link, router, useForm, usePage} from "@inertiajs/vue3";
+import {router, useForm, usePage} from "@inertiajs/vue3";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import axios from "axios";
 import {ref} from "vue";
 import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
+import {MdDeleteforeverOutlined, MdModeeditoutlineOutlined, OiPlus} from "oh-vue-icons/icons";
 
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
-const {selected_server} = defineProps<{
+const {selectedServer} = defineProps<{
     servers: Server[],
-    selected_server?: Server,
+    selectedServer?: Server,
     channels?: Channel[],
-    invite_code?: string,
+    inviteCode?: string,
 }>()
 
 const channelModal = ref<HTMLDialogElement>();
@@ -41,7 +41,7 @@ const openModal = (channel?: Channel) => {
 };
 
 const createText = async () => {
-    axios.postForm(route('channel.create', {server: selected_server?.id}), form.data()).then(() => {
+    axios.postForm(route('channel.create', {server: selectedServer?.id}), form.data()).then(() => {
         channelModal.value?.close();
         router.reload()
     });
@@ -60,11 +60,11 @@ const editText = async (channelId: number) => {
     });
 };
 
-if (selected_server && selected_server.roles !== null){
-    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+if (selectedServer && selectedServer.roles !== null) {
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 
-let isInVoice = ref(false);
+const isInVoice = ref(false);
 let mediaRecorder: MediaRecorder | undefined;
 const chunks: Blob[] = [];
 
@@ -72,7 +72,7 @@ const joinChannel = async () => {
     isInVoice.value = true;
     if (isInVoice.value) {
         try {
-            const stream: MediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream: MediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
             mediaRecorder = new MediaRecorder(stream);
 
             mediaRecorder.start(100);
@@ -101,23 +101,31 @@ const leaveChannel = async () => {
 </script>
 
 <template>
-    <AuthenticatedLayout :selected_server :servers :invite_code>
+    <AuthenticatedLayout :invite-code :selected-server :servers>
         <div class="mt-3 pb-20">
-            <div class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7"
-                 v-for="channel in channels" :key="channel.id">
-                <span class="indicator-item indicator-top absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)">
-                    <ConfirmDialog title="Delete Channel"
+            <div
+                v-for="channel in channels"
+                :key="channel.id"
+                class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7">
+                <span
+                    v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
+                    class="indicator-item indicator-top absolute hidden group-hover:block">
+                    <ConfirmDialog
+                        :confirm="() => deleteText(channel.id)"
                         :description="`Are you sure you want to delete ${channel.name} channel?`"
                         class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
-                        :confirm="() => deleteText(channel.id)"
+                        title="Delete Channel"
                     >
                         <v-icon name="md-deleteforever-outlined"/>
                     </ConfirmDialog>
                 </span>
 
-                <span class="indicator-item indicator-top indicator-start absolute hidden group-hover:block" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)">
-                    <button @click.prevent="openModal(channel)"
-                            class="indicator-item badge badge-warning h-auto w-auto p-0.5"
+                <span
+                    v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)"
+                    class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
+                    <button
+                        class="indicator-item badge badge-warning h-auto w-auto p-0.5"
+                        @click.prevent="openModal(channel)"
                     >
                         <v-icon name="md-modeeditoutline-outlined"/>
                     </button>
@@ -129,8 +137,9 @@ const leaveChannel = async () => {
                     </div>
 
                     <div class="grid grid-cols-3 gap-1 p-3">
-                        <div v-for="user in selected_server?.users" :key="user.id"
-                             class="avatar rounded-lg items-center justify-center h-16 bg-gray-100 dark:bg-gray-700"
+                        <div
+                            v-for="user in selectedServer?.users" :key="user.id"
+                            class="avatar rounded-lg items-center justify-center h-16 bg-gray-100 dark:bg-gray-700"
                         >
                             <div class="flex w-10 h-auto rounded-full ml-5">
                                 <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon"/>
@@ -142,20 +151,22 @@ const leaveChannel = async () => {
                     </div>
 
                     <div class="flex justify-end">
-<!--                        <Link :href="route('home.voice.channel', {server : selected_server?.id, channel : channel.id})">-->
-                            <button v-if="!isInVoice" @click="joinChannel" class="btn btn-success btn-wide mr-3 mb-3">
-                                Join
-                            </button>
-                            <button v-else @click="leaveChannel" class="btn btn-error btn-wide mr-3 mb-3">
-                                Leave
-                            </button>
-<!--                        </Link>-->
+                        <!--                        <Link :href="route('home.voice.channel', {server : selected_server?.id, channel : channel.id})">-->
+                        <button v-if="!isInVoice" class="btn btn-success btn-wide mr-3 mb-3" @click="joinChannel">
+                            Join
+                        </button>
+                        <button v-else class="btn btn-error btn-wide mr-3 mb-3" @click="leaveChannel">
+                            Leave
+                        </button>
+                        <!--                        </Link>-->
                     </div>
                 </div>
             </div>
 
-            <button class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-white dark:bg-gray-800"
-                    @click="openModal()" v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)">
+            <button
+                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
+                class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-white dark:bg-gray-800"
+                @click="openModal()">
                 <v-icon name="oi-plus" scale="3"/>
             </button>
         </div>
@@ -168,18 +179,20 @@ const leaveChannel = async () => {
                     <label class="label">
                         <span class="label-text">Voice Channel Name</span>
                     </label>
-                    <input v-model="form.name" type="text" placeholder="Enter channel name"
-                           class="input input-bordered"/>
+                    <input
+                        v-model="form.name" class="input input-bordered" placeholder="Enter channel name"
+                        type="text"/>
                 </div>
                 <div class="modal-action">
-                    <button type="submit" class="btn btn-primary w-full mt-2">
+                    <button class="btn btn-primary w-full mt-2" type="submit">
                         {{ isEditing ? 'Edit Voice Channel' : 'Create Voice Channel' }}
                     </button>
                 </div>
             </form>
             <div class="modal-action">
-                <button @click="() => channelModal?.close()"
-                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
+                <button
+                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    @click="() => channelModal?.close()">✕
                 </button>
             </div>
         </div>

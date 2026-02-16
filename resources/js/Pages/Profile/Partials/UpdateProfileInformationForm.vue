@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
@@ -9,8 +9,8 @@ import {baseUrl} from "@/bootstrap";
 addIcons(RiUser3Line, HiMail, IoAddOutline);
 
 defineProps<{
-    mustVerifyEmail?: Boolean;
-    status?: String;
+    mustVerifyEmail?: boolean;
+    status?: string;
 }>();
 
 const user = usePage().props.user!;
@@ -29,7 +29,6 @@ const updateIcon = (val: File) => {
     icon.value = URL.createObjectURL(inputFile.value);
 }
 
-
 </script>
 
 <template>
@@ -41,22 +40,22 @@ const updateIcon = (val: File) => {
             </p>
         </header>
 
-        <form @submit.prevent="form.post(route('profile.update'), {method: 'put'})" class="mt-6 space-y-6">
+        <form class="mt-6 space-y-6" @submit.prevent="form.post(route('profile.update'), {method: 'put'})">
             <!-- Profile Picture Upload -->
-            <div class="form-control flex flex-row items-center gap-4">
+            <div class="form-control flex flex-row items-center gap-4 group">
                 <label
-                    class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
+                    class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent group-hover:bg-transparent"
                     for="profilePicture">
-                    <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
+                    <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
                     <v-icon v-else name="io-add-outline" scale="3.333"/>
                 </label>
-                <label for="profilePicture" class="cursor-pointer">Upload profile picture</label>
+                <label class="cursor-pointer" for="profilePicture">Upload profile picture</label>
                 <input
-                    ref="inputFile"
                     id="profilePicture"
-                    type="file"
-                    class="hidden"
+                    ref="inputFile"
                     accept="image/png, image/jpeg"
+                    class="hidden"
+                    type="file"
                     @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
                 />
             </div>
@@ -65,34 +64,36 @@ const updateIcon = (val: File) => {
             <div class="form-control">
                 <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="name">Name</label>
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon name="ri-user-3-line" class="h-4 w-4 opacity-70"/>
-                    <input id="name"
-                           type="text"
-                           class="mt-1 block w-full"
-                           v-model="form.name"
-                           required
-                           autofocus
-                           autocomplete="name"
+                    <v-icon class="h-4 w-4 opacity-70" name="ri-user-3-line"/>
+                    <input
+                        id="name"
+                        v-model="form.name"
+                        autocomplete="name"
+                        autofocus
+                        class="mt-1 block w-full"
+                        required
+                        type="text"
                     />
                 </label>
-                <ErrorAlert class="mt-2" :message="form.errors.name"/>
+                <ErrorAlert :message="form.errors.name" class="mt-2"/>
             </div>
 
             <div>
                 <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="email">Email</label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon name="hi-mail" class="h-4 w-4 opacity-70"/>
-                    <input id="email"
-                           type="email"
-                           class="mt-1 block w-full"
-                           v-model="form.email"
-                           required
-                           autocomplete="username"
+                    <v-icon class="h-4 w-4 opacity-70" name="hi-mail"/>
+                    <input
+                        id="email"
+                        v-model="form.email"
+                        autocomplete="username"
+                        class="mt-1 block w-full"
+                        required
+                        type="email"
                     />
                 </label>
 
-                <ErrorAlert class="mt-2" :message="form.errors.email"/>
+                <ErrorAlert :message="form.errors.email" class="mt-2"/>
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
@@ -100,8 +101,8 @@ const updateIcon = (val: File) => {
                     Your email address is unverified.
                     <Link
                         :href="route('verification.send')"
-                        method="post"
                         class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+                        method="post"
                     >
                         Click here to re-send the verification email.
                     </Link>
@@ -116,7 +117,7 @@ const updateIcon = (val: File) => {
             </div>
 
             <div class="flex items-center gap-4">
-                <button class="btn" :disabled="form.processing">Save</button>
+                <button :disabled="form.processing" class="btn">Save</button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"

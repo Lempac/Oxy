@@ -12,12 +12,12 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware(['auth', 'web']);
 //
-//Route::post('/tokens/create', function (Request $request) {
+// Route::post('/tokens/create', function (Request $request) {
 //    dd($request->user());
 //    $token = $request->user()->createToken($request->token_name);
 //
 //    return ['token' => $token->plainTextToken];
-//})->middleware('auth:web')->name('tokens.create');
+// })->middleware('auth:web')->name('tokens.create');
 
 Route::middleware(['web'])->group(function () {
     Route::controller(ServerController::class)->prefix('server')->name('server')->group(function () {

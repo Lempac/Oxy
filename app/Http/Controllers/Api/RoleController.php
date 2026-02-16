@@ -120,9 +120,9 @@ class RoleController extends Controller
         }
 
         return Inertia::render('Settings/Role')->with([
-            'selected_server' => $server,
-            'selected_server.users' => $server->users,
-            'selected_server.roles' => $server->roles,
+            'selectedServer' => $server,
+            'selectedServer.users' => $server->users,
+            'selectedServer.roles' => $server->roles,
         ]);
     }
 
@@ -134,11 +134,11 @@ class RoleController extends Controller
         }
 
         return Inertia::render('Settings/Members')->with([
-            'selected_server' => $server,
-            'selected_server.users' => $server->users->each(function (User $user) use ($server) {
+            'selectedServer' => $server,
+            'selectedServer.users' => $server->users->each(function (User $user) use ($server) {
                 $user['rolesWithServer'] = $user->roles->intersect($server->roles);
             }),
-            'selected_server.roles' => $server->roles,
+            'selectedServer.roles' => $server->roles,
         ]);
     }
 

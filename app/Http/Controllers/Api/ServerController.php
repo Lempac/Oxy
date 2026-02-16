@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\PermsType;
-use App\Events\Servers\ServerCreated;
-use App\Events\Servers\ServerEdited;
 use App\Events\Servers\ServerJoined;
 use App\Events\Servers\ServerLeft;
 use App\Http\Controllers\Controller;
@@ -156,7 +154,7 @@ class ServerController extends Controller
         return response()->json(['message' => 'Server updated successfully.']);
     }
 
-    public function showSettings($serverId)
+    public function showSettings(int $serverId)
     {
         $server = Server::find($serverId);
         if (! $server) {
@@ -164,9 +162,9 @@ class ServerController extends Controller
         }
 
         return Inertia::render('Settings/Server')->with([
-            'selected_server' => $server,
-            'selected_server.users' => $server->users,
-            'selected_server.roles' => $server->roles,
+            'selectedServer' => $server,
+            'selectedServer.users' => $server->users,
+            'selectedServer.roles' => $server->roles,
         ]);
     }
 
@@ -189,6 +187,30 @@ class ServerController extends Controller
         $server->delete();
 
         return redirect('/home');
+    }
+
+    public function delete(int $serverId)
+    {
+        $server = Server::find($serverId);
+
+        if (! $server) {
+            return response()->json(['message' => 'Server not found.'], 404);
+        }
+
+        $roles = $server->roles->intersect(Auth::user()->roles);
+
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
+        })) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        $server->roles->each(function ($role) {
+            $role->delete();
+        });
+        $server->delete();
+
+        return response()->json(['message' => 'Server deleted successfully.']);
     }
 
     public function update(Request $request, int $serverId)
@@ -229,30 +251,6 @@ class ServerController extends Controller
 
         return redirect()->route('settings.server', ['id' => $serverId])
             ->with('message', 'Server updated successfully.');
-    }
-
-    public function delete(int $serverId)
-    {
-        $server = Server::find($serverId);
-
-        if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
-
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
-        })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
-        }
-
-        $server->roles->each(function ($role) {
-            $role->delete();
-        });
-        $server->delete();
-
-        return response()->json(['message' => 'Server deleted successfully.']);
     }
 
     public function leave(int $serverId)

@@ -4,9 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\MessageType;
 use App\Enums\PermsType;
-use App\Events\Messages\MessageCreated;
-use App\Events\Messages\MessageDeleted;
-use App\Events\Messages\MessageEdited;
 use App\Models\Channel;
 use App\Models\Message;
 use App\Models\Role;
@@ -34,7 +31,7 @@ class MessageController
 
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
-        //TODO: Add checking for levels for message create
+        // TODO: Add checking for levels for message create
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_CREATE_MESSAGE->value);
         })) {

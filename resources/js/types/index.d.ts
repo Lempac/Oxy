@@ -5,39 +5,39 @@ interface Object {
     readonly update_at: string;
 }
 
-export enum ChannelType {
-    Text = 'text',
-    Voice = 'voice',
-    Board = 'board',
-}
+export const ChannelType = {
+    Text: 'text',
+    Voice: 'voice',
+    Board: 'board',
+} as const;
 
-export enum MessageType {
-    Text = 'text',
-    Image = 'image',
-    File = 'file',
-}
+export const MessageType = {
+    Text: 'text',
+    Image: 'image',
+    File: 'file',
+} as const;
 
-export enum PermType {
-    CAN_DELETE_SERVER = 1 << 0,
-    CAN_EDIT_SERVER = 1 << 1,
-    CAN_CREATE_CHANNEL = 1 << 2,
-    CAN_DELETE_CHANNEL = 1 << 3,
-    CAN_EDIT_CHANNEL = 1 << 4,
-    CAN_CREATE_MESSAGE = 1 << 5,
-    CAM_CREATE_ATTACHMENTS = 1 << 6,
-    CAN_DELETE_MESSAGE = 1 << 7,
-    CAN_MANAGE_CHANNEL = 1 << 8,
-    CAN_CREATE_ROLE = 1 << 9,
-    CAN_DELETE_ROLE = 1 << 10,
-    CAN_EDIT_ROLE = 1 << 11,
-    CAN_MANAGE_MEMBERS = 1 << 12,
-    CAN_MANAGE_ROLE = 1 << 13,
-    CAN_MANAGE_SERVER = 1 << 14,
-    CAN_SEE_CHANNEL = 1 << 15, //TODO: Add logic for minimum role to see channel
-    CAN_INVITE = 1 << 16,
-    CAN_KICK = 1 << 17,
-    CAN_EDIT_MEMBER_ROLES = 1 << 18,
-}
+export const PermType = {
+    CAN_DELETE_SERVER: 1 << 0,
+    CAN_EDIT_SERVER: 1 << 1,
+    CAN_CREATE_CHANNEL: 1 << 2,
+    CAN_DELETE_CHANNEL: 1 << 3,
+    CAN_EDIT_CHANNEL: 1 << 4,
+    CAN_CREATE_MESSAGE: 1 << 5,
+    CAM_CREATE_ATTACHMENTS: 1 << 6,
+    CAN_DELETE_MESSAGE: 1 << 7,
+    CAN_MANAGE_CHANNEL: 1 << 8,
+    CAN_CREATE_ROLE: 1 << 9,
+    CAN_DELETE_ROLE: 1 << 10,
+    CAN_EDIT_ROLE: 1 << 11,
+    CAN_MANAGE_MEMBERS: 1 << 12,
+    CAN_MANAGE_ROLE: 1 << 13,
+    CAN_MANAGE_SERVER: 1 << 14,
+    CAN_SEE_CHANNEL: 1 << 15, //TODO: Add logic for minimum role to see channel
+    CAN_INVITE: 1 << 16,
+    CAN_KICK: 1 << 17,
+    CAN_EDIT_MEMBER_ROLES: 1 << 18,
+} as const;
 
 export interface Role extends Object {
     name: string;

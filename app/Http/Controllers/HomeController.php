@@ -26,10 +26,10 @@ class HomeController extends Controller
 
         return Inertia::render('Home')->with([
             'servers' => $request->user()->servers,
-            'selected_server' => $serverObj,
-            'selected_server.users' => $serverObj->users,
-            'selected_server.roles' => $serverObj->roles,
-            'invite_code' => $server.'#'.hash('xxh32', $server),
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
 
@@ -39,11 +39,11 @@ class HomeController extends Controller
 
         return Inertia::render('Text/Texting')->with([
             'servers' => $request->user()->servers,
-            'selected_server' => $serverObj,
-            'selected_server.users' => $serverObj->users,
-            'selected_server.roles' => $serverObj->roles,
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
             'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
-            'invite_code' => $server.'#'.hash('xxh32', $server),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
 
@@ -53,15 +53,15 @@ class HomeController extends Controller
 
         return Inertia::render('Text/Texting', [
             'servers' => $request->user()->servers,
-            'selected_server' => $serverObj,
-            'selected_server.users' => $serverObj->users,
-            'selected_server.roles' => $serverObj->roles,
-            'selected_channel' => Channel::find($channel),
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'selectedChannel' => Channel::find($channel),
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
-            'invite_code' => $server.'#'.hash('xxh32', $server),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
 
@@ -71,14 +71,14 @@ class HomeController extends Controller
 
         return Inertia::render('Text/Texting', [
             'servers' => $request->user()->servers,
-            'selected_server' => $serverObj,
-            'selected_channel' => Channel::find($channel),
-            'selected_message' => Message::find($message),
+            'selectedServer' => $serverObj,
+            'selectedChannel' => Channel::find($channel),
+            'selectedMessage' => Message::find($message),
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
             'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
-            'invite_code' => $server.'#'.hash('xxh32', $server),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
 
@@ -88,11 +88,11 @@ class HomeController extends Controller
 
         return Inertia::render('Voice/Speaking', [
             'servers' => $request->user()->servers,
-            'selected_server' => $serverObj,
-            'selected_server.users' => $serverObj->users,
-            'selected_server.roles' => $serverObj->roles,
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
             'channels' => $serverObj->channels()->where('type', ChannelType::Voice)->get(),
-            'invite_code' => $server.'#'.hash('xxh32', $server),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
 
@@ -102,12 +102,12 @@ class HomeController extends Controller
 
         return Inertia::render('Voice/Speaking', [
             'servers' => $request->user()->servers,
-            'selected_server' => $serverObj,
-            'selected_server.users' => $serverObj->users,
-            'selected_server.roles' => $serverObj->roles,
-            'selected_channel' => Channel::find($channel),
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'selectedChannel' => Channel::find($channel),
             'channels' => $serverObj->channels()->where('type', ChannelType::Voice)->get(),
-            'invite_code' => $server.'#'.hash('xxh32', $server),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
 }
