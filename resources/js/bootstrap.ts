@@ -1,3 +1,4 @@
+import { addUser } from '@/routes/server';
 import axios, {AxiosError} from 'axios';
 import './echo.ts';
 import {router} from "@inertiajs/vue3";
@@ -28,7 +29,7 @@ export const bigIntToPerms = (newPrem: bigint): Perms => ({
 });
 
 export const joinServer = async (code: string): Promise<[number, string?]> => {
-    return Promise.resolve(await axios.post(route('server.addUser'), {code: code})
+    return Promise.resolve(await axios.post(addUser.url(), {code: code})
         .then(() => {
             router.reload({only: ['servers']});
             return [200, 'Successfully joined to server.'] as [number, string];

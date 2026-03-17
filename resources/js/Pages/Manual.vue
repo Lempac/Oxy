@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { welcome } from '@/routes';
 import {ref} from 'vue';
 import {Head, Link} from '@inertiajs/vue3';
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
@@ -11,7 +12,7 @@ const language = ref('En');
     <body class="bg-gray-700 flex flex-col min-h-screen">
     <div class="card card-body flex-grow">
         <header class="flex justify-between items-center">
-            <Link :href="route('welcome')">
+            <Link :href="welcome.url()">
                 <ApplicationLogo class="navbar-center mb-1.5 tooltip tooltip-bottom" data-tip="Home"/>
             </Link>
             <div class="join ml-auto">

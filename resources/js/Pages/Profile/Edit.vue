@@ -4,6 +4,7 @@ import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import {Head} from '@inertiajs/vue3';
+import { exportMethod } from '@/routes/profile';
 
 defineProps<{
     mustVerifyEmail?: boolean;
@@ -11,7 +12,7 @@ defineProps<{
 }>();
 
 function exportTab() {
-    window.open(route('profile.export', '_blank'))
+    window.open(exportMethod.url(), '_blank')
 }
 </script>
 

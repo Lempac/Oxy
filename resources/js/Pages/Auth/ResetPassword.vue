@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { store } from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
 import {HiMail, MdKey} from "oh-vue-icons/icons";
@@ -20,7 +21,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.store'), {
+    form.post(store.url(), {
         onFinish: () => {
             form.reset('password', 'password_confirmation');
         },

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { update } from '@/routes/password';
 import {useForm} from '@inertiajs/vue3';
 import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -17,7 +18,7 @@ const form = useForm({
 });
 
 const updatePassword = () => {
-    form.put(route('password.update'), {
+    form.put(update.url(), {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();

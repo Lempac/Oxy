@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { home, login, manual, register } from '@/routes';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import {onMounted, onUnmounted, ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -66,14 +67,14 @@ onUnmounted(() => {
 });
 
 const submitLogin = () => {
-    form.post(route('login'), {
+    form.post(login.url(), {
         onFinish: () => {
             form.reset('password');
         },
     });
 };
 const submitRegister = () => {
-    form.post(route('register'), {
+    form.post(register.url(), {
         onFinish: () => {
             form.reset('password', 'password_confirmation');
         }
@@ -93,7 +94,7 @@ const submitRegister = () => {
                 </div>
                 <ApplicationLogo class="navbar-center mb-1.5"/>
                 <div class="navbar-end">
-                    <Link v-if="$page.props.user" :href="route('home')" class="btn btn-lg">
+                    <Link v-if="$page.props.user" :href="home.url()" class="btn btn-lg">
                         Home
                     </Link>
                     <template v-else>
@@ -153,7 +154,7 @@ const submitRegister = () => {
                         Join now!!!
                     </p>
                     <div>
-                        <Link v-if="$page.props.user" :href="route('home')" class="btn btn-lg">
+                        <Link v-if="$page.props.user" :href="home.url()" class="btn btn-lg">
                             Home
                         </Link>
                         <template v-else>
@@ -255,7 +256,7 @@ const submitRegister = () => {
                 © {{ new Date().getFullYear() }} Oxy
             </div>
             <Link
-                :href="route('manual')" class="left-2 mt-3 absolute btn btn-ghost tooltip tooltip-right"
+                :href="manual.url()" class="left-2 mt-3 absolute btn btn-ghost tooltip tooltip-right"
                 data-tip="FAQ">
                 <button class="flex items-center justify-center h-10 w-5">
                     <v-icon animation="pulse" name="fa-book" scale="2"/>

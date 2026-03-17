@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { destroy } from '@/routes/profile';
 import {useForm} from '@inertiajs/vue3';
 import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -22,7 +23,7 @@ const toggleModal = (action: 'open' | 'close') => {
 };
 
 const deleteUser = () => {
-    form.delete(route('profile.destroy'), {
+    form.delete(destroy.url(), {
         preserveScroll: true,
         onSuccess: () => toggleModal('close'),
         onError: () => passwordInput.value?.focus(),

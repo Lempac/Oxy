@@ -1,5 +1,3 @@
-import {Config} from 'ziggy-js';
-
 interface Object {
     readonly id: number;
     readonly update_at: string;
@@ -125,5 +123,4 @@ export type PageProps<T extends Record<string, unknown> = Record<string, unknown
     // readonly selected_channel: Channel | null | undefined;
     // readonly selected_message: Message | null | undefined;
     // readonly invite_code: string | undefined;
-    ziggy: Config & { location: string };
 };

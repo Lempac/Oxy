@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { update } from '@/routes/profile';
+import { send } from '@/routes/verification';
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
@@ -40,7 +42,7 @@ const updateIcon = (val: File) => {
             </p>
         </header>
 
-        <form class="mt-6 space-y-6" @submit.prevent="form.post(route('profile.update'), {method: 'put'})">
+        <form class="mt-6 space-y-6" @submit.prevent="form.post(update.url(), {method: 'put'})">
             <!-- Profile Picture Upload -->
             <div class="form-control flex flex-row items-center gap-4 group">
                 <label
@@ -100,7 +102,7 @@ const updateIcon = (val: File) => {
                 <p class="text-sm mt-2 text-gray-800 dark:text-gray-200">
                     Your email address is unverified.
                     <Link
-                        :href="route('verification.send')"
+                        :href="send.url()"
                         class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                         method="post"
                     >

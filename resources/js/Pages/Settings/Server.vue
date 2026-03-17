@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { server as serverRoute } from '@/routes/home';
+import { destroy, update } from '@/routes/server';
 import {defineProps, ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {Link, router, useForm, usePage} from '@inertiajs/vue3';
@@ -37,7 +39,7 @@ function handleSave() {
         return;
     }
     form.clearErrors(); // Clear any existing errors
-    form.post(route('server.update', {id: selectedServer?.id}), {
+    form.post(update.url(selectedServer!.id), {
         onSuccess: () => {
             router.reload(); // This will reload the current Inertia page without a full page reload
         },
@@ -45,7 +47,7 @@ function handleSave() {
 }
 
 function deleteServer() {
-    router.delete(route('server.destroy', {id: selectedServer?.id}), {
+    router.delete(destroy.url(selectedServer!.id), {
         onSuccess: () => {
             router.visit('/home');
         },
@@ -62,7 +64,7 @@ if (selectedServer && selectedServer.roles !== null) {
     <div class="flex flex-col items-center justify-center">
         <div class="w-full max-w-6xl p-6">
             <!-- navbar -->
-            <SettingsHeader :selected-server/>
+            <SettingsHeader :selected-server="selectedServer!"/>
 
             <div class="flex justify-end mb-6 space-x-4">
                 <button
@@ -71,7 +73,7 @@ if (selectedServer && selectedServer.roles !== null) {
                     @click="handleSave">
                     Save Changes
                 </button>
-                <Link :href="route('home.server', { server: selectedServer?.id })" class="btn btn-neutral">
+                <Link :href="serverRoute.url(selectedServer!.id)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>

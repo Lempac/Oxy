@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { server } from '@/routes/home';
+import { addUser, removeUser as roles_removeUser } from '@/routes/roles';
+import { removeUser as server_removeUser } from '@/routes/server';
 
 import {Link, router, usePage} from "@inertiajs/vue3";
 import {Perms, PermType, Role, Server, User} from "@/types";
@@ -28,18 +31,18 @@ const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const toggleRole = (roleId: number, userId: number, state: boolean) => {
     if (state) {
-        axios.post(route('roles.add-user', {role: roleId, user: userId})).then(() => {
+        axios.post(addUser.url({role: roleId, user: userId})).then(() => {
             router.reload({only: ['selected_server']});
         })
     } else {
-        axios.delete(route('roles.remove-user', {role: roleId, user: userId})).then(() => {
+        axios.delete(roles_removeUser.url({role: roleId, user: userId})).then(() => {
             router.reload({only: ['selected_server']});
         })
     }
 };
 
 const kickMember = (userId: number) =>
-    axios.delete(route('server.removeUser', {server: selectedServer.id}), {data: {'user_id': userId}}).then(() =>
+    axios.delete(server_removeUser.url(selectedServer.id), {data: {'user_id': userId}}).then(() =>
         router.reload({only: ['selected_server']})
     )
 
@@ -59,7 +62,7 @@ if (selectedServer && selectedServer.roles !== null) {
             <SettingsHeader :selected-server/>
 
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="route('home.server', { server: selectedServer?.id })" class="btn btn-neutral">
+                <Link :href="server.url(selectedServer?.id)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>

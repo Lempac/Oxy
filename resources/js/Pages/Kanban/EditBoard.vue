@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { index, show } from '@/routes/kanban';
 import {router} from '@inertiajs/vue3';
 import {ref} from 'vue';
 import {Board} from "@/types";
@@ -11,15 +12,15 @@ const boardName = ref(board.name);
 const boardBio = ref(board.bio || "");
 
 const handleEditBoard = () => {
-    router.put(route('kanban.show', {board: board.id}), {name: boardName.value, bio: boardBio.value}, {
+    router.put(show.url(board.id), {name: boardName.value, bio: boardBio.value}, {
         onSuccess: () => {
-            router.get(route('kanban.index'));
+            router.get(index.url());
         }
     });
 };
 
 const goBack = () => {
-    router.get(route('kanban.index'));
+    router.get(index.url());
 };
 </script>
 

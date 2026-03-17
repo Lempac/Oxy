@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { create, deleteMethod, edit } from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import TextSelectBar from "@/Components/TextSelectBar.vue";
 import {addIcons} from "oh-vue-icons";
@@ -92,7 +93,7 @@ const createMessage = async () => {
             hasError.value = true;
             return;
         }
-        axios.postForm(route('message.create', {channel: selectedChannel!.id}), form.data())
+        axios.postForm(create.url(selectedChannel!.id), form.data())
             .then(() => {
                 clearFile();
                 hasError.value = false;
@@ -123,12 +124,12 @@ watch(
 );
 
 const deleteMessage = async (messageId: number) => {
-    await axios.delete(route('message.delete', {message: messageId}));
+    await axios.delete(deleteMethod.url(messageId));
 };
 
 const editMessage = async () => {
     if (messageIdToEdit.value !== null) {
-        await axios.patch(route('message.edit', {message: messageIdToEdit.value}), {mdata: form.mdata});
+        await axios.patch(edit.url(messageIdToEdit.value), {mdata: form.mdata});
         messageModal.value?.close();
         form.reset();
         router.reload();

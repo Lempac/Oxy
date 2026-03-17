@@ -1,18 +1,19 @@
 <script lang="ts" setup>
+import { index, store } from '@/routes/kanban';
 import {router} from '@inertiajs/vue3';
 import {ref} from 'vue';
 
 const boardName = ref("");
 const handleCreateBoard = () => {
-    router.post(route('kanban.store'), {name: boardName.value}, {
+    router.post(store.url(), {name: boardName.value}, {
         onSuccess: () => {
-            router.get(route('kanban.index'));
+            router.get(index.url());
         }
     });
 };
 
 const goBack = () => {
-    router.get(route('kanban.index'));
+    router.get(index.url());
 };
 </script>
 

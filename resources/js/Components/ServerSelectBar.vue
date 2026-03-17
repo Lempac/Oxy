@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+import { home, logout } from '@/routes';
+import { server as serverRoute } from '@/routes/home';
+import { edit } from '@/routes/profile';
+import { create } from '@/routes/server';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
@@ -33,7 +37,7 @@ const loading = ref(false);
 const createServer = async () => {
     if (loading.value) return;
     loading.value = true;
-    axios.postForm(route('server.create'), form.data())
+    axios.postForm(create.url(), form.data())
         .then(() => {
             serverModal.value?.close();
             router.reload({only: ['servers']});
@@ -65,7 +69,7 @@ const updateIcon = (val: File) => {
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
         <div class="navbar-start">
-            <Link :href="route('home')">
+            <Link :href="home.url()">
                 <ApplicationLogo class="block h-auto w-auto fill-current ml-5"/>
             </Link>
         </div>
@@ -73,7 +77,7 @@ const updateIcon = (val: File) => {
             class="navbar-center w-3/5 overflow-x-auto overflow-y-hidden whitespace-nowrap flex justify-center items-center">
             <div v-for="server in servers" :key="server.id">
                 <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                    <Link :href="route('home.server', { id: server.id})">
+                    <Link :href="serverRoute.url(server.id)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div class="btn btn-ghost btn-circle avatar">
                                 <div class="w-14 rounded-full">
@@ -113,10 +117,10 @@ const updateIcon = (val: File) => {
                 </div>
                 <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow" tabindex="0">
                     <li>
-                        <Link :href="route('profile.edit')">Profile</Link>
+                        <Link :href="edit.url()">Profile</Link>
                     </li>
                     <li>
-                        <Link :href="route('logout')" as="button" method="post">Log Out</Link>
+                        <Link :href="logout.url()" as="button" method="post">Log Out</Link>
                     </li>
                 </ul>
             </div>

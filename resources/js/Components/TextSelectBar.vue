@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { create, deleteMethod, edit } from '@/routes/channel';
+import { channel as channelRoute } from '@/routes/home/text';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import axios from "axios";
@@ -44,7 +46,7 @@ const openModal = (channel?: Channel) => {
 const createChannel = async () => {
     if (loading.value) return;
     loading.value = true;
-    axios.postForm(route('channel.create', {server: selectedServer.id}), form.data())
+    axios.postForm(create.url(selectedServer!.id), form.data())
         .then(() => {
             channelModal.value?.close();
             router.reload();
@@ -60,7 +62,7 @@ const createChannel = async () => {
 
 const deleteChannel = async (channelId: number) => {
     console.log(channelId)
-    axios.delete(route('channel.delete', {channel: channelId})).then(() => {
+    axios.delete(deleteMethod.url(channelId)).then(() => {
         router.reload()
     });
 };
@@ -70,7 +72,7 @@ const editChannel = async (channelId: number) => {
     if (loading.value) return;
     loading.value = true;
 
-    axios.patch(route('channel.edit', {channel: channelId}), form.data())
+    axios.patch(edit.url(channelId), form.data())
         .then(() => {
             channelModal.value?.close();
             router.reload()
@@ -128,7 +130,7 @@ if (selectedServer) {
                 </button>
             </div>
 
-            <Link :href="route('home.text.channel', {server : selectedServer?.id, channel : channel.id})">
+            <Link :href="channelRoute.url({server : selectedServer?.id!, channel : channel.id})">
                 <button
                     :class="{'bg-gray-800 text-white dark:bg-gray-400 dark:text-gray-800' : selectedChannel?.id === channel.id}"
                     class="btn btn-outline btn-sm">

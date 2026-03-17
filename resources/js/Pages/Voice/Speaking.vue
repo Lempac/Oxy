@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { create, deleteMethod, edit } from '@/routes/channel';
+import { channel } from '@/routes/home/voice';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
@@ -41,20 +43,20 @@ const openModal = (channel?: Channel) => {
 };
 
 const createText = async () => {
-    axios.postForm(route('channel.create', {server: selectedServer?.id}), form.data()).then(() => {
+    axios.postForm(create.url(selectedServer!.id), form.data()).then(() => {
         channelModal.value?.close();
         router.reload()
     });
 };
 
 const deleteText = async (channelId: number) => {
-    axios.delete(route('channel.delete', {channel: channelId})).then(() => {
+    axios.delete(deleteMethod.url(channelId)).then(() => {
         router.reload()
     });
 };
 
 const editText = async (channelId: number) => {
-    axios.patch(route('channel.edit', {channel: channelId}), form.data()).then(() => {
+    axios.patch(edit.url(channelId), form.data()).then(() => {
         channelModal.value?.close();
         router.reload()
     });
@@ -151,7 +153,7 @@ const leaveChannel = async () => {
                     </div>
 
                     <div class="flex justify-end">
-                        <!--                        <Link :href="route('home.voice.channel', {server : selected_server?.id, channel : channel.id})">-->
+                        <!--                        <Link :href="channel.url({server : selected_server?.id, channel : channel.id})">-->
                         <button v-if="!isInVoice" class="btn btn-success btn-wide mr-3 mb-3" @click="joinChannel">
                             Join
                         </button>

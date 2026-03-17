@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { members, role, server } from '@/routes/settings';
 
 import {Link, usePage} from "@inertiajs/vue3";
 import {Perms, PermType, Role, Server} from "@/types";
@@ -27,18 +28,18 @@ if (selectedServer && selectedServer.roles !== null) {
         <div class="flex space-x-6">
             <Link
                 v-if="perms.has(PermType.CAN_MANAGE_SERVER)"
-                :href="route('settings.server', { id: selectedServer?.id })"
+                :href="server.url(selectedServer?.id)"
                 class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Server
             </Link>
             <Link
-                v-if="perms.has(PermType.CAN_MANAGE_ROLE)" :href="route('settings.role', { id: selectedServer?.id })"
+                v-if="perms.has(PermType.CAN_MANAGE_ROLE)" :href="role.url(selectedServer?.id)"
                 class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Roles
             </Link>
             <Link
                 v-if="perms.has(PermType.CAN_MANAGE_MEMBERS)"
-                :href="route('settings.members', { id: selectedServer?.id })"
+                :href="members.url(selectedServer?.id)"
                 class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Members
             </Link>

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { server } from '@/routes/home';
+import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {defineProps, ref} from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import axios, {AxiosResponse} from 'axios';
@@ -29,7 +31,7 @@ const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const fetchRoles = async () => {
     try {
-        const response: AxiosResponse<Role[] | null> = await axios.get(route('roles.index', {server: selectedServer?.id}));
+        const response: AxiosResponse<Role[] | null> = await axios.get(index.url(selectedServer?.id));
         roles.value = response.data ?? []; // Default to an empty array if undefined
         // Sort roles by importance
         roles.value.sort((a, b) => a.importance - b.importance);
@@ -59,7 +61,7 @@ const updateRole = async () => {
     const currentEditingRole = editingRole.value;
 
     if (currentEditingRole) {
-        const response = await axios.patch(route('roles.edit', {role: currentEditingRole.id}), newRole.value);
+        const response = await axios.patch(edit.url(currentEditingRole.id), newRole.value);
 
         const index = roles.value.findIndex(r => r.id === currentEditingRole.id);
         roles.value[index] = response.data.role;
@@ -79,7 +81,7 @@ const addRole = async () => {
             newRole.value.importance = maxImportance + 1;
         }
 
-        await axios.post(route('roles.create', {server: selectedServer?.id}), {
+        await axios.post(create.url(selectedServer?.id), {
             name: newRole.value.name,
             color: newRole.value.color,
             perms: newRole.value.perms,
@@ -95,14 +97,14 @@ const addRole = async () => {
 
 const deleteRole = async (role: Role) => {
     try {
-        await axios.delete(route('roles.delete', {role: role.id}));
+        await axios.delete(deleteMethod.url(role.id));
 
         roles.value = roles.value.filter(r => r.id !== role.id);
 
         roles.value.forEach(r => {
             if (r.importance > role.importance) {
                 r.importance -= 1;
-                axios.patch(route('roles.edit', {role: r.id}), {importance: r.importance});
+                axios.patch(edit.url(r.id), {importance: r.importance});
             }
         });
 
@@ -147,8 +149,8 @@ const changeImportance = async (role: Role, direction: number) => {
         role.importance = swapRole.importance;
         swapRole.importance = tempImportance;
 
-        await axios.patch(route('roles.edit', {role: role.id}), {importance: role.importance});
-        await axios.patch(route('roles.edit', {role: swapRole.id}), {importance: swapRole.importance});
+        await axios.patch(edit.url(role.id), {importance: role.importance});
+        await axios.patch(edit.url(swapRole.id), {importance: swapRole.importance});
     }
 
     roles.value.sort((a, b) => a.importance - b.importance);
@@ -163,7 +165,7 @@ const changeImportance = async (role: Role, direction: number) => {
             <!-- Navbar for Navigation -->
             <SettingsHeader :selected-server/>
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="route('home.server', { server: selectedServer?.id })" class="btn btn-neutral">
+                <Link :href="server.url(selectedServer?.id)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>

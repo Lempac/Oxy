@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+import { text, voice } from '@/routes/home';
+import { index } from '@/routes/kanban';
+import { leave } from '@/routes/server';
+import { server } from '@/routes/settings';
 import {addIcons} from "oh-vue-icons";
 import {BiChatText, BiDoorOpen, BiGearFill, MdViewkanbanOutlined, RiChatVoiceLine} from "oh-vue-icons/icons";
 import {Link, router, usePage} from "@inertiajs/vue3";
@@ -27,8 +31,7 @@ function leaveServer() {
     }
 
     axios.delete(
-        route('server.leave', {id: selectedServer.id}
-        )).then(() => {
+        leave.url(selectedServer.id)).then(() => {
         router.reload();
     });
 }
@@ -51,7 +54,7 @@ function leaveServer() {
                 </div>
             </ConfirmDialog>
 
-            <Link :href="route('home.text', { server: selectedServer?.id })">
+            <Link :href="text.url(selectedServer?.id)">
                 <button
                     :class="{ 'border-b-2 border-black text-black dark:border-white dark:text-white': $page.url.includes('/text') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
@@ -65,7 +68,7 @@ function leaveServer() {
             <!-- Server settings -->
             <Link
                 v-if="perms.hasAny(PermType.CAN_MANAGE_SERVER | PermType.CAN_MANAGE_ROLE | PermType.CAN_MANAGE_MEMBERS)"
-                :href="route('settings.server', { id: selectedServer?.id })"
+                :href="server.url(selectedServer?.id)"
                 class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
                 <button
                     class="flex items-center justify-center h-10 w-auto my-auto"
@@ -74,7 +77,7 @@ function leaveServer() {
                 </button>
             </Link>
 
-            <Link :href="route('home.voice', { server: selectedServer?.id })">
+            <Link :href="voice.url(selectedServer?.id)">
                 <button
                     :class="{ 'border-b-2 border-black text-black dark:border-white dark:text-white': $page.url.includes('/voice') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
@@ -86,7 +89,7 @@ function leaveServer() {
                 </button>
             </Link>
 
-            <Link :href="route('kanban.index')">
+            <Link :href="index.url()">
                 <button
                     :class="{'border-b-2 border-white text-white': $page.url.includes('/kanban') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative">

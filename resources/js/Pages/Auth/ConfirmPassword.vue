@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { confirm } from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -12,7 +13,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.confirm'), {
+    form.post(confirm.url(), {
         onFinish: () => {
             form.reset();
         },

@@ -16,6 +16,9 @@
   languages.javascript.enable = true;
   languages.javascript.package = pkgs.nodejs_24;
   languages.nix.enable = true;
+  languages.python.enable = true;
+  languages.python.venv.enable = true;
+  languages.python.uv.enable = true;
   packages = with pkgs; [ sqlite nil nixd ];
   processes = {
     vite.exec = "npm run dev";

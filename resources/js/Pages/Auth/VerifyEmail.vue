@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { logout } from '@/routes';
+import { send } from '@/routes/verification';
 import {computed} from 'vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
@@ -10,7 +12,7 @@ const props = defineProps<{
 const form = useForm({});
 
 const submit = () => {
-    form.post(route('verification.send'));
+    form.post(send.url());
 };
 
 const verificationLinkSent = computed(() => props.status === 'verification-link-sent');
@@ -36,7 +38,7 @@ const verificationLinkSent = computed(() => props.status === 'verification-link-
                 </button>
 
                 <Link
-                    :href="route('logout')"
+                    :href="logout.url()"
                     class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                     method="post"
                 >Log Out

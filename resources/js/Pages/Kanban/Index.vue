@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { create, destroy, edit, show } from '@/routes/kanban';
 import {router} from '@inertiajs/vue3';
 import {onMounted, ref} from 'vue';
 import {Board, BoardColumn} from "@/types";
@@ -22,20 +23,20 @@ onMounted(() => {
 });
 
 const createBoard = () => {
-    router.get(route('kanban.create'));
+    router.get(create.url());
 };
 
 const editBoard = (boardId: number) => {
-    router.get(route('kanban.edit', {board: boardId}));
+    router.get(edit.url(boardId));
 };
 
 const viewBoard = (board: Board) => {
-    router.get(route('kanban.show', {board: board.id}));
+    router.get(show.url(board.id));
 };
 
 
 const deleteBoard = (boardId: number) => {
-    router.delete(route('kanban.destroy', {board: boardId}), {
+    router.delete(destroy.url(boardId), {
         onSuccess: () => {
             currentBoards.value = currentBoards.value.filter(board => board.id !== boardId);
         }
@@ -46,7 +47,7 @@ const selectBoard = (board: Board) => {
     selectedBoard.value = board;
     loading.value = true;
 
-    router.get(route('kanban.show', {board: board.id}), {}, {
+    router.get(show.url(board.id), {}, {
         onSuccess: () => {
             columns.value = board.columns.map(column => {
                 return {
