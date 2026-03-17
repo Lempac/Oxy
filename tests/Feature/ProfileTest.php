@@ -20,6 +20,7 @@ test('profile information can be updated', function () {
         ->post('/profile', [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'theme' => 'oxy',
         ]);
 
     $response
@@ -33,6 +34,24 @@ test('profile information can be updated', function () {
     $this->assertNull($user->email_verified_at);
 });
 
+test('profile theme can be updated', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post('/profile', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'theme' => 'cyberpunk',
+        ]);
+
+    $response
+        ->assertSessionHasNoErrors()
+        ->assertRedirect('/profile');
+
+    $this->assertSame('cyberpunk', $user->refresh()->theme->value);
+});
+
 test('email verification status is unchanged when the email address is unchanged', function () {
     $user = User::factory()->create();
 
@@ -41,6 +60,7 @@ test('email verification status is unchanged when the email address is unchanged
         ->post('/profile', [
             'name' => 'Test User',
             'email' => $user->email,
+            'theme' => 'oxy',
         ]);
 
     $response

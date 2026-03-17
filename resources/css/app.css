@@ -1,4 +1,32 @@
 @import "tailwindcss";
+
 @plugin "daisyui" {
   themes: all;
+
+}
+
+@plugin "daisyui/theme" {
+  name: "oxy";
+  default: true;
+  /* set as default */
+  prefersdark: false;
+  /* set as default dark mode (prefers-color-scheme:dark) */
+  color-scheme: light;
+  /* color of browser-provided UI */
+  --primary: oklch(29.62% 0.1771 270.21);
+  --primary-content: oklch(81.93% 0.0573 268.05);
+  --secondary: oklch(71.97% 0.1378 266.38);
+  --secondary-content: oklch(15.71% 0.1168 274.5);
+  --accent: oklch(89.2% 0.028 147.22);
+  --accent-content: oklch(25.96% 0.0416 151.72);
+  --neutral: oklch(9.97% 0.0101 146.54);
+  --neutral-content: oklch(96.95% 0.0093 141.74);
+  --base-100: oklch(96.95% 0.0093 141.74);
+  --base-200: oklch(84.73% 0.0617 141.97);
+  --base-300: oklch(71.91% 0.1118 138.85);
+  --base-content: oklch(31.29% 0.0524 139.75);
+  --info: oklch(29.62% 0.1771 270.21);
+  --success: oklch(89.2% 0.028 147.22);
+  --warning: oklch(71.97% 0.1378 266.38);
+  --error: oklch(9.97% 0.0101 146.54);
 }

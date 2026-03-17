@@ -7,6 +7,7 @@ import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
 import {ref} from "vue";
 import {baseUrl} from "@/bootstrap";
+import {Themes, ThemeType} from "@/types";
 
 addIcons(RiUser3Line, HiMail, IoAddOutline);
 
@@ -20,11 +21,14 @@ const user = usePage().props.user!;
 const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
 const inputFile = ref<File | null>();
 
-const form = useForm<{ name: string, email: string, icon: File | null }>({
+const form = useForm<{ name: string, email: string, icon: File | null, theme: ThemeType }>({
     name: user.name,
     email: user.email,
     icon: inputFile.value!,
+    theme: user.theme || Themes.OXY,
 });
+
+
 const updateIcon = (val: File) => {
     inputFile.value = val;
     form.icon = inputFile.value;
@@ -96,6 +100,20 @@ const updateIcon = (val: File) => {
                 </label>
 
                 <ErrorAlert :message="form.errors.email" class="mt-2"/>
+            </div>
+
+            <div class="form-control">
+                <label class="block font-medium text-sm text-base-content/90" for="theme">Theme</label>
+                <select
+                    id="theme"
+                    v-model="form.theme"
+                    class="select select-bordered mt-1 block w-full"
+                >
+                    <option v-for="theme in Themes" :key="theme" :value="theme">
+                        {{ theme.charAt(0).toUpperCase() + theme.slice(1) }}
+                    </option>
+                </select>
+                <ErrorAlert :message="form.errors.theme" class="mt-2"/>
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
