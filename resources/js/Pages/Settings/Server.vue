@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { server as serverRoute } from '@/routes/home';
 import { destroy, update } from '@/routes/server';
-import {defineProps, ref} from 'vue';
+import { ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {Link, router, useForm, usePage} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';

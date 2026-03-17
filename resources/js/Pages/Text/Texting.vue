@@ -74,7 +74,7 @@ if (selectedChannel) {
 }
 
 const clearFile = () => {
-    fileInput.value!.value = '';
+    fileInput.value.value = '';
     form.reset();
     isDisabled = false;
 }
