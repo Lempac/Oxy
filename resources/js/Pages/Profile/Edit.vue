@@ -22,7 +22,7 @@ function exportTab() {
     <AuthenticatedLayout>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="p-4 sm:p-8 bg-base-100 shadow sm:rounded-lg">
                     <UpdateProfileInformationForm
                         :must-verify-email="mustVerifyEmail"
                         :status="status"
@@ -30,14 +30,14 @@ function exportTab() {
                     />
                 </div>
 
-                <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="p-4 sm:p-8 bg-base-100 shadow sm:rounded-lg">
                     <UpdatePasswordForm class="max-w-xl"/>
                 </div>
 
-                <div class="sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="sm:p-8 bg-base-100 shadow sm:rounded-lg">
                     <DeleteUserForm class="max-w-xl"/>
-                    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mt-2">Export data</h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 my-2">
+                    <h2 class="text-lg font-medium text-base-content mt-2">Export data</h2>
+                    <p class="text-sm text-base-content/70 my-2">
                         Data export includes server and user data for related user.
                     </p>
                     <button class="btn" @click="exportTab">

@@ -106,7 +106,7 @@ if (selectedServer) {
 
 <template>
     <div
-        class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
+        class="navbar bg-base-100 border-b border-base-300 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
         <div v-for="channel in channels" :key="channel.id" class="indicator relative group m-2">
             <div
                 v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
@@ -132,7 +132,7 @@ if (selectedServer) {
 
             <Link :href="channelRoute.url({server : selectedServer?.id!, channel : channel.id})">
                 <button
-                    :class="{'bg-gray-800 text-white dark:bg-gray-400 dark:text-gray-800' : selectedChannel?.id === channel.id}"
+                    :class="{'bg-base-300 text-base-content' : selectedChannel?.id === channel.id}"
                     class="btn btn-outline btn-sm">
                     {{ channel.name }}
                 </button>

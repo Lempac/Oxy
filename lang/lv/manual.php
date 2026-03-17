@@ -2,6 +2,7 @@
 
 return [
     'manual' => 'Pamācība',
+    'home' => 'Majās',
     'get_help' => 'Saņemt palīdzību ↓',
     'servers' => 'Serveri',
     'creating_a_server' => 'Servera izveidošana',

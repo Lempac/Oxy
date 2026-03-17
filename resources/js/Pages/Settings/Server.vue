@@ -78,10 +78,10 @@ if (selectedServer && selectedServer.roles !== null) {
                 </Link>
             </div>
 
-            <div class="bg-gray-700 p-8 rounded-lg shadow-lg">
-                <h1 class="text-3xl text-white mb-6">Server Settings</h1>
+            <div class="bg-base-200 p-8 rounded-lg shadow-lg">
+                <h1 class="text-3xl text-base-content mb-6">Server Settings</h1>
                 <!-- Server info -->
-                <div class="bg-gray-800 p-6 rounded-lg mb-8">
+                <div class="bg-base-300 p-6 rounded-lg mb-8">
                     <div class="flex items-center">
                         <label class="relative cursor-pointer has-[:disabled]:cursor-not-allowed" for="serverIcon">
                             <input
@@ -93,30 +93,30 @@ if (selectedServer && selectedServer.roles !== null) {
                                 @change="updateIcon((<HTMLInputElement>$event.target).files![0])"
                             />
                             <div
-                                class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-600 flex justify-center items-center transition-all duration-300 ease-in-out peer-enabled:hover:bg-transparent peer-disabled:input-disabled">
+                                class="w-24 h-24 rounded-full bg-base-300 flex justify-center items-center transition-all duration-300 ease-in-out peer-enabled:hover:bg-transparent peer-disabled:input-disabled">
                                 <img
                                     v-if="icon" :src="icon" alt="Server Icon"
                                     class="w-full h-full rounded-full object-cover"/>
-                                <span v-else class="text-4xl text-gray-500">+</span>
+                                <span v-else class="text-4xl text-base-content/50">+</span>
                             </div>
                         </label>
                         <div class="w-full ml-[15%]">
-                            <label class="text-white" for="serverName">Server Name</label>
+                            <label class="text-base-content" for="serverName">Server Name</label>
                             <input
                                 id="serverName"
                                 v-model="form.name"
                                 :disabled="!perms.has(PermType.CAN_EDIT_SERVER)"
-                                class="input input-bordered w-full mt-2 bg-gray-600 text-white"
+                                class="input input-bordered w-full mt-2 bg-base-100 text-base-content"
                                 placeholder="Enter your server name"
                                 type="text"
                             />
                             <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
-                            <label class="text-white mt-auto" for="description">Description</label>
+                            <label class="text-base-content mt-auto" for="description">Description</label>
                             <input
                                 id="description"
                                 v-model="form.description"
                                 :disabled="!perms.has(PermType.CAN_EDIT_SERVER)"
-                                class="input input-bordered w-full mt-2 bg-gray-600 text-white h-24"
+                                class="input input-bordered w-full mt-2 bg-base-100 text-base-content h-24"
                                 placeholder="Enter server description"
                                 type="text"
                             />
@@ -126,11 +126,11 @@ if (selectedServer && selectedServer.roles !== null) {
                 </div>
 
                 <!-- Other Settings Section -->
-                <div class="bg-gray-800 p-6 rounded-lg">
+                <div class="bg-base-300 p-6 rounded-lg">
                     <div class="flex justify-between items-center">
                         <div>
-                            <span class="text-xl text-white">Allow Attachments</span>
-                            <p class="text-sm text-gray-300">Let's you send images and videos in chat.</p>
+                            <span class="text-xl text-base-content">Allow Attachments</span>
+                            <p class="text-sm text-base-content/70">Let's you send images and videos in chat.</p>
                         </div>
                         <input class="toggle toggle-primary" disabled type="checkbox"/>
                     </div>

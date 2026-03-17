@@ -2,6 +2,7 @@
 
 return [
     'manual' => 'Manual',
+    'home' => 'Home',
     'get_help' => 'Get Help ↓',
     'servers' => 'Servers',
     'creating_a_server' => 'Creating a server',

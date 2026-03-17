@@ -40,7 +40,7 @@ function leaveServer() {
 
 <template>
     <div v-if="selectedServer?.id">
-        <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-around">
+        <div class="navbar bg-base-100 border-b border-base-300 justify-around">
             <!-- Leave server -->
             <ConfirmDialog
                 id="leave-server"
@@ -56,7 +56,7 @@ function leaveServer() {
 
             <Link :href="text.url(selectedServer?.id)">
                 <button
-                    :class="{ 'border-b-2 border-black text-black dark:border-white dark:text-white': $page.url.includes('/text') }"
+                    :class="{ 'border-b-2 border-base-content text-base-content': $page.url.includes('/text') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
                 >
                     <svg class="h-5 w-5">
@@ -79,7 +79,7 @@ function leaveServer() {
 
             <Link :href="voice.url(selectedServer?.id)">
                 <button
-                    :class="{ 'border-b-2 border-black text-black dark:border-white dark:text-white': $page.url.includes('/voice') }"
+                    :class="{ 'border-b-2 border-base-content text-base-content': $page.url.includes('/voice') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
                 >
                     <svg class="h-5 w-5">
@@ -91,7 +91,7 @@ function leaveServer() {
 
             <Link :href="index.url()">
                 <button
-                    :class="{'border-b-2 border-white text-white': $page.url.includes('/kanban') }"
+                    :class="{'border-b-2 border-base-content text-base-content': $page.url.includes('/kanban') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative">
                     <svg class="h-5 w-5">
                         <v-icon name="md-viewkanban-outlined"/>

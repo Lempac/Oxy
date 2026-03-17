@@ -35,7 +35,7 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="email"> Email </label>
+                <label class="block font-medium text-sm text-base-content" for="email"> Email </label>
 
                 <label class="input input-bordered flex items-center gap-2">
                     <v-icon class="h-4 w-4 opacity-70" name="hi-mail"/>
@@ -54,7 +54,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password">
+                <label class="block font-medium text-sm text-base-content" for="password">
                     Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
@@ -73,7 +73,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password_confirmation">
+                <label class="block font-medium text-sm text-base-content" for="password_confirmation">
                     Confirm Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">

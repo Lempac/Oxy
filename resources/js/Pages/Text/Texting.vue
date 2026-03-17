@@ -74,7 +74,7 @@ if (selectedChannel) {
 }
 
 const clearFile = () => {
-    fileInput.value.value = '';
+    if (fileInput.value) fileInput.value.value = '';
     form.reset();
     isDisabled = false;
 }
@@ -165,7 +165,7 @@ if (selectedServer && selectedServer.roles !== null) {
         <TextSelectBar :channels :selected-channel :selected-server/>
         <div
             v-if="$page.url.match(/\/text\/\d+/)"
-            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-white dark:bg-gray-800 m-5 rounded-lg mx-auto mt-3 flex flex-col"
+            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-base-100 m-5 rounded-lg mx-auto mt-3 flex flex-col"
         >
             <div ref="messageContainer" class="overflow-y-auto flex-grow p-3 mx-5 mt-5">
                 <div v-if="messages && messages.length > 0">
@@ -187,7 +187,7 @@ if (selectedServer && selectedServer.roles !== null) {
 
                         <div class="indicator">
                             <div
-                                class="chat-bubble group max-w-full bg-gray-100 text-black dark:bg-gray-900 dark:text-white">
+                                class="chat-bubble group max-w-full bg-base-200 text-base-content">
                                 <div v-if="MessageType.Text === message.type" class="text-wrap break-all max-w-[40vw]">
                                     {{ filter.clean(message.mdata) }}
                                 </div>
