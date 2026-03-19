@@ -61,5 +61,5 @@ return [
     'in_profile_page_update' => '2. Profila lapā aizejiet uz sadaļu "Update Password". Ievadiet informāciju un noklikšķiniet uz "Save", lai saglabātu izmaiņas.',
     'delete_account' => 'Izdzēst kontu',
     'to_delete_account' => 'Lai izdzēstu kontu:',
-    'in_profile_page_delete' => '2. Profila lapas apakšā, pie sadaļas "Delete Account", noklikšķiniet pogu "Delete Account" un apstipriniet.'
+    'in_profile_page_delete' => '2. Profila lapas apakšā, pie sadaļas "Delete Account", noklikšķiniet pogu "Delete Account" un apstipriniet.',
 ];

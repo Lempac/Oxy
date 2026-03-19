@@ -5,16 +5,18 @@ use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KanbanBoardController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
 Route::get('manual', fn () => Inertia::render('Manual'))->name('manual');
 
-Route::post('language', function (\Illuminate\Http\Request $request) {
+Route::post('language', function (Request $request) {
     $request->validate(['language' => 'required|string|in:en,lv']);
     session()->put('locale', $request->language);
-    cache()->forget('translations_' . $request->language); // Clear cache if needed, though usually not on every change
+    cache()->forget('translations_'.$request->language); // Clear cache if needed, though usually not on every change
+
     return back();
 })->name('language.update');
 

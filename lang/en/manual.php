@@ -61,5 +61,5 @@ return [
     'in_profile_page_update' => '2. In the profile page scroll down to the "Update Password" section. Input the information and click "Save" to save you changes.',
     'delete_account' => 'Delete account',
     'to_delete_account' => 'To delete your account:',
-    'in_profile_page_delete' => '2. In the profile page scroll down to the bottom to find the "Delete Account" section. Click the "Delete Account" button and hit confirm.'
+    'in_profile_page_delete' => '2. In the profile page scroll down to the bottom to find the "Delete Account" section. Click the "Delete Account" button and hit confirm.',
 ];
