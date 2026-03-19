@@ -37,6 +37,19 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'user' => $user,
+            'locale' => app()->getLocale(),
+            'translations' => cache()->rememberForever('translations_' . app()->getLocale(), function () {
+                $locale = app()->getLocale();
+                $files = glob(lang_path($locale . '/*.php'));
+                $translations = [];
+
+                foreach ($files as $file) {
+                    $name = basename($file, '.php');
+                    $translations[$name] = require $file;
+                }
+
+                return $translations;
+            }),
         ];
     }
 }

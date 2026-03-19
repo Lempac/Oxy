@@ -11,6 +11,13 @@ use Inertia\Inertia;
 Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
 Route::get('manual', fn () => Inertia::render('Manual'))->name('manual');
 
+Route::post('language', function (\Illuminate\Http\Request $request) {
+    $request->validate(['language' => 'required|string|in:en,lv']);
+    session()->put('locale', $request->language);
+    cache()->forget('translations_' . $request->language); // Clear cache if needed, though usually not on every change
+    return back();
+})->name('language.update');
+
 // Server/home routes
 Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->prefix('home')->name('home')->group(function () {
