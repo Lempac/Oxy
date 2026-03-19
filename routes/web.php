@@ -31,7 +31,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/{server}/voice', 'voice')->name('.voice');
         Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
-    });
+    }
+    );
 
     // Setting routes
     Route::prefix('settings')->group(function () {
@@ -39,17 +40,20 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}', 'showSettings')->name('settings.server');
             Route::post('/{id}', 'update')->name('server.update');
             Route::delete('/{id}', 'destroy')->name('server.destroy');
-        });
+        }
+        );
         Route::get('/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
         Route::get('/members/{id}', [RoleController::class, 'showMembers'])->name('settings.members');
-    });
+    }
+    );
 
     // Profile routes
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
         Route::post('/', 'update')->name('profile.update');
         Route::delete('/', 'destroy')->name('profile.destroy');
-    });
+    }
+    );
 
     Route::controller(KanbanBoardController::class)->prefix('kanban')->group(function () {
         Route::get('/', 'index')->name('kanban.index');
@@ -59,7 +63,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{board}/edit', 'edit')->name('kanban.edit');
         Route::put('/{board}', 'update')->name('kanban.update');
         Route::delete('/{board}', 'destroy')->name('kanban.destroy');
-    });
+    }
+    );
 });
 
 require __DIR__.'/auth.php';
