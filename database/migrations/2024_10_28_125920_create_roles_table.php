@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('color');
+            // FIXME: Fix the limit of 64 permission
             $table->bigInteger('perms');
             $table->integer('importance');
             $table->timestamps();

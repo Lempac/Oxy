@@ -1,11 +1,13 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+import { create, deleteMethod, edit } from '@/routes/channel';
+import { channel as channelRoute } from '@/routes/home/text';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import axios from "axios";
 import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined} from "oh-vue-icons/icons";
+import {MdDeleteforeverOutlined, MdModeeditoutlineOutlined, OiPlus} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {bigIntToPerms} from "@/bootstrap";
 import echo from "@/echo";
@@ -13,16 +15,15 @@ import echo from "@/echo";
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const loading = ref(false);
-const {selected_server} = defineProps<{
+const {selectedServer} = defineProps<{
     channels?: Channel[],
-    selected_server?: Server,
-    selected_channel?: Channel,
+    selectedServer?: Server,
+    selectedChannel?: Channel,
 }>()
-
 
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
-const editCurrent = ref<Function>();
+const editCurrent = ref<() => void>();
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const form = useForm({
@@ -45,7 +46,7 @@ const openModal = (channel?: Channel) => {
 const createChannel = async () => {
     if (loading.value) return;
     loading.value = true;
-    axios.postForm(route('channel.create', {server: selected_server?.id}), form.data())
+    axios.postForm(create.url(selectedServer!.id), form.data())
         .then(() => {
             channelModal.value?.close();
             router.reload();
@@ -61,7 +62,7 @@ const createChannel = async () => {
 
 const deleteChannel = async (channelId: number) => {
     console.log(channelId)
-    axios.delete(route('channel.delete', {channel: channelId})).then(() => {
+    axios.delete(deleteMethod.url(channelId)).then(() => {
         router.reload()
     });
 };
@@ -71,7 +72,7 @@ const editChannel = async (channelId: number) => {
     if (loading.value) return;
     loading.value = true;
 
-    axios.patch(route('channel.edit', {channel: channelId}), form.data())
+    axios.patch(edit.url(channelId), form.data())
         .then(() => {
             channelModal.value?.close();
             router.reload()
@@ -85,11 +86,11 @@ const editChannel = async (channelId: number) => {
         });
 };
 
-if (selected_server && selected_server.roles !== null) {
-    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+if (selectedServer && selectedServer.roles !== null) {
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
-if(selected_server){
-    echo.private(`channels.${selected_server.id}`)
+if (selectedServer) {
+    echo.private(`channels.${selectedServer.id}`)
         .listen('.ChannelCreated', () => {
             router.reload({only: ['channels', 'selected_channel']});
         })
@@ -104,36 +105,43 @@ if(selected_server){
 </script>
 
 <template>
-    <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
-        <div class="indicator relative group m-2" v-for="channel in channels" :key="channel.id">
-            <div class="indicator-item indicator-top absolute hidden group-hover:block"
-                 v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)">
+    <div
+        class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
+        <div v-for="channel in channels" :key="channel.id" class="indicator relative group m-2">
+            <div
+                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
+                class="indicator-item indicator-top absolute hidden group-hover:block">
                 <ConfirmDialog
-                    title="Delete Channel"
+                    :confirm="() => deleteChannel(channel.id)"
                     :description="`Are you sure you want to delete ${channel.name} channel?`"
                     class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
-                    :confirm="() => deleteChannel(channel.id)"
+                    title="Delete Channel"
                 >
                     <v-icon name="md-deleteforever-outlined"/>
                 </ConfirmDialog>
             </div>
-            <div class="indicator-item indicator-top indicator-start absolute hidden group-hover:block"
-                 v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)">
-                <button @click.prevent="openModal(channel)"
-                        class="indicator-item badge badge-warning h-auto w-auto p-0.5">
+            <div
+                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)"
+                class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
+                <button
+                    class="indicator-item badge badge-warning h-auto w-auto p-0.5"
+                    @click.prevent="openModal(channel)">
                     <v-icon name="md-modeeditoutline-outlined"/>
                 </button>
             </div>
 
-            <Link :href="route('home.text.channel', {server : selected_server?.id, channel : channel.id})">
-                <button class="btn btn-outline btn-sm"
-                        :class="{'bg-gray-800 text-white dark:bg-gray-400 dark:text-gray-800' : selected_channel?.id === channel.id}">
+            <Link :href="channelRoute.url({server : selectedServer?.id!, channel : channel.id})">
+                <button
+                    :class="{'bg-gray-800 text-white dark:bg-gray-400 dark:text-gray-800' : selectedChannel?.id === channel.id}"
+                    class="btn btn-outline btn-sm">
                     {{ channel.name }}
                 </button>
             </Link>
         </div>
-        <button class="btn btn-sm btn-square btn-outline mx-9" @click="openModal()"
-                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)">
+        <button
+            v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
+            class="btn btn-sm btn-square btn-outline mx-9"
+            @click="openModal()">
             <v-icon name="oi-plus"/>
         </button>
     </div>
@@ -145,19 +153,21 @@ if(selected_server){
                     <label class="label">
                         <span class="label-text">Text Channel Name</span>
                     </label>
-                    <input v-model="form.name" type="text" placeholder="Enter channel name"
-                           class="input input-bordered"/>
+                    <input
+                        v-model="form.name" class="input input-bordered" placeholder="Enter channel name"
+                        type="text"/>
                     <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
                 </div>
                 <div class="modal-action">
-                    <button type="submit" :disabled="loading" class="btn btn-primary w-full mt-2">
+                    <button :disabled="loading" class="btn btn-primary w-full mt-2" type="submit">
                         {{ isEditing ? 'Edit Text Channel' : 'Create Text Channel' }}
                     </button>
                 </div>
             </form>
             <div class="modal-action">
-                <button @click="() => channelModal?.close()"
-                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
+                <button
+                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    @click="() => channelModal?.close()">✕
                 </button>
             </div>
         </div>

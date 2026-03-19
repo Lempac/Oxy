@@ -1,41 +1,44 @@
-<script setup lang="ts">
-import {ref, defineProps} from "vue";
+<script lang="ts" setup>
+import {ref} from "vue";
 
 const modal = ref<HTMLDialogElement>();
 
 withDefaults(defineProps<{
-    title: String,
-    description: String,
+    title: string,
+    description: string,
     cancel?: (event: MouseEvent) => void,
-    confirm?: (event: MouseEvent) => void
+    confirm?: (event: MouseEvent) => void,
     text?: string,
     className: string,
 }>(), {
-    cancel: (_: MouseEvent) => {},
-    confirm: (_: MouseEvent) => {},
+    cancel: () => {
+    },
+    confirm: () => {
+    }
 });
-
 </script>
 
 <template>
-    <button @click="modal?.showModal" :class="className">
-        <span v-if="text" v-text="text"></span>
-        <slot v-else/>
-    </button>
-    <Teleport to="#teleported">
-        <dialog ref="modal" class="modal">
-            <div class="modal-box">
-                <h2 class="text-lg font-bold" v-text="title"></h2>
-                <p class="py-4" v-text="description"></p>
-                <div class="modal-action">
-                    <button @click="(e: MouseEvent) => {cancel(e); modal?.close()}" class="btn btn-error">
-                        Cancel
-                    </button>
-                    <button @click="(e: MouseEvent) => {confirm(e); modal?.close()}" class="btn btn-success">
-                        Yes
-                    </button>
+    <div>
+        <button :class="className" @click="modal?.showModal">
+            <span v-if="text">{{ text }}</span>
+            <slot v-else/>
+        </button>
+        <Teleport to="#teleported">
+            <dialog ref="modal" class="modal">
+                <div class="modal-box">
+                    <h2 class="text-lg font-bold">{{ title }}</h2>
+                    <p class="py-4">{{ description }}</p>
+                    <div class="modal-action">
+                        <button class="btn btn-error" @click="(e: MouseEvent) => {cancel(e); modal?.close()}">
+                            Cancel
+                        </button>
+                        <button class="btn btn-success" @click="(e: MouseEvent) => {confirm(e); modal?.close()}">
+                            Yes
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </dialog>
-    </Teleport>
+            </dialog>
+        </Teleport>
+    </div>
 </template>

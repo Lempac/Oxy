@@ -30,3 +30,8 @@ devenv.local.nix
 
 # pre-commit
 .pre-commit-config.yaml
+/resources/js/wayfinder/
+/resources/js/actions/
+/resources/js/routes/
+/resources/js/ziggy.d.ts
+/resources/js/ziggy.js

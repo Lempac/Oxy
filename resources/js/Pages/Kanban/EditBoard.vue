@@ -1,4 +1,5 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+import { index, show } from '@/routes/kanban';
 import {router} from '@inertiajs/vue3';
 import {ref} from 'vue';
 import {Board} from "@/types";
@@ -11,15 +12,15 @@ const boardName = ref(board.name);
 const boardBio = ref(board.bio || "");
 
 const handleEditBoard = () => {
-    router.put(route('kanban.show', {board: board.id}), {name: boardName.value, bio: boardBio.value}, {
+    router.put(show.url(board.id), {name: boardName.value, bio: boardBio.value}, {
         onSuccess: () => {
-            router.get(route('kanban.index'));
+            router.get(index.url());
         }
     });
 };
 
 const goBack = () => {
-    router.get(route('kanban.index'));
+    router.get(index.url());
 };
 </script>
 
@@ -27,21 +28,21 @@ const goBack = () => {
     <div class="edit-board-container">
         <h1 class="title">Edit Kanban Board</h1>
 
-        <form @submit.prevent="handleEditBoard" class="form-container">
+        <form class="form-container" @submit.prevent="handleEditBoard">
             <div class="form-group">
-                <label for="board-name" class="form-label">Board Name:</label>
-                <input type="text" v-model="boardName" id="board-name" required/>
+                <label class="form-label" for="board-name">Board Name:</label>
+                <input id="board-name" v-model="boardName" required type="text"/>
             </div>
 
             <div class="form-group">
-                <label for="board-bio" class="form-label">Board's Bio:</label>
-                <textarea v-model="boardBio" id="board-bio" rows="4"></textarea>
+                <label class="form-label" for="board-bio">Board's Bio:</label>
+                <textarea id="board-bio" v-model="boardBio" rows="4"></textarea>
             </div>
 
-            <button type="submit" class="submit-btn">Save Changes</button>
+            <button class="submit-btn" type="submit">Save Changes</button>
         </form>
 
-        <button @click="goBack" class="back-btn">Back to Boards</button>
+        <button class="back-btn" @click="goBack">Back to Boards</button>
     </div>
 </template>
 

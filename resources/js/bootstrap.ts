@@ -1,4 +1,5 @@
-import axios, {AxiosError, AxiosResponse} from 'axios';
+import { addUser } from '@/routes/server';
+import axios, {AxiosError} from 'axios';
 import './echo.ts';
 import {router} from "@inertiajs/vue3";
 import {Perms} from "@/types";
@@ -9,14 +10,14 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 export const defaultIcon = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s";
 
 export const baseUrl = window.location.origin;
-
+//TODO: Need to go around and check if the perm never gets put in as number, before converted to bigint as it losses precision
 export const bigIntToPerms = (newPrem: bigint): Perms => ({
     perm: newPrem,
     add(addPerm) {
         this.perm |= Array.isArray(addPerm) ? addPerm.map(perm => BigInt(perm)).reduce((acc, curr) => acc | curr) : BigInt(addPerm)
     },
     has(otherPerm) {
-        let comOtherPerm = Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((acc, curr) => acc | curr) : BigInt(otherPerm);
+        const comOtherPerm = Array.isArray(otherPerm) ? otherPerm.map(perm => BigInt(perm)).reduce((acc, curr) => acc | curr) : BigInt(otherPerm);
         return (this.perm & comOtherPerm) === comOtherPerm;
     },
     hasAny(otherPerm) {
@@ -28,7 +29,7 @@ export const bigIntToPerms = (newPrem: bigint): Perms => ({
 });
 
 export const joinServer = async (code: string): Promise<[number, string?]> => {
-    return Promise.resolve(await axios.post(route('server.addUser'), {code: code})
+    return Promise.resolve(await axios.post(addUser.url(), {code: code})
         .then(() => {
             router.reload({only: ['servers']});
             return [200, 'Successfully joined to server.'] as [number, string];

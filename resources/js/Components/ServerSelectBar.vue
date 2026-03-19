@@ -1,11 +1,15 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+import { home, logout } from '@/routes';
+import { server as serverRoute } from '@/routes/home';
+import { edit } from '@/routes/profile';
+import { create } from '@/routes/server';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import {computed, onMounted, ref, watch} from 'vue';
+import {computed, ref} from 'vue';
 import {baseUrl, defaultIcon, joinServer} from "@/bootstrap";
 import axios from "axios";
 import {addIcons} from "oh-vue-icons";
-import {OiPlus, HiSolidSun, RiMoonClearFill} from "oh-vue-icons/icons";
+import {HiSolidSun, OiPlus, RiMoonClearFill} from "oh-vue-icons/icons";
 import {Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 
@@ -29,11 +33,11 @@ const form = useForm<{ name: string, description: string, icon: File | null }>({
     icon: null
 });
 
-let loading = ref(false);
+const loading = ref(false);
 const createServer = async () => {
     if (loading.value) return;
     loading.value = true;
-    axios.postForm(route('server.create'), form.data())
+    axios.postForm(create.url(), form.data())
         .then(() => {
             serverModal.value?.close();
             router.reload({only: ['servers']});
@@ -41,7 +45,7 @@ const createServer = async () => {
         })
         .catch((err) => {
             for (const [name, errors] of (Object.entries(err.response.data.errors) as [name: string, errors: string[]][])) {
-                errors.forEach((error: any) => form.setError(name as "description" | "icon" | "name", error))
+                errors.forEach(error => form.setError(name as "description" | "icon" | "name", error))
             }
             console.error('Error creating server:', err);
         })
@@ -65,19 +69,21 @@ const updateIcon = (val: File) => {
 <template>
     <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
         <div class="navbar-start">
-            <Link :href="route('home')">
+            <Link :href="home.url()">
                 <ApplicationLogo class="block h-auto w-auto fill-current ml-5"/>
             </Link>
         </div>
-        <div class="navbar-center w-3/5 overflow-x-auto overflow-y-hidden whitespace-nowrap flex justify-center items-center">
+        <div
+            class="navbar-center w-3/5 overflow-x-auto overflow-y-hidden whitespace-nowrap flex justify-center items-center">
             <div v-for="server in servers" :key="server.id">
                 <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                    <Link :href="route('home.server', { id: server.id})">
-                        <div class="tooltip tooltip-bottom" :data-tip="server.name">
+                    <Link :href="serverRoute.url(server.id)">
+                        <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div class="btn btn-ghost btn-circle avatar">
                                 <div class="w-14 rounded-full">
-                                    <img alt="Server"
-                                         :src="server.icon ? `${baseUrl}${server.icon}` : defaultIcon"/>
+                                    <img
+                                        :src="server.icon ? `${baseUrl}${server.icon}` : defaultIcon"
+                                        alt="Server"/>
                                 </div>
                             </div>
                         </div>
@@ -99,22 +105,22 @@ const updateIcon = (val: File) => {
             <!--            </label>-->
 
             <div class="dropdown dropdown-end">
-                <div tabindex="0" role="button" class="flex items-center btn btn-ghost">
+                <div class="flex items-center btn btn-ghost" role="button" tabindex="0">
                     <div class="mr-2">{{ $page.props.user?.name }}</div>
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img
-                                alt="User Avatar"
-                                :src="$page.props.user?.icon ? `${baseUrl}${$page.props.user?.icon}` : defaultIcon"/>
+                                :src="$page.props.user?.icon ? `${baseUrl}${$page.props.user?.icon}` : defaultIcon"
+                                alt="User Avatar"/>
                         </div>
                     </div>
                 </div>
-                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow" tabindex="0">
                     <li>
-                        <Link :href="route('profile.edit')">Profile</Link>
+                        <Link :href="edit.url()">Profile</Link>
                     </li>
                     <li>
-                        <Link :href="route('logout')" method="post" as="button">Log Out</Link>
+                        <Link :href="logout.url()" as="button" method="post">Log Out</Link>
                     </li>
                 </ul>
             </div>
@@ -127,20 +133,20 @@ const updateIcon = (val: File) => {
             <!-- Create Server-->
             <div class="tabs flex justify-center">
                 <button
-                    @click="activeTab = 'create'"
                     :class="{
                             'tab-active border-b-2 border-blue-500': activeTab === 'create',
                             'tab-bordered': activeTab !== 'create'
                         }"
-                    class="tab px-3 py-1 mr-9 text-lg">Create Server
+                    class="tab px-3 py-1 mr-9 text-lg"
+                    @click="activeTab = 'create'">Create Server
                 </button>
                 <button
-                    @click="activeTab = 'join'"
                     :class="{
                             'tab-active border-b-2 border-blue-500': activeTab === 'join',
                             'tab-bordered': activeTab !== 'join'
                         }"
-                    class="tab px-3 py-1 ml-9 text-lg">Join Server
+                    class="tab px-3 py-1 ml-9 text-lg"
+                    @click="activeTab = 'join'">Join Server
                 </button>
             </div>
 
@@ -154,16 +160,16 @@ const updateIcon = (val: File) => {
                             <label
                                 class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
                                 for="serverIcon">
-                                <img v-if="icon !== null" :src="icon" class="size-16 rounded-full" alt=""/>
+                                <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
                                 <v-icon v-else name="oi-plus" scale="3.333"/>
                             </label>
-                            <label for="serverIcon" class="cursor-pointer">Upload server icon</label>
+                            <label class="cursor-pointer" for="serverIcon">Upload server icon</label>
                             <input
-                                ref="inputFile"
                                 id="serverIcon"
-                                type="file"
-                                class="hidden"
+                                ref="inputFile"
                                 accept="image/png, image/jpeg"
+                                class="hidden"
+                                type="file"
                                 @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
                             />
                         </div>
@@ -172,19 +178,22 @@ const updateIcon = (val: File) => {
                             <label class="label">
                                 <span class="label-text">Server Name</span>
                             </label>
-                            <input v-model="form.name" type="text" placeholder="Enter server name"
-                                   class="input input-bordered"/>
+                            <input
+                                v-model="form.name" class="input input-bordered" placeholder="Enter server name"
+                                type="text"/>
                             <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
                         </div>
                         <div class="form-control mb-4">
                             <label class="label">
                                 <span class="label-text">Description (Optional)</span>
                             </label>
-                            <input v-model="form.description" type="text" placeholder="Enter server description"
-                                   class="input input-bordered"/>
+                            <input
+                                v-model="form.description" class="input input-bordered"
+                                placeholder="Enter server description"
+                                type="text"/>
                         </div>
                         <div class="modal-action">
-                            <button type="submit" class="btn btn-primary w-full mt-2">Create Server</button>
+                            <button class="btn btn-primary w-full mt-2" type="submit">Create Server</button>
                         </div>
                     </form>
 
@@ -196,16 +205,22 @@ const updateIcon = (val: File) => {
                         <label class="label" for="code">
                             <span class="label-text">Server Invite Code</span>
                         </label>
-                        <input ref="code" type="text" name="code" id="code"
-                               placeholder="Enter invite code" class="input input-bordered"/>
+                        <input
+                            id="code" ref="code" class="input input-bordered" name="code"
+                            placeholder="Enter invite code" type="text"/>
                     </div>
-                    <button class="btn btn-secondary w-full" @click="async () => {val = await joinServer(code!.value); val[0] === 200 ? serverModal?.close() : ''; form.reset();}">Join Server</button>
+                    <button
+                        class="btn btn-secondary w-full"
+                        @click="async () => {val = await joinServer(code!.value); val[0] === 200 ? serverModal?.close() : ''; form.reset();}">
+                        Join Server
+                    </button>
                     <ErrorAlert v-if="val && val[0] !== 200" :message="val[1]" class="mt-3"/>
                 </div>
                 <!-- Close Button -->
                 <div class="modal-action">
-                    <button @click="() => serverModal?.close()"
-                            class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕
+                    <button
+                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        @click="() => serverModal?.close()">✕
                     </button>
                 </div>
             </div>

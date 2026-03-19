@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import ServerSelectBar from "@/Components/ServerSelectBar.vue";
 import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
 import {router, usePage} from "@inertiajs/vue3";
@@ -19,18 +19,18 @@ const copyToClipboard = (text: string) => {
 const toggle = ref(false);
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
-const {selected_server} = defineProps<{
+const {selectedServer} = defineProps<{
     servers?: Server[];
-    invite_code?: string,
-    selected_server?: Server,
+    inviteCode?: string,
+    selectedServer?: Server,
 }>();
 
-if (selected_server && selected_server.roles !== null) {
-    perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+if (selectedServer && selectedServer.roles !== null) {
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 
-if (selected_server) {
-    echo.private(`servers.${selected_server.id}`)
+if (selectedServer) {
+    echo.private(`servers.${selectedServer.id}`)
         .listen('.ServerJoined', () => {
             router.reload({only: ['selected_server']});
         })
@@ -41,7 +41,7 @@ if (selected_server) {
             router.reload({only: ['servers', 'selected_server']});
         });
 
-    echo.private(`roles.${selected_server.id}`)
+    echo.private(`roles.${selectedServer.id}`)
         .listen('.RoleDeleted', () => {
             router.reload({only: ['selected_server']});
         })
@@ -56,7 +56,7 @@ if (selected_server) {
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
         <ServerSelectBar :servers/>
         <header v-if="$page.url.startsWith('/home')">
-            <ChannelSelectBar :selected_server/>
+            <ChannelSelectBar :selected-server/>
         </header>
 
         <main>
@@ -64,18 +64,18 @@ if (selected_server) {
         </main>
 
         <footer v-if="$page.url.match(/\/home\/\d+/)">
-            <div v-if="invite_code !== undefined && perms.has(PermType.CAN_INVITE)" class="toast truncate mb-16">
+            <div v-if="inviteCode !== undefined && perms.has(PermType.CAN_INVITE)" class="toast truncate mb-16">
                 <div
                     class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0 bg-white dark:bg-gray-800"
                     @mouseenter="toggle = true" @mouseleave="toggle = false">
-                    <span :class="`font-bold p-2  ${toggle ? '' : 'hidden'}`">{{ invite_code }}</span>
-                    <button class="btn tooltip" data-tip="Copy" @click="copyToClipboard(invite_code)">
+                    <span :class="`font-bold p-2  ${toggle ? '' : 'hidden'}`">{{ inviteCode }}</span>
+                    <button class="btn tooltip" data-tip="Copy" @click="copyToClipboard(inviteCode)">
                         <v-icon name="hi-clipboard-copy"/>
                     </button>
                 </div>
             </div>
 
-            <MembersList :selected_server/>
+            <MembersList :selected-server/>
         </footer>
     </div>
 </template>

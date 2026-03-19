@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
 import {joinServer} from "@/bootstrap";
@@ -10,8 +10,8 @@ const code = ref<HTMLInputElement>();
 
 defineProps<{
     servers: Server[],
-    selected_server?: Server,
-    invite_code?: string
+    selectedServer?: Server,
+    inviteCode?: string
 }>();
 
 const val = ref<[number, string?] | undefined>();
@@ -20,18 +20,20 @@ const val = ref<[number, string?] | undefined>();
 
 <template>
     <Head title="Home"/>
-    <AuthenticatedLayout :servers :selected_server :invite_code>
+    <AuthenticatedLayout :invite-code :selected-server :servers>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="card bg-white dark:bg-gray-800 mb-3 shadow-sm sm:rounded-lg" v-if="selected_server?.description">
-                    <span class="card-body">{{ selected_server?.description }}</span>
+                <div
+                    v-if="selectedServer?.description"
+                    class="card bg-white dark:bg-gray-800 mb-3 shadow-sm sm:rounded-lg">
+                    <span class="card-body">{{ selectedServer?.description }}</span>
                 </div>
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="flex items-center justify-between p-6 text-gray-900 dark:text-gray-100">
                         <span>Join a server!</span>
                         <div class="join flex">
                             <input ref="code" class="input input-bordered join-item" placeholder="Enter code"/>
-                            <button @click="async () => val = await joinServer(code!.value)" class="btn join-item ml-2">
+                            <button class="btn join-item ml-2" @click="async () => val = await joinServer(code!.value)">
                                 Join
                             </button>
                         </div>

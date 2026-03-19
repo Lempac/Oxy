@@ -1,9 +1,11 @@
-<script setup lang="ts">
-import { useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+<script lang="ts" setup>
+import { destroy } from '@/routes/profile';
+import {useForm} from '@inertiajs/vue3';
+import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { MdKey } from "oh-vue-icons/icons";
-import { addIcons } from "oh-vue-icons";
+import {MdKey} from "oh-vue-icons/icons";
+import {addIcons} from "oh-vue-icons";
+
 addIcons(MdKey);
 
 const passwordInput = ref<HTMLInputElement | null>(null);
@@ -15,12 +17,13 @@ const modalRef = ref<HTMLDialogElement | null>(null);
 
 const toggleModal = (action: 'open' | 'close') => {
     if (modalRef.value) {
-        action === 'open' ? modalRef.value.showModal() : modalRef.value.close();
+        if (action === 'open') modalRef.value.showModal();
+        else modalRef.value.close();
     }
 };
 
 const deleteUser = () => {
-    form.delete(route('profile.destroy'), {
+    form.delete(destroy.url(), {
         preserveScroll: true,
         onSuccess: () => toggleModal('close'),
         onError: () => passwordInput.value?.focus(),
@@ -42,16 +45,17 @@ const deleteUser = () => {
         </header>
 
         <button class="btn btn-error" @click="toggleModal('open')">Delete Account</button>
-        <dialog ref="modalRef" id="my_modal_2" class="modal">
+        <dialog id="my_modal_2" ref="modalRef" class="modal">
             <div class="modal-box">
-                <form method="dialog" class="modal-backdrop">
+                <form class="modal-backdrop" method="dialog">
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                             Are you sure you want to delete your account?
                         </h2>
 
                         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                            Once your account is deleted, all of its resources and data will be permanently deleted. Please
+                            Once your account is deleted, all of its resources and data will be permanently deleted.
+                            Please
                             enter your password to confirm you would like to permanently delete your account.
                         </p>
 
@@ -59,27 +63,29 @@ const deleteUser = () => {
                             <label class="block font-medium text-sm text-gray-600 dark:text-gray-400" for="password">Password</label>
 
                             <label class="input input-bordered flex items-center gap-2">
-                                <v-icon name="md-key" class="h-4 w-4 opacity-70"/>
-                                <input id="password"
-                                       ref="passwordInput"
-                                       v-model="form.password"
-                                       type="password"
-                                       class="mt-1 block w-3/4 text-white"
-                                       placeholder="Password"
-                                       @keyup.enter="deleteUser"
+                                <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                                <input
+                                    id="password"
+                                    ref="passwordInput"
+                                    v-model="form.password"
+                                    class="mt-1 block w-3/4 text-white"
+                                    placeholder="Password"
+                                    type="password"
+                                    @keyup.enter="deleteUser"
                                 />
                             </label>
 
-                            <ErrorAlert class="mt-2" :message="form.errors.password" />
+                            <ErrorAlert :message="form.errors.password" class="mt-2"/>
                         </div>
 
                         <div class="mt-6 flex justify-end">
-                            <button type="button" @click="toggleModal('close')" class="btn">Cancel</button>
+                            <button class="btn" type="button" @click="toggleModal('close')">Cancel</button>
 
-                            <button type="button" class="btn btn-error ms-3"
-                                    :class="{ 'opacity-25': form.processing }"
-                                    :disabled="form.processing"
-                                    @click="deleteUser"
+                            <button
+                                :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
+                                class="btn btn-error ms-3"
+                                type="button"
+                                @click="deleteUser"
                             >
                                 Delete Account
                             </button>

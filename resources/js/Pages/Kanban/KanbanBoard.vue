@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {ref} from 'vue';
 
 const columns = ref([
@@ -22,7 +22,7 @@ const getTasksForColumn = (columnId: string) => {
     <div class="kanban-board-container">
         <h1>Kanban Board</h1>
 
-        <div class="kanban-column" v-for="(column, index) in columns" :key="index">
+        <div v-for="(column, index) in columns" :key="index" class="kanban-column">
             <h2>{{ column.name }}</h2>
             <div class="kanban-tasks">
                 <div v-for="task in getTasksForColumn(column.id)" :key="task.id" class="kanban-task">

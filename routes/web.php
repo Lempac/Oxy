@@ -11,7 +11,7 @@ use Inertia\Inertia;
 Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
 Route::get('manual', fn () => Inertia::render('Manual'))->name('manual');
 
-//Server/home routes
+// Server/home routes
 Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->prefix('home')->name('home')->group(function () {
         Route::get('/', 'home')->middleware('verified');
@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
     });
 
-    //Setting routes
+    // Setting routes
     Route::prefix('settings')->group(function () {
         Route::controller(ServerController::class)->prefix('server')->group(function () {
             Route::get('/{id}', 'showSettings')->name('settings.server');
@@ -35,7 +35,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/members/{id}', [RoleController::class, 'showMembers'])->name('settings.members');
     });
 
-    //Profile routes
+    // Profile routes
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
         Route::post('/', 'update')->name('profile.update');

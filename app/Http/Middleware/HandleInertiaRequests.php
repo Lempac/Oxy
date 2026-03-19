@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -32,16 +31,12 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         if ($user) {
-            $user = $request->user()?->load('roles');
+            $user = $request->user()->load('roles');
         }
 
         return [
             ...parent::share($request),
             'user' => $user,
-            'ziggy' => fn () => [
-                ...(new Ziggy)->toArray(),
-                'location' => $request->url(),
-            ],
         ];
     }
 }

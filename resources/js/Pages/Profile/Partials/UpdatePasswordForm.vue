@@ -1,9 +1,11 @@
-<script setup lang="ts">
-import { useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+<script lang="ts" setup>
+import { update } from '@/routes/password';
+import {useForm} from '@inertiajs/vue3';
+import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { MdKey } from "oh-vue-icons/icons";
-import { addIcons } from "oh-vue-icons";
+import {MdKey} from "oh-vue-icons/icons";
+import {addIcons} from "oh-vue-icons";
+
 addIcons(MdKey);
 
 const passwordInput = ref<HTMLInputElement | null>(null);
@@ -16,7 +18,7 @@ const form = useForm({
 });
 
 const updatePassword = () => {
-    form.put(route('password.update'), {
+    form.put(update.url(), {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();
@@ -44,59 +46,65 @@ const updatePassword = () => {
             </p>
         </header>
 
-        <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
+        <form class="mt-6 space-y-6" @submit.prevent="updatePassword">
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="current_password"> Current Password </label>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="current_password">
+                    Current Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon name="md-key" class="h-4 w-4 opacity-70"/>
-                    <input id="current_password"
-                           ref="currentPasswordInput"
-                           v-model="form.current_password"
-                           type="password"
-                           class="mt-1 block w-full"
-                           autocomplete="current-password"
+                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <input
+                        id="current_password"
+                        ref="currentPasswordInput"
+                        v-model="form.current_password"
+                        autocomplete="current-password"
+                        class="mt-1 block w-full"
+                        type="password"
                     />
                 </label>
 
-                <ErrorAlert class="mt-2" :message="form.errors.current_password" />
+                <ErrorAlert :message="form.errors.current_password" class="mt-2"/>
             </div>
 
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password"> New Password </label>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password"> New
+                    Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon name="md-key" class="h-4 w-4 opacity-70"/>
-                    <input id="password"
-                           ref="passwordInput"
-                           v-model="form.password"
-                           type="password"
-                           class="mt-1 block w-full"
-                           autocomplete="new-password"
+                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <input
+                        id="password"
+                        ref="passwordInput"
+                        v-model="form.password"
+                        autocomplete="new-password"
+                        class="mt-1 block w-full"
+                        type="password"
                     />
                 </label>
 
-                <ErrorAlert class="mt-2" :message="form.errors.password" />
+                <ErrorAlert :message="form.errors.password" class="mt-2"/>
             </div>
 
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password_confirmation"> Confirm Password </label>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password_confirmation">
+                    Confirm Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon name="md-key" class="h-4 w-4 opacity-70"/>
-                    <input id="password_confirmation"
-                           v-model="form.password_confirmation"
-                           type="password"
-                           class="mt-1 block w-full"
-                           autocomplete="new-password"
+                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <input
+                        id="password_confirmation"
+                        v-model="form.password_confirmation"
+                        autocomplete="new-password"
+                        class="mt-1 block w-full"
+                        type="password"
                     />
                 </label>
 
-                <ErrorAlert class="mt-2" :message="form.errors.password_confirmation" />
+                <ErrorAlert :message="form.errors.password_confirmation" class="mt-2"/>
             </div>
 
             <div class="flex items-center gap-4">
-                <button class="btn" :disabled="form.processing">Save</button>
+                <button :disabled="form.processing" class="btn">Save</button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"

@@ -1,12 +1,13 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import {addIcons} from "oh-vue-icons";
-import { PiMunchlaxShiny } from "oh-vue-icons/icons";
+import {PiMunchlaxShiny} from "oh-vue-icons/icons";
+
 addIcons(PiMunchlaxShiny);
 
 </script>
 
 <template>
     <div class="">
-        <v-icon name="pi-munchlax-shiny" scale="2.5" />
+        <v-icon name="pi-munchlax-shiny" scale="2.5"/>
     </div>
 </template>

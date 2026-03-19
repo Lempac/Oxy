@@ -1,6 +1,8 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+import { server } from '@/routes/home';
+import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {defineProps, ref} from 'vue';
-import {Link, router, usePage} from '@inertiajs/vue3';
+import {Link, usePage} from '@inertiajs/vue3';
 import axios, {AxiosResponse} from 'axios';
 import {Perms, PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
@@ -11,8 +13,8 @@ import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
 addIcons(BiCheckLg, CoArrowBottom, CoArrowTop);
 
-const {selected_server} = defineProps<{
-    selected_server: Server,
+const {selectedServer} = defineProps<{
+    selectedServer: Server,
 }>();
 
 const roles = ref<Role[]>([]);
@@ -29,13 +31,13 @@ const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const fetchRoles = async () => {
     try {
-        const response: AxiosResponse<Role[] | null> = await axios.get(route('roles.index', {server: selected_server?.id}));
-        roles.value = response.data ?? []; // Default to empty array if undefined
+        const response: AxiosResponse<Role[] | null> = await axios.get(index.url(selectedServer?.id));
+        roles.value = response.data ?? []; // Default to an empty array if undefined
         // Sort roles by importance
         roles.value.sort((a, b) => a.importance - b.importance);
 
-        if (selected_server && selected_server.roles !== null){
-            perms.value = bigIntToPerms(selected_server.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+        if (selectedServer && selectedServer.roles !== null) {
+            perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
         }
     } catch (error) {
         console.error('Error fetching roles:', error);
@@ -59,7 +61,7 @@ const updateRole = async () => {
     const currentEditingRole = editingRole.value;
 
     if (currentEditingRole) {
-        const response = await axios.patch(route('roles.edit', {role: currentEditingRole.id}), newRole.value);
+        const response = await axios.patch(edit.url(currentEditingRole.id), newRole.value);
 
         const index = roles.value.findIndex(r => r.id === currentEditingRole.id);
         roles.value[index] = response.data.role;
@@ -79,7 +81,7 @@ const addRole = async () => {
             newRole.value.importance = maxImportance + 1;
         }
 
-        await axios.post(route('roles.create', { server: selected_server?.id }), {
+        await axios.post(create.url(selectedServer?.id), {
             name: newRole.value.name,
             color: newRole.value.color,
             perms: newRole.value.perms,
@@ -87,7 +89,7 @@ const addRole = async () => {
         });
 
         closeModal();
-        await fetchRoles(); 
+        await fetchRoles();
     } catch (error) {
         console.error('Error adding role:', error);
     }
@@ -95,14 +97,14 @@ const addRole = async () => {
 
 const deleteRole = async (role: Role) => {
     try {
-        await axios.delete(route('roles.delete', { role: role.id }));
+        await axios.delete(deleteMethod.url(role.id));
 
         roles.value = roles.value.filter(r => r.id !== role.id);
 
         roles.value.forEach(r => {
             if (r.importance > role.importance) {
                 r.importance -= 1;
-                axios.patch(route('roles.edit', { role: r.id }), { importance: r.importance });
+                axios.patch(edit.url(r.id), {importance: r.importance});
             }
         });
 
@@ -114,17 +116,20 @@ const deleteRole = async (role: Role) => {
 };
 
 
-// Fetch roles when component mounts
+// Fetch roles when the component mounts
 fetchRoles();
 
-const togglePerm = (perm: PermType, state: boolean) => {
+const togglePerm = (perm: typeof PermType | number, state: boolean) => {
     if (editingRole.value?.perms === undefined) return;
-    let currentPerm = bigIntToPerms(BigInt(editingRole.value?.perms))
-    state ? currentPerm.add(perm) : currentPerm.remove(perm)
+    const currentPerm = bigIntToPerms(BigInt(editingRole.value?.perms))
+
+    if (state) currentPerm.add(perm)
+    else currentPerm.remove(perm)
+
     editingRole.value.perms = currentPerm.perm.toString()
 };
 
-let roleArray = Object.entries(PermType).filter(role => typeof role[1] === 'number') as [string, number][];
+const roleArray = Object.entries(PermType);
 
 const changeImportance = async (role: Role, direction: number) => {
     const currentImportance = role.importance;
@@ -133,7 +138,7 @@ const changeImportance = async (role: Role, direction: number) => {
     if (newImportance < 1 || newImportance >= roles.value.length) return;
 
     let swapRole: Role | undefined;
-    if (direction === 1) { 
+    if (direction === 1) {
         swapRole = roles.value.find(r => r.importance === currentImportance + 1);
     } else if (direction === -1) {
         swapRole = roles.value.find(r => r.importance === currentImportance - 1);
@@ -144,8 +149,8 @@ const changeImportance = async (role: Role, direction: number) => {
         role.importance = swapRole.importance;
         swapRole.importance = tempImportance;
 
-        await axios.patch(route('roles.edit', { role: role.id }), { importance: role.importance });
-        await axios.patch(route('roles.edit', { role: swapRole.id }), { importance: swapRole.importance });
+        await axios.patch(edit.url(role.id), {importance: role.importance});
+        await axios.patch(edit.url(swapRole.id), {importance: swapRole.importance});
     }
 
     roles.value.sort((a, b) => a.importance - b.importance);
@@ -158,9 +163,9 @@ const changeImportance = async (role: Role, direction: number) => {
     <div class="flex flex-col items-center justify-center">
         <div class="w-full max-w-6xl p-6">
             <!-- Navbar for Navigation -->
-            <SettingsHeader :selected_server/>
+            <SettingsHeader :selected-server/>
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="route('home.server', { server: selected_server?.id })" class="btn btn-neutral">
+                <Link :href="server.url(selectedServer?.id)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>
@@ -170,14 +175,16 @@ const changeImportance = async (role: Role, direction: number) => {
                 <h1 class="text-3xl text-white mb-6">Role Settings</h1>
 
                 <!-- Button to Open Modal -->
-                <button :disabled="!perms.has(PermType.CAN_CREATE_ROLE)" @click="isModalOpen = true" class="btn mb-6">Add Role</button>
+                <button :disabled="!perms.has(PermType.CAN_CREATE_ROLE)" class="btn mb-6" @click="isModalOpen = true">
+                    Add Role
+                </button>
 
                 <!-- Roles Table -->
                 <table class="min-w-full bg-base-300 rounded-lg">
                     <thead class="bg-gray-500">
                     <tr>
                         <th class="py-2 px-4 text-left text-white">Role Name</th>
-                        <th class="py-2 px-4 text-left text-white" v-if="editingRole">Color</th>
+                        <th v-if="editingRole" class="py-2 px-4 text-left text-white">Color</th>
                         <th class="py-2 px-4 text-left text-white">Importance</th>
                         <th class="py-2 px-4 text-left text-white">Perms</th>
                         <th class="py-2 px-4 text-end text-white">Actions</th>
@@ -185,40 +192,56 @@ const changeImportance = async (role: Role, direction: number) => {
                     </thead>
                     <tbody>
                     <tr v-for="role in roles" :key="role.id">
-                        <td class="py-2 px-4" :style="{ color: editingRole === role ? newRole.color : role.color }">
+                        <td :style="{ color: editingRole === role ? newRole.color : role.color }" class="py-2 px-4">
                             <span v-if="editingRole !== role">{{ role.name }}</span>
-                            <input v-if="editingRole === role" v-model="newRole.name" type="text"
-                                   class="p-1 text-black bg-white"/>
+                            <input
+                                v-if="editingRole === role" v-model="newRole.name" class="p-1 text-black bg-white"
+                                type="text"/>
                         </td>
                         <td v-if="editingRole === role" class="py-2 px-4">
-                            <input v-model="newRole.color" type="color" class="ml-2 bg-transparent"/>
+                            <input v-model="newRole.color" class="ml-2 bg-transparent" type="color"/>
                         </td>
                         <td class="py-2 px-4 text-white">
                             <span v-if="editingRole !== role">{{ role.importance }}</span>
-                            <div  v-if="editingRole === role && role.importance !== 0" class="flex justify-center space-x-2">
-                                <button @click="changeImportance(role, -1)" class="btn"><v-icon name="co-arrow-top"></v-icon></button>
-                                <button @click="changeImportance(role, 1)" class="btn"><v-icon name="co-arrow-bottom"></v-icon></button>
+                            <div
+                                v-if="editingRole === role && role.importance !== 0"
+                                class="flex justify-center space-x-2">
+                                <button class="btn" @click="changeImportance(role, -1)">
+                                    <v-icon name="co-arrow-top"/>
+                                </button>
+                                <button class="btn" @click="changeImportance(role, 1)">
+                                    <v-icon name="co-arrow-bottom"/>
+                                </button>
                             </div>
                         </td>
                         <td class="py-2 px-4 text-black">
                             <div class="dropdown">
-                                <button tabindex="0"
-                                        class="btn m-1">
+                                <button
+                                    class="btn m-1"
+                                    tabindex="0">
                                     {{
-                                        roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).map(roleobj => roleobj[0]).slice(0, 3).join(', ') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length > 3 ? ' +' + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length - 3).toString() + ' others' : '') + (roleArray.filter(roleobj => BigInt(roleobj[1]) & BigInt(role.perms)).length === 0 ? 'None' : '')
+                                        roleArray
+                                            .filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms))
+                                            .map(roleObj => roleObj[0])
+                                            .slice(0, 3)
+                                            .join(', ') + (roleArray.filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms)).length > 3 ?
+                                            ' +' + (roleArray.filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms)).length - 3).toString() + ' others' : '') + (roleArray.filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms)).length === 0 ? 'None'
+                                            : '')
                                     }}
                                 </button>
-                                <ul tabindex="0"
-                                    class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1">
-                                    <li v-for="perm in roleArray">
+                                <ul
+                                    class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1"
+                                    tabindex="0">
+                                    <li v-for="(perm, index) in roleArray" :key="index">
                                         <button
-                                            @click="() => togglePerm(perm[1], !bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])))"
                                             :class="(bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])) ? 'bg-gray-700' : '')"
-                                            class="btn"
                                             :disabled="editingRole !== role"
+                                            class="btn"
+                                            @click="() => togglePerm(perm[1], !bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])))"
                                         >
-                                            <v-icon name="bi-check-lg"
-                                                    v-if="bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1]))"/>
+                                            <v-icon
+                                                v-if="bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1]))"
+                                                name="bi-check-lg"/>
                                             {{ perm[0] }}
                                         </button>
                                     </li>
@@ -227,16 +250,20 @@ const changeImportance = async (role: Role, direction: number) => {
                         </td>
                         <td class="py-2 px-4 text-end">
                             <div class="flex justify-end space-x-2">
-                                <button v-if="editingRole !== role" :disabled="!perms.has(PermType.CAN_EDIT_ROLE)" @click="editRole(role)"
-                                        class="btn hover:btn-info px-4 py-2 ">Edit
+                                <button
+                                    v-if="editingRole !== role" :disabled="!perms.has(PermType.CAN_EDIT_ROLE)"
+                                    class="btn hover:btn-info px-4 py-2 "
+                                    @click="editRole(role)">Edit
                                 </button>
-                                <button v-if="editingRole === role" @click="updateRole"
-                                        class="btn hover:btn-success px-4 py-2">Save
+                                <button
+                                    v-if="editingRole === role" class="btn hover:btn-success px-4 py-2"
+                                    @click="updateRole">Save
                                 </button>
-                                <ConfirmDialog title="Are you sure?"
-                                               description="Are you sure you want to delete this role?"
-                                               :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has(PermType.CAN_DELETE_ROLE) ? 'btn-disabled' : ''}`"
-                                               :confirm="() => deleteRole(role)" text="Delete"/>
+                                <ConfirmDialog
+                                    :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has(PermType.CAN_DELETE_ROLE) ? 'btn-disabled' : ''}`"
+                                    :confirm="() => deleteRole(role)"
+                                    description="Are you sure you want to delete this role?"
+                                    text="Delete" title="Are you sure?"/>
                             </div>
                         </td>
                     </tr>
@@ -251,31 +278,31 @@ const changeImportance = async (role: Role, direction: number) => {
                             <label class="label" for="newRoleName">Role Name</label>
                             <input
                                 id="newRoleName"
-                                type="text"
                                 v-model="newRole.name"
-                                required
                                 class="input input-bordered grow"
+                                required
+                                type="text"
                             />
                         </div>
                         <div class="form-control">
                             <label class="label justify-start" for="newRoleColor">
                                 Color
                                 <span
-                                    class="ml-3 size-12 rounded-full border border-gray-300 cursor-pointer"
                                     :style="{ backgroundColor: newRole.color }"
+                                    class="ml-3 size-12 rounded-full border border-gray-300 cursor-pointer"
                                 />
                             </label>
                             <input
                                 id="newRoleColor"
-                                type="color"
                                 v-model="newRole.color"
                                 class="hidden"
+                                type="color"
                             />
                         </div>
                         <!-- Removed Importance Field from the Modal Form -->
                         <div class="modal-action">
-                            <button @click="addRole" class="btn btn-success">Add Role</button>
-                            <button @click="closeModal" class="btn">Cancel</button>
+                            <button class="btn btn-success" @click="addRole">Add Role</button>
+                            <button class="btn" @click="closeModal">Cancel</button>
                         </div>
                     </div>
                 </dialog>

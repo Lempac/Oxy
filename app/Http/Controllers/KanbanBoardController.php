@@ -26,12 +26,12 @@ class KanbanBoardController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            //'bio' => 'nullable|string',
+            // 'bio' => 'nullable|string',
         ]);
 
         $board = KanbanBoard::create([
             'name' => $request->input('name'),
-            //'bio' => $request->input('bio'),
+            // 'bio' => $request->input('bio'),
         ]);
 
         $defaultColumns = ['To do', 'Doing', 'Done'];
@@ -56,12 +56,12 @@ class KanbanBoardController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            //'bio' => 'nullable|string',
+            // 'bio' => 'nullable|string',
         ]);
 
         $board->update([
             'name' => $request->input('name'),
-            //'bio' => $request->input('bio'),
+            // 'bio' => $request->input('bio'),
         ]);
 
         return redirect()->route('kanban.index')->with('Board updated successfully.');

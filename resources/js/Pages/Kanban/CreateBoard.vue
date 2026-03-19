@@ -1,18 +1,19 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+import { index, store } from '@/routes/kanban';
 import {router} from '@inertiajs/vue3';
 import {ref} from 'vue';
 
 const boardName = ref("");
 const handleCreateBoard = () => {
-    router.post(route('kanban.store'), {name: boardName.value}, {
+    router.post(store.url(), {name: boardName.value}, {
         onSuccess: () => {
-            router.get(route('kanban.index'));
+            router.get(index.url());
         }
     });
 };
 
 const goBack = () => {
-    router.get(route('kanban.index'));
+    router.get(index.url());
 };
 </script>
 
@@ -20,16 +21,16 @@ const goBack = () => {
     <div class="create-board-container">
         <h1 class="title">Create a New Kanban Board</h1>
 
-        <form @submit.prevent="handleCreateBoard" class="form-container">
+        <form class="form-container" @submit.prevent="handleCreateBoard">
             <div class="form-group">
-                <label for="board-name" class="form-label">Board Name:</label>
-                <input type="text" v-model="boardName" id="board-name" required/>
+                <label class="form-label" for="board-name">Board Name:</label>
+                <input id="board-name" v-model="boardName" required type="text"/>
             </div>
 
-            <button type="submit" class="submit-btn">Create Board</button>
+            <button class="submit-btn" type="submit">Create Board</button>
         </form>
 
-        <button @click="goBack" class="back-btn">Back to Boards</button>
+        <button class="back-btn" @click="goBack">Back to Boards</button>
     </div>
 </template>
 

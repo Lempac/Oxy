@@ -1,11 +1,15 @@
 import './bootstrap';
 import '../css/app.css';
 
-import {createApp, h, DefineComponent} from 'vue';
+import {createApp, DefineComponent, h} from 'vue';
 import {createInertiaApp} from '@inertiajs/vue3';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
-import {ZiggyVue} from "../../vendor/tightenco/ziggy/src/js/index.js";
-import {OhVueIcon} from "oh-vue-icons";
+import {OhVueIcon} from 'oh-vue-icons';
+import { configureEcho } from '@laravel/echo-vue';
+
+configureEcho({
+    broadcaster: 'reverb',
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -16,7 +20,6 @@ createInertiaApp({
         createApp({render: () => h(App, props)})
             .component("v-icon", OhVueIcon)
             .use(plugin)
-            .use(ZiggyVue)
             .mount(el);
     },
     progress: {
