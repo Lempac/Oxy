@@ -133,7 +133,7 @@ const leaveChannel = async () => {
                     </button>
                 </span>
 
-                <div class="w-full rounded-lg bg-white dark:bg-gray-800">
+                <div class="w-full rounded-lg bg-base-100">
                     <div class="flex items-center justify-center text-xl pt-2">
                         {{ channel.name }}
                     </div>
@@ -141,7 +141,7 @@ const leaveChannel = async () => {
                     <div class="grid grid-cols-3 gap-1 p-3">
                         <div
                             v-for="user in selectedServer?.users" :key="user.id"
-                            class="avatar rounded-lg items-center justify-center h-16 bg-gray-100 dark:bg-gray-700"
+                            class="avatar rounded-lg items-center justify-center h-16 bg-base-300"
                         >
                             <div class="flex w-10 h-auto rounded-full ml-5">
                                 <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon"/>
@@ -167,7 +167,7 @@ const leaveChannel = async () => {
 
             <button
                 v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
-                class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-white dark:bg-gray-800"
+                class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-base-100"
                 @click="openModal()">
                 <v-icon name="oi-plus" scale="3"/>
             </button>

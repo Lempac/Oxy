@@ -40,15 +40,15 @@ const updatePassword = () => {
 <template>
     <section>
         <header>
-            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Update Password</h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <h2 class="text-lg font-medium text-base-content">Update Password</h2>
+            <p class="mt-1 text-sm text-base-content/70">
                 Ensure your account is using a long, random password to stay secure.
             </p>
         </header>
 
         <form class="mt-6 space-y-6" @submit.prevent="updatePassword">
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="current_password">
+                <label class="block font-medium text-sm text-base-content/90" for="current_password">
                     Current Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
@@ -67,7 +67,7 @@ const updatePassword = () => {
             </div>
 
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password"> New
+                <label class="block font-medium text-sm text-base-content/90" for="password"> New
                     Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
@@ -86,7 +86,7 @@ const updatePassword = () => {
             </div>
 
             <div>
-                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300" for="password_confirmation">
+                <label class="block font-medium text-sm text-base-content/90" for="password_confirmation">
                     Confirm Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
@@ -112,7 +112,7 @@ const updatePassword = () => {
                     leave-active-class="transition ease-in-out"
                     leave-to-class="opacity-0"
                 >
-                    <p v-if="form.recentlySuccessful" class="text-sm text-gray-600 dark:text-gray-400">Saved.</p>
+                    <p v-if="form.recentlySuccessful" class="text-sm text-base-content/70">Saved.</p>
                 </Transition>
             </div>
         </form>

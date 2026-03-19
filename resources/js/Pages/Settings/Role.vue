@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
-import {defineProps, ref} from 'vue';
+import {ref} from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import axios, {AxiosResponse} from 'axios';
 import {Perms, PermType, Role, Server} from "@/types";
@@ -171,8 +171,8 @@ const changeImportance = async (role: Role, direction: number) => {
             </div>
 
             <!-- Role Settings Content Section -->
-            <div class="bg-gray-700 p-8 rounded-lg shadow-lg">
-                <h1 class="text-3xl text-white mb-6">Role Settings</h1>
+            <div class="bg-base-200 p-8 rounded-lg shadow-lg">
+                <h1 class="text-3xl text-base-content mb-6">Role Settings</h1>
 
                 <!-- Button to Open Modal -->
                 <button :disabled="!perms.has(PermType.CAN_CREATE_ROLE)" class="btn mb-6" @click="isModalOpen = true">
@@ -181,13 +181,13 @@ const changeImportance = async (role: Role, direction: number) => {
 
                 <!-- Roles Table -->
                 <table class="min-w-full bg-base-300 rounded-lg">
-                    <thead class="bg-gray-500">
+                    <thead class="bg-base-100">
                     <tr>
-                        <th class="py-2 px-4 text-left text-white">Role Name</th>
-                        <th v-if="editingRole" class="py-2 px-4 text-left text-white">Color</th>
-                        <th class="py-2 px-4 text-left text-white">Importance</th>
-                        <th class="py-2 px-4 text-left text-white">Perms</th>
-                        <th class="py-2 px-4 text-end text-white">Actions</th>
+                        <th class="py-2 px-4 text-left text-base-content">Role Name</th>
+                        <th v-if="editingRole" class="py-2 px-4 text-left text-base-content">Color</th>
+                        <th class="py-2 px-4 text-left text-base-content">Importance</th>
+                        <th class="py-2 px-4 text-left text-base-content">Perms</th>
+                        <th class="py-2 px-4 text-end text-base-content">Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -195,13 +195,13 @@ const changeImportance = async (role: Role, direction: number) => {
                         <td :style="{ color: editingRole === role ? newRole.color : role.color }" class="py-2 px-4">
                             <span v-if="editingRole !== role">{{ role.name }}</span>
                             <input
-                                v-if="editingRole === role" v-model="newRole.name" class="p-1 text-black bg-white"
+                                v-if="editingRole === role" v-model="newRole.name" class="p-1 text-base-content bg-base-100"
                                 type="text"/>
                         </td>
                         <td v-if="editingRole === role" class="py-2 px-4">
                             <input v-model="newRole.color" class="ml-2 bg-transparent" type="color"/>
                         </td>
-                        <td class="py-2 px-4 text-white">
+                        <td class="py-2 px-4 text-base-content">
                             <span v-if="editingRole !== role">{{ role.importance }}</span>
                             <div
                                 v-if="editingRole === role && role.importance !== 0"
@@ -214,7 +214,7 @@ const changeImportance = async (role: Role, direction: number) => {
                                 </button>
                             </div>
                         </td>
-                        <td class="py-2 px-4 text-black">
+                        <td class="py-2 px-4 text-base-content">
                             <div class="dropdown">
                                 <button
                                     class="btn m-1"
@@ -234,7 +234,7 @@ const changeImportance = async (role: Role, direction: number) => {
                                     tabindex="0">
                                     <li v-for="(perm, index) in roleArray" :key="index">
                                         <button
-                                            :class="(bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])) ? 'bg-gray-700' : '')"
+                                            :class="(bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])) ? 'bg-base-300' : '')"
                                             :disabled="editingRole !== role"
                                             class="btn"
                                             @click="() => togglePerm(perm[1], !bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])))"

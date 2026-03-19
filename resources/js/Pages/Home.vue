@@ -25,11 +25,11 @@ const val = ref<[number, string?] | undefined>();
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div
                     v-if="selectedServer?.description"
-                    class="card bg-white dark:bg-gray-800 mb-3 shadow-sm sm:rounded-lg">
+                    class="card bg-base-100 mb-3 shadow-sm sm:rounded-lg">
                     <span class="card-body">{{ selectedServer?.description }}</span>
                 </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="flex items-center justify-between p-6 text-gray-900 dark:text-gray-100">
+                <div class="bg-base-100 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="flex items-center justify-between p-6 text-base-content">
                         <span>Join a server!</span>
                         <div class="join flex">
                             <input ref="code" class="input input-bordered join-item" placeholder="Enter code"/>

@@ -112,11 +112,11 @@ const submitRegister = () => {
         </header>
 
         <main>
-            <h1 class="text-7xl font-sans text-gray-400">Welcome to the future</h1>
+            <h1 class="text-7xl font-sans text-base-content/70">Welcome to the future</h1>
 
             <!-- Countdown Section -->
             <!--            <div class="text-left flex my-4 mb-10 mt-10 mr-8">-->
-            <!--                <div class="card shadow-lg bg-gray-500 text-white">-->
+            <!--                <div class="card shadow-lg bg-base-300 text-base-content">-->
             <!--                    <div class="card-body p-2">-->
             <!--                        <h2 class="text-2xl font-bold">Heat death of the universe</h2>-->
             <!--                        <p class="text-xl">{{ countdown }}</p>-->
@@ -126,20 +126,20 @@ const submitRegister = () => {
 
             <!-- Info cards -->
             <div class="flex justify-center mt-8 space-x-8">
-                <div class="card bg-gray-500 text-white p-4 w-1/3 text-center">
+                <div class="card bg-neutral text-neutral-content p-4 w-1/3 text-center">
                     <v-icon class="w-16 h-16 mx-auto mb-4" name="co-chat-bubble" scale="1"/>
                     <h2 class="text-2xl font-bold">Messaging</h2>
                     <p class="mt-2">Oxy lets users easily communicate with others quickly with channels and servers.</p>
                 </div>
 
-                <div class="card bg-gray-500 text-white p-4 w-1/3 text-center">
+                <div class="card bg-neutral text-neutral-content p-4 w-1/3 text-center">
                     <v-icon class="w-16 h-16 mx-auto mb-4" name="ri-computer-fill" scale="1"/>
                     <h2 class="text-2xl font-bold">Servers</h2>
                     <p class="mt-2">Create servers to communicate with multiple people and work on projects
                         simultaneously.</p>
                 </div>
 
-                <div class="card bg-gray-500 text-white p-4 w-1/3 text-center">
+                <div class="card bg-neutral text-neutral-content p-4 w-1/3 text-center">
                     <img alt="Kanban" class="w-16 h-16 mx-auto mb-4" src="/images/kanban.png"/>
                     <h2 class="text-2xl font-bold">Kanban Board</h2>
                     <p class="mt-2">Organize tasks into categories to manage projects with ease using our kanban
@@ -147,10 +147,10 @@ const submitRegister = () => {
                 </div>
             </div>
 
-            <div class="card mt-10 bordered h-fit bg-white">
-                <h2 class="card-title text-black ml-5 mt-5">What are you waiting for?</h2>
+            <div class="card mt-10 bordered h-fit bg-base-100">
+                <h2 class="card-title text-base-content ml-5 mt-5">What are you waiting for?</h2>
                 <div class="flex justify-between items-center p-5">
-                    <p class="text-black text-xl md:text-l ml-5">
+                    <p class="text-base-content text-xl md:text-l ml-5">
                         Join now!!!
                     </p>
                     <div>
@@ -161,7 +161,7 @@ const submitRegister = () => {
                             <div class="grid gap-3 grid-flow-col">
                                 <!-- Login button that triggers the popup -->
                                 <button
-                                    class="btn btn-lg bg-red-500 text-white hover:text-black"
+                                    class="btn btn-lg btn-error text-error-content hover:text-base-content"
                                     @click="() => {form.clearErrors(); loginModel?.showModal()}">
                                     Join
                                 </button>
@@ -251,8 +251,8 @@ const submitRegister = () => {
 
         </main>
 
-        <footer class="footer footer-center mt-10 text-white">
-            <div class="rounded-full p-4 bg-black">
+        <footer class="footer footer-center mt-10 text-base-content">
+            <div class="rounded-full p-4 bg-neutral text-neutral-content">
                 © {{ new Date().getFullYear() }} Oxy
             </div>
             <Link
@@ -265,121 +265,115 @@ const submitRegister = () => {
         </footer>
     </div>
     <dialog ref="loginModel" class="modal">
-        <form class="modal-box" @submit.prevent="submitLogin">
-            <h2 class="text-lg font-bold">Log in</h2>
-            <div class="form-control">
-                <label class="label" for="email">Email</label>
+        <form class="modal-box space-y-4 text-base-content" @submit.prevent="submitLogin">
+            <h2 class="text-2xl font-bold border-b border-base-300 pb-2">Log in</h2>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Email</legend>
                 <input
                     id="email"
                     v-model="form.email"
-                    class="input input-bordered grow"
+                    class="input input-bordered w-full"
                     required
                     type="email"
                 />
-                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" class="mt-2"/>
-            </div>
-            <div class="form-control">
-                <label class="label" for="password">
-                    Password
-                </label>
+                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" />
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Password</legend>
                 <input
                     id="password"
                     v-model="form.password"
-                    class="input input-bordered grow"
+                    class="input input-bordered w-full"
                     required
                     type="password"
                 />
-                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" class="mt-2"/>
-            </div>
-            <div class="form-control">
-                <label class="label place-content-start gap-3" for="remember">
+                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" />
+            </fieldset>
+            <fieldset class="fieldset p-0">
+                <label class="fieldset-label cursor-pointer flex-row gap-3">
                     <input id="remember" v-model="form.remember" class="checkbox" type="checkbox"/>
                     Remember me
                 </label>
-            </div>
-            <div class="flex justify-between items-center">
-                <button class="btn btn-success" type="submit">
+            </fieldset>
+            <div class="modal-action mt-6 gap-2">
+                <button class="btn btn-success px-8" type="submit">
                     Log in
                 </button>
-
-                <button class="btn btn-error" @click="() => loginModel?.close()">Cancel</button>
+                <button class="btn btn-ghost" type="button" @click="() => loginModel?.close()">Cancel</button>
             </div>
-            <button class="btn btn-link" @click="() => {loginModel?.close(); registerModel?.showModal();}">Create an
-                account?
-            </button>
+            <div class="text-center mt-2">
+                <button class="btn btn-link btn-sm" type="button" @click="() => {loginModel?.close(); registerModel?.showModal();}">
+                    Create an account?
+                </button>
+            </div>
         </form>
     </dialog>
     <dialog ref="registerModel" class="modal">
-        <form class="modal-box" @submit.prevent="submitRegister">
-            <h2 class="text-lg font-bold">Register</h2>
+        <form class="modal-box space-y-4 text-base-content" @submit.prevent="submitRegister">
+            <h2 class="text-2xl font-bold border-b border-base-300 pb-2">Register</h2>
             <!-- Name Input -->
-            <div class="form-control">
-                <label class="label" for="name">Name</label>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Name</legend>
                 <input
                     id="name"
                     v-model="form.name"
-                    class="input input-bordered grow"
+                    class="input input-bordered w-full"
                     required
                     type="text"
                 />
-                <!-- Error for name -->
-                <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
-            </div>
-            <div class="form-control">
-                <!-- Email Input -->
-                <label class="label" for="email">Email</label>
+                <ErrorAlert v-if="form.errors.name" :message="form.errors.name" />
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Email</legend>
                 <input
                     id="email"
                     v-model="form.email"
-                    class="input input-bordered grow"
+                    class="input input-bordered w-full"
                     required
                     type="email"
                 />
-                <!-- Error for email -->
-                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" class="mt-2"/>
-            </div>
+                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" />
+            </fieldset>
             <!-- Password Input -->
-            <div class="form-control">
-                <label class="label" for="password">Password</label>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Password</legend>
                 <input
                     id="password"
                     v-model="form.password"
-                    class="input input-bordered grow"
+                    class="input input-bordered w-full"
                     required
                     type="password"
                 />
-                <!-- Error for password -->
-                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" class="mt-2"/>
-            </div>
+                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" />
+            </fieldset>
             <!-- Password Confirmation Input -->
-            <div class="form-control">
-                <label class="label" for="password_confirmation">Confirm Password</label>
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Confirm Password</legend>
                 <input
                     id="password_confirmation"
                     v-model="form.password_confirmation"
-                    class="input input-bordered grow"
+                    class="input input-bordered w-full"
                     required
                     type="password"
                 />
-                <!-- Error for password_confirmation -->
-                <ErrorAlert
-                    v-if="form.errors.password_confirmation" :message="form.errors.password_confirmation"
-                    class="mt-2"/>
-            </div>
+                <ErrorAlert v-if="form.errors.password_confirmation" :message="form.errors.password_confirmation" />
+            </fieldset>
             <!-- Submit and Cancel Buttons -->
-            <div class="justify-between modal-action">
+            <div class="modal-action mt-6 gap-2">
                 <button
-                    :disabled="form.processing" class="btn btn-success"
+                    :disabled="form.processing" class="btn btn-success px-8"
                     type="submit">
                     Register
                 </button>
-                <button class="btn btn-error" type="button" @click="() => registerModel?.close()">
+                <button class="btn btn-ghost" type="button" @click="() => registerModel?.close()">
                     Cancel
                 </button>
             </div>
-            <button class="btn btn-link" @click="() => {registerModel?.close(); loginModel?.showModal();}">Already have
-                an account?
-            </button>
+            <div class="text-center mt-2">
+                <button class="btn btn-link btn-sm" type="button" @click="() => {registerModel?.close(); loginModel?.showModal();}">
+                    Already have an account?
+                </button>
+            </div>
         </form>
     </dialog>
     </body>

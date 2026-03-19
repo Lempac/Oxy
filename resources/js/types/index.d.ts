@@ -15,6 +15,41 @@ export const MessageType = {
     File: 'file',
 } as const;
 
+export const Themes = {
+    OXY: 'oxy',
+    LIGHT: 'light',
+    DARK: 'dark',
+    CUPCAKE: 'cupcake',
+    BUMBLEBEE: 'bumblebee',
+    EMERALD: 'emerald',
+    CORPORATE: 'corporate',
+    SYNTHWAVE: 'synthwave',
+    RETRO: 'retro',
+    CYBERPUNK: 'cyberpunk',
+    VALENTINE: 'valentine',
+    HALLOWEEN: 'halloween',
+    GARDEN: 'garden',
+    FOREST: 'forest',
+    AQUA: 'aqua',
+    LOFI: 'lofi',
+    PASTEL: 'pastel',
+    FANTASY: 'fantasy',
+    WIREFRAME: 'wireframe',
+    BLACK: 'black',
+    LUXURY: 'luxury',
+    DRACULA: 'dracula',
+    CMYK: 'cmyk',
+    AUTUMN: 'autumn',
+    BUSINESS: 'business',
+    ACID: 'acid',
+    LEMONADE: 'lemonade',
+    NIGHT: 'night',
+    COFFEE: 'coffee',
+    WINTER: 'winter',
+} as const;
+
+export type ThemeType = typeof Themes[keyof typeof Themes];
+
 export const PermType = {
     CAN_DELETE_SERVER: 1 << 0,
     CAN_EDIT_SERVER: 1 << 1,
@@ -110,6 +145,7 @@ export interface User {
     name: string;
     email: string;
     readonly email_verified_at: string | null;
+    theme: ThemeType;
     roles: Role[] | null;
     servers: Server[] | null;
 }

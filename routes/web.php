@@ -5,16 +5,18 @@ use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KanbanBoardController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
 Route::get('manual', fn () => Inertia::render('Manual'))->name('manual');
 
-Route::post('language', function (\Illuminate\Http\Request $request) {
+Route::post('language', function (Request $request) {
     $request->validate(['language' => 'required|string|in:en,lv']);
     session()->put('locale', $request->language);
-    cache()->forget('translations_' . $request->language); // Clear cache if needed, though usually not on every change
+    cache()->forget('translations_'.$request->language); // Clear cache if needed, though usually not on every change
+
     return back();
 })->name('language.update');
 
@@ -29,7 +31,8 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/{server}/voice', 'voice')->name('.voice');
         Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
-    });
+    }
+    );
 
     // Setting routes
     Route::prefix('settings')->group(function () {
@@ -37,17 +40,20 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}', 'showSettings')->name('settings.server');
             Route::post('/{id}', 'update')->name('server.update');
             Route::delete('/{id}', 'destroy')->name('server.destroy');
-        });
+        }
+        );
         Route::get('/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
         Route::get('/members/{id}', [RoleController::class, 'showMembers'])->name('settings.members');
-    });
+    }
+    );
 
     // Profile routes
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
         Route::post('/', 'update')->name('profile.update');
         Route::delete('/', 'destroy')->name('profile.destroy');
-    });
+    }
+    );
 
     Route::controller(KanbanBoardController::class)->prefix('kanban')->group(function () {
         Route::get('/', 'index')->name('kanban.index');
@@ -57,7 +63,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{board}/edit', 'edit')->name('kanban.edit');
         Route::put('/{board}', 'update')->name('kanban.update');
         Route::delete('/{board}', 'destroy')->name('kanban.destroy');
-    });
+    }
+    );
 });
 
 require __DIR__.'/auth.php';

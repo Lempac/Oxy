@@ -38,7 +38,7 @@ function route(name: string) {
 </script>
 <template>
     <Head :title="t('manual.manual')"></Head>
-    <body class="bg-gray-700 flex flex-col min-h-screen">
+    <body class="bg-base-200 flex flex-col min-h-screen">
     <div class="card card-body flex-grow">
         <header class="flex justify-between items-center">
             <Link :href="welcome.url()">
@@ -56,40 +56,40 @@ function route(name: string) {
 
         <main>
 
-            <h1 class="text-7xl font-sans text-white h-full text-center mb-10">{{ t('manual.get_help') }}</h1>
+            <h1 class="text-7xl font-sans text-base-content h-full text-center mb-10">{{ t('manual.get_help') }}</h1>
 
             <!--Servers-->
-            <div class="collapse collapse-arrow border bg-slate-600 border-black mb-5" tabindex="0">
+            <div class="collapse collapse-arrow border bg-base-100 border-black mb-5" tabindex="0">
                 <input type="checkbox"/>
-                <div class="collapse-title text-xl font-medium text-white">
+                <div class="collapse-title text-xl font-medium text-base-content">
                     {{ t('manual.servers') }}
                 </div>
                 <div class="collapse-content">
-                    <div class="collapse collapse-arrow bg-slate-600 mb-5 border border-white">
+                    <div class="collapse collapse-arrow bg-base-100 mb-5 border border-white">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.creating_a_server') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_create_a_server') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.press_plus') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.press_plus') }}</p>
                             <img alt="" class="block w-full fill-current mb-2" src="/images/AddServer.png"/>
-                            <p class="text-white mb-2">{{ t('manual.on_create_server') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.on_create_server') }}</p>
                             <img alt="" class="block w-auto mb-2 h-80" src="/images/CreateServer.png"/>
                         </div>
                     </div>
-                    <div class="collapse collapse-arrow bg-slate-600 mb-5 border border-white">
+                    <div class="collapse collapse-arrow bg-base-100 mb-5 border border-white">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white ">
+                        <div class="collapse-title text-xl font-medium text-base-content ">
                             {{ t('manual.joining_a_server') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_join_a_server') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.ask_server_admin') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.ask_server_admin') }}</p>
                             <img alt="" class="block w-auto h-80 mb-2" src="/images/ServerCode.png"/>
-                            <p class="text-white mb-2">{{ t('manual.join_press_plus') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.join_press_plus') }}</p>
                             <img alt="" class="block w-full fill-current mb-2" src="/images/AddServer.png"/>
-                            <p class="text-white mb-2">{{ t('manual.on_join_server') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.on_join_server') }}</p>
                             <img alt="" class="block w-auto mb-2 h-80" src="/images/JoinServer.png"/>
                         </div>
                     </div>
@@ -97,40 +97,40 @@ function route(name: string) {
             </div>
 
             <!--Channels-->
-            <div class="collapse collapse-arrow border bg-slate-600 border-black mb-5" tabindex="1">
+            <div class="collapse collapse-arrow border bg-base-100 border-black mb-5" tabindex="1">
                 <input type="checkbox"/>
-                <div class="collapse-title text-xl font-medium text-white">
+                <div class="collapse-title text-xl font-medium text-base-content">
                     {{ t('manual.channels') }}
                 </div>
                 <div class="collapse-content">
-                    <div class="collapse collapse-arrow border bg-slate-600 border-white mb-5" tabindex="1">
+                    <div class="collapse collapse-arrow border bg-base-100 border-white mb-5" tabindex="1">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.create_a_channel') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_create_a_channel') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.on_channel_page') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.on_channel_page') }}</p>
                             <img class="block w-auto fill-current mb-2" src="/images/Channels.png"/>
-                            <p class="text-white mb-2">{{ t('manual.input_channel_name') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.input_channel_name') }}</p>
                             <img class="block w-auto mb-2 h-40" src="/images/CreateText.png"/>
                         </div>
                     </div>
-                    <div class="collapse collapse-arrow border bg-slate-600 border-white mb-5" tabindex="1">
+                    <div class="collapse collapse-arrow border bg-base-100 border-white mb-5" tabindex="1">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.edit_delete_channels') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_edit_a_channel') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.hover_edit_channel') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.hover_edit_channel') }}</p>
                             <img class="block w-auto mb-2 h-60" src="/images/TextChannel.png"/>
-                            <p class="text-white mb-2">{{ t('manual.change_channel_name') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.change_channel_name') }}</p>
                             <img alt="" class="block w-auto mb-2 h-60" src="/images/RenameText.png"/>
                             <h1 class="mt-5">{{ t('manual.to_delete_a_channel') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.hover_delete_channel') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.hover_delete_channel') }}</p>
                             <img alt="" class="block w-auto mb-2 h-60" src="/images/TextChannel.png"/>
-                            <p class="text-white mb-2">{{ t('manual.click_yes_delete') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.click_yes_delete') }}</p>
                             <img alt="" class="block w-auto mb-2 h-40" src="/images/DeleteChannel.png"/>
                         </div>
                     </div>
@@ -138,74 +138,74 @@ function route(name: string) {
             </div>
 
             <!-- Messages-->
-            <div class="collapse collapse-arrow border bg-slate-600 border-black mb-5" tabindex="2">
+            <div class="collapse collapse-arrow border bg-base-100 border-black mb-5" tabindex="2">
                 <input type="checkbox"/>
-                <div class="collapse-title text-xl font-medium text-white">
+                <div class="collapse-title text-xl font-medium text-base-content">
                     {{ t('manual.messages') }}
                 </div>
                 <div class="collapse-content">
                     <h1> {{ t('manual.to_edit_your_message') }}</h1>
-                    <p class="text-white mb-2">{{ t('manual.send_message') }}</p>
+                    <p class="text-base-content mb-2">{{ t('manual.send_message') }}</p>
                     <img alt="" class="block w-auto mb-2 h-60" src="/images/Texting.png"/>
-                    <p class="text-white mb-2">{{ t('manual.edit_message_hover') }}</p>
+                    <p class="text-base-content mb-2">{{ t('manual.edit_message_hover') }}</p>
                     <img alt="" class="block w-auto mb-2 h-40" src="/images/EditText.png"/>
-                    <p class="text-white mb-2">{{ t('manual.edit_text_click') }}</p>
+                    <p class="text-base-content mb-2">{{ t('manual.edit_text_click') }}</p>
                     <img class="block w-auto mb-2 h-40" src="/images/EditMessage.png"/>
-                    <p class="text-white mb-2">{{ t('manual.delete_message_hover') }}</p>
+                    <p class="text-base-content mb-2">{{ t('manual.delete_message_hover') }}</p>
                     <img alt="" class="block w-auto mb-2 h-40" src="/images/DeleteMessage.png"/>
                 </div>
             </div>
 
             <!--Server settings-->
-            <div class="collapse collapse-arrow border bg-slate-600 border-black mb-5" tabindex="3">
+            <div class="collapse collapse-arrow border bg-base-100 border-black mb-5" tabindex="3">
                 <input type="checkbox"/>
-                <div class="collapse-title text-xl font-medium text-white">
+                <div class="collapse-title text-xl font-medium text-base-content">
                     {{ t('manual.server_settings') }}
                 </div>
                 <div class="collapse-content">
-                    <div class="collapse collapse-arrow border bg-slate-600 border-white mb-5">
+                    <div class="collapse collapse-arrow border bg-base-100 border-white mb-5">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.settings') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_access_settings') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.channel_bar_gear') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.channel_bar_gear') }}</p>
                             <img class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
-                            <p class="text-white mb-2">{{ t('manual.in_server_settings') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.in_server_settings') }}</p>
                             <img alt="" class="block w-auto mb-2 h-[600px]" src="/images/Settings.png"/>
                         </div>
                     </div>
 
                     <!--Roles-->
-                    <div class="collapse collapse-arrow border bg-slate-600 border-white mb-5">
+                    <div class="collapse collapse-arrow border bg-base-100 border-white mb-5">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.roles') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_access_roles') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.channel_bar_gear') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.channel_bar_gear') }}</p>
                             <img class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
-                            <p class="text-white mb-2">{{ t('manual.in_server_settings_roles') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.in_server_settings_roles') }}</p>
                             <img class="block w-auto mb-2 h-80" src="/images/ToRoles.png"/>
-                            <p class="text-white mb-2">{{ t('manual.to_create_role') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.to_create_role') }}</p>
                             <img class="block w-auto mb-2 h-80" src="/images/Roles.png"/>
-                            <p class="text-white mb-2">{{ t('manual.input_roles_info') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.input_roles_info') }}</p>
                             <img alt="" class="block w-auto mb-2 h-80" src="/images/NewRole.png"/>
                         </div>
                     </div>
                     <!--Delete serv-->
-                    <div class="collapse collapse-arrow border bg-slate-600 border-white mb-5">
+                    <div class="collapse collapse-arrow border bg-base-100 border-white mb-5">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.deleting_a_server') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_delete_your_server') }}</h1>
-                            <p class="text-white mb-2">{{ t('manual.channel_bar_gear') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.channel_bar_gear') }}</p>
                             <img alt="" class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
-                            <p class="text-white mb-2">{{ t('manual.in_server_settings_delete') }}</p>
+                            <p class="text-base-content mb-2">{{ t('manual.in_server_settings_delete') }}</p>
                             <img class="block w-auto mb-2 h-80" src="/images/DeleteServer.png"/>
                         </div>
                     </div>
@@ -213,65 +213,65 @@ function route(name: string) {
             </div>
 
             <!--Account-->
-            <div class="collapse collapse-arrow border bg-slate-600 border-black mb-5" tabindex="5">
+            <div class="collapse collapse-arrow border bg-base-100 border-black mb-5" tabindex="5">
                 <input type="checkbox"/>
-                <div class="collapse-title text-xl font-medium text-white">
+                <div class="collapse-title text-xl font-medium text-base-content">
                     {{ t('manual.creating_an_account') }}
                 </div>
                 <div class="collapse-content">
                     <h1>{{ t('manual.to_create_an_account') }}</h1>
-                    <p class="text-white mb-2">{{ t('manual.in_home_page_register') }}</p>
+                    <p class="text-base-content mb-2">{{ t('manual.in_home_page_register') }}</p>
                     <img class="block w-auto mb-2 h-60" src="/images/CreateAccount.png"/>
-                    <p class="text-white mb-2">{{ t('manual.fill_out_info') }}</p>
+                    <p class="text-base-content mb-2">{{ t('manual.fill_out_info') }}</p>
                     <img class="block w-auto mb-2 h-80" src="/images/Register.png"/>
-                    <p class="text-white mb-2">{{ t('manual.afterwards_email') }}</p>
+                    <p class="text-base-content mb-2">{{ t('manual.afterwards_email') }}</p>
                     <img alt="" class="block w-auto mb-2 h-80" src="/images/VerifyEmail.png"/>
                 </div>
             </div>
 
             <!--Profile-->
-            <div class="collapse collapse-arrow border bg-slate-600 border-black mb-5" tabindex="6">
+            <div class="collapse collapse-arrow border bg-base-100 border-black mb-5" tabindex="6">
                 <input type="checkbox"/>
-                <div class="collapse-title text-xl font-medium text-white">
+                <div class="collapse-title text-xl font-medium text-base-content">
                     {{ t('manual.account') }}
                 </div>
                 <div class="collapse-content">
-                    <div class="collapse collapse-arrow bg-slate-600 mb-5 border border-white">
+                    <div class="collapse collapse-arrow bg-base-100 mb-5 border border-white">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.profile') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_go_to_profile') }}</h1>
-                            <p class="text-white"> {{ t('manual.click_profile_picture') }}</p>
+                            <p class="text-base-content"> {{ t('manual.click_profile_picture') }}</p>
                             <img class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
-                            <p class="text-white"> {{ t('manual.in_profile_page_change') }}</p>
+                            <p class="text-base-content"> {{ t('manual.in_profile_page_change') }}</p>
                             <img class="block w-auto mb-2 h-80" src="/images/Profile info.png"/>
                         </div>
                     </div>
-                    <div class="collapse collapse-arrow bg-slate-600 mb-5 border border-white">
+                    <div class="collapse collapse-arrow bg-base-100 mb-5 border border-white">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.update_password') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_update_password') }}</h1>
-                            <p class="text-white"> {{ t('manual.click_profile_profile') }}</p>
+                            <p class="text-base-content"> {{ t('manual.click_profile_profile') }}</p>
                             <img class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
-                            <p class="text-white"> {{ t('manual.in_profile_page_update') }}</p>
+                            <p class="text-base-content"> {{ t('manual.in_profile_page_update') }}</p>
                             <img class="block w-auto mb-2 h-80" src="/images/UpdatePassword.png"/>
                         </div>
                     </div>
-                    <div class="collapse collapse-arrow bg-slate-600 mb-5 border border-white">
+                    <div class="collapse collapse-arrow bg-base-100 mb-5 border border-white">
                         <input type="checkbox"/>
-                        <div class="collapse-title text-xl font-medium text-white">
+                        <div class="collapse-title text-xl font-medium text-base-content">
                             {{ t('manual.delete_account') }}
                         </div>
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_delete_account') }}</h1>
-                            <p class="text-white"> {{ t('manual.click_profile_profile') }}</p>
+                            <p class="text-base-content"> {{ t('manual.click_profile_profile') }}</p>
                             <img class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
-                            <p class="text-white"> {{ t('manual.in_profile_page_delete') }}</p>
+                            <p class="text-base-content"> {{ t('manual.in_profile_page_delete') }}</p>
                             <img class="block w-auto mb-2 h-40" src="/images/DeleteAccount.png"/>
                         </div>
                     </div>
@@ -279,7 +279,7 @@ function route(name: string) {
             </div>
         </main>
 
-        <footer class="footer footer-center mt-10 text-white">
+        <footer class="footer footer-center mt-10 text-base-content">
             <div class="rounded-full p-4 bg-transparent text-center">
                 © {{ new Date().getFullYear() }} Oxy
             </div>

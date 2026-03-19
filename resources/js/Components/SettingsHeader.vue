@@ -19,7 +19,7 @@ if (selectedServer && selectedServer.roles !== null) {
 </script>
 
 <template>
-    <div class="navbar bg-gray-800 text-white rounded-lg mb-6 py-4 px-6">
+    <div class="navbar bg-base-300 text-base-content rounded-lg mb-6 py-4 px-6">
         <div class="flex-1">
             <h1 :title="selectedServer?.name" class="text-2xl truncate" style="max-width: 50%;">
                 {{ selectedServer?.name }}
@@ -29,18 +29,18 @@ if (selectedServer && selectedServer.roles !== null) {
             <Link
                 v-if="perms.has(PermType.CAN_MANAGE_SERVER)"
                 :href="server.url(selectedServer?.id)"
-                class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
+                class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Server
             </Link>
             <Link
                 v-if="perms.has(PermType.CAN_MANAGE_ROLE)" :href="role.url(selectedServer?.id)"
-                class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
+                class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Roles
             </Link>
             <Link
                 v-if="perms.has(PermType.CAN_MANAGE_MEMBERS)"
                 :href="members.url(selectedServer?.id)"
-                class="text-lg text-white transition-all duration-300 ease-in-out hover:bg-gray-700 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
+                class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Members
             </Link>
         </div>

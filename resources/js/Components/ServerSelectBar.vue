@@ -67,7 +67,7 @@ const updateIcon = (val: File) => {
 
 
 <template>
-    <div class="navbar bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+    <div class="navbar bg-base-100 border-b border-base-300">
         <div class="navbar-start">
             <Link :href="home.url()">
                 <ApplicationLogo class="block h-auto w-auto fill-current ml-5"/>
@@ -158,7 +158,7 @@ const updateIcon = (val: File) => {
                     <form @submit.prevent="createServer">
                         <div class="form-control flex flex-row items-center gap-4">
                             <label
-                                class="cursor-pointer rounded-full bg-gray-200 dark:bg-gray-600 transition-all duration-300 ease-in-out hover:bg-transparent"
+                                class="cursor-pointer rounded-full bg-base-200 transition-all duration-300 ease-in-out hover:bg-transparent"
                                 for="serverIcon">
                                 <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
                                 <v-icon v-else name="oi-plus" scale="3.333"/>

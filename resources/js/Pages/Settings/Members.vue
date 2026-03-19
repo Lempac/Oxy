@@ -68,13 +68,13 @@ if (selectedServer && selectedServer.roles !== null) {
             </div>
 
             <!-- Role Settings Content Section -->
-            <div class="bg-gray-700 p-8 rounded-lg shadow-lg">
-                <h1 class="text-3xl text-white mb-6">Members Settings</h1>
+            <div class="bg-base-200 p-8 rounded-lg shadow-lg">
+                <h1 class="text-3xl text-base-content mb-6">Members Settings</h1>
 
                 <!-- Roles Table -->
                 <table class="min-w-full bg-base-300 rounded-lg">
-                    <thead class="bg-gray-500">
-                    <tr class="text-white">
+                    <thead class="bg-base-100">
+                    <tr class="text-base-content">
                         <th class="py-4 px-4 text-left">User Name</th>
                         <th class="py-4 px-4">Roles</th>
                         <th class="py-4 px-4 pr-7 text-end">Kick</th>
@@ -99,7 +99,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                     tabindex="0">
                                     <li v-for="role in selectedServer.roles" :key="role.id">
                                         <button
-                                            :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-gray-700' : ''"
+                                            :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-base-300' : ''"
                                             :disabled="!perms.has(PermType.CAN_EDIT_MEMBER_ROLES)"
                                             class="btn"
                                             @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))">
