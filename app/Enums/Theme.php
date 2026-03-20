@@ -4,7 +4,8 @@ namespace App\Enums;
 
 enum Theme: string
 {
-    case OXY = 'oxy';
+    case OXY_DARK = 'oxy-dark';
+    case OXY_LIGHT = 'oxy-light';
     case LIGHT = 'light';
     case DARK = 'dark';
     case CUPCAKE = 'cupcake';

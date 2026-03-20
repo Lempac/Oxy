@@ -16,7 +16,8 @@ export const MessageType = {
 } as const;
 
 export const Themes = {
-    OXY: 'oxy',
+    OXY_DARK: 'oxy-dark',
+    OXY_LIGHT: 'oxy-light',
     LIGHT: 'light',
     DARK: 'dark',
     CUPCAKE: 'cupcake',

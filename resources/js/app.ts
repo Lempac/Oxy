@@ -7,6 +7,11 @@ import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import {OhVueIcon} from 'oh-vue-icons';
 import {Themes, ThemeType} from "@/types";
 import { configureEcho } from '@laravel/echo-vue';
+import { configureEcho } from '@laravel/echo-vue';
+
+configureEcho({
+    broadcaster: 'reverb',
+});
 
 configureEcho({
     broadcaster: 'reverb',
