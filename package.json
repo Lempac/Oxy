@@ -34,6 +34,7 @@
         "@tailwindcss/vite": "^4.2.1",
         "bad-words": "^4.0.0",
         "oh-vue-icons": "^1.0.0-rc3",
+        "trystero": "^0.22.0",
         "ts-node": "^10.9.2"
     }
 }
