@@ -35,3 +35,4 @@ devenv.local.nix
 /resources/js/routes/
 /resources/js/ziggy.d.ts
 /resources/js/ziggy.js
+/.output.txt

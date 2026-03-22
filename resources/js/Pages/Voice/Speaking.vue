@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { create, deleteMethod, edit } from '@/routes/channel';
-import { channel } from '@/routes/home/voice';
+import {create, deleteMethod, edit} from '@/routes/channel';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
@@ -22,7 +21,7 @@ const {selectedServer} = defineProps<{
 
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
-const editCurrent = ref<Function>();
+const editCurrent = ref<CallableFunction>();
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const form = useForm({
@@ -63,7 +62,9 @@ const editText = async (channelId: number) => {
 };
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles
+        .filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id))
+        .reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 
 const isInVoice = ref(false);
@@ -74,7 +75,7 @@ const joinChannel = async () => {
     isInVoice.value = true;
     if (isInVoice.value) {
         try {
-            const stream: MediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
             mediaRecorder = new MediaRecorder(stream);
 
             mediaRecorder.start(100);

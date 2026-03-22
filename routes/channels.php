@@ -5,7 +5,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id): bool {
-    return (int) $user->id === (int) $id;
+    return (int)$user->id === (int)$id;
 });
 
 Broadcast::channel('messages.{channelId}', function (User $user, int $channelId): bool {
@@ -24,6 +24,16 @@ Broadcast::channel('roles.{serverId}', function (User $user, int $serverId): boo
     return $user->servers->contains($serverId);
 });
 
-Broadcast::channel('voices.{channelId}', function (User $user, int $channelId): ?array {
-    return Channel::find($channelId)->server->users->contains($user) ? ['user' => $user] : null;
+Broadcast::channel('voices.{channelId}', function (User $user, int $channelId) {
+    $channel = Channel::find($channelId);
+
+    if ($channel && $user->servers->contains($channel->server_id)) {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'icon' => $user->icon,
+        ];
+    }
+
+    return false;
 });
