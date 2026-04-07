@@ -1,25 +1,24 @@
 <script lang="ts" setup>
-import { welcome } from '@/routes';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import {Head, Link, router, usePage} from '@inertiajs/vue3';
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 
 const page = usePage();
 
 function t(key: string) {
     const keys = key.split('.');
-    let translation = page.props.translations as any;
+    let translation = page.props.translations;
     for (const k of keys) {
-        if (translation[k]) {
-            translation = translation[k];
+        if (translation && typeof translation === 'object' && k in (translation as object)) {
+            translation = (translation as Record<string, unknown>)[k];
         } else {
             return key;
         }
     }
-    return translation;
+    return typeof translation == "string" ? translation : key;
 }
 
 function setLanguage(lang: string) {
-    router.post(route('language.update'), { language: lang.toLowerCase() }, {
+    router.post(route('language.update'), {language: lang.toLowerCase()}, {
         preserveScroll: true,
         onSuccess: () => {
             // Locale updated
@@ -29,27 +28,33 @@ function setLanguage(lang: string) {
 
 // Fallback if route() helper isn't globally available or ziggy is replaced by wayfinder
 // Assuming Wayfinder setup from previous conversation 8eda478c...
-// If route helper is missing, we use direct string for now as a safe bet: '/language'
+// If a route helper is missing, we use direct string for now as a safe bet: '/language'
 function route(name: string) {
     if (name === 'language.update') return '/language';
     return '';
+}
+
+const back = () => {
+    window.history.back();
 }
 
 </script>
 <template>
     <Head :title="t('manual.manual')"></Head>
     <body class="bg-base-200 flex flex-col min-h-screen">
-    <div class="card card-body flex-grow">
+    <div class="card card-body grow">
         <header class="flex justify-between items-center">
-            <Link :href="welcome.url()">
-                <ApplicationLogo class="navbar-center mb-1.5 tooltip tooltip-bottom" :data-tip="t('manual.home')"/>
+            <Link href="" @click="(_event) => back()">
+                <ApplicationLogo :data-tip="t('manual.home')" class="navbar-center mb-1.5 tooltip tooltip-bottom"/>
             </Link>
             <div class="join ml-auto">
                 <input
-                    :checked="page.props.locale === 'en'" aria-label="En" class="join-item btn btn-square" name="Language"
+                    :checked="page.props.locale === 'en'" aria-label="En" class="join-item btn btn-square"
+                    name="Language"
                     type="radio" @click="setLanguage('En')"/>
                 <input
-                    :checked="page.props.locale === 'lv'" aria-label="Lv" class="join-item btn btn-square" name="Language"
+                    :checked="page.props.locale === 'lv'" aria-label="Lv" class="join-item btn btn-square"
+                    name="Language"
                     type="radio" @click="setLanguage('Lv')"/>
             </div>
         </header>
@@ -111,9 +116,9 @@ function route(name: string) {
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_create_a_channel') }}</h1>
                             <p class="text-base-content mb-2">{{ t('manual.on_channel_page') }}</p>
-                            <img class="block w-auto fill-current mb-2" src="/images/Channels.png"/>
+                            <img alt="" class="block w-auto fill-current mb-2" src="/images/Channels.png"/>
                             <p class="text-base-content mb-2">{{ t('manual.input_channel_name') }}</p>
-                            <img class="block w-auto mb-2 h-40" src="/images/CreateText.png"/>
+                            <img alt="" class="block w-auto mb-2 h-40" src="/images/CreateText.png"/>
                         </div>
                     </div>
                     <div class="collapse collapse-arrow border bg-base-100 border-white mb-5" tabindex="1">
@@ -124,7 +129,7 @@ function route(name: string) {
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_edit_a_channel') }}</h1>
                             <p class="text-base-content mb-2">{{ t('manual.hover_edit_channel') }}</p>
-                            <img class="block w-auto mb-2 h-60" src="/images/TextChannel.png"/>
+                            <img alt="" class="block w-auto mb-2 h-60" src="/images/TextChannel.png"/>
                             <p class="text-base-content mb-2">{{ t('manual.change_channel_name') }}</p>
                             <img alt="" class="block w-auto mb-2 h-60" src="/images/RenameText.png"/>
                             <h1 class="mt-5">{{ t('manual.to_delete_a_channel') }}</h1>
@@ -150,7 +155,7 @@ function route(name: string) {
                     <p class="text-base-content mb-2">{{ t('manual.edit_message_hover') }}</p>
                     <img alt="" class="block w-auto mb-2 h-40" src="/images/EditText.png"/>
                     <p class="text-base-content mb-2">{{ t('manual.edit_text_click') }}</p>
-                    <img class="block w-auto mb-2 h-40" src="/images/EditMessage.png"/>
+                    <img alt="" class="block w-auto mb-2 h-40" src="/images/EditMessage.png"/>
                     <p class="text-base-content mb-2">{{ t('manual.delete_message_hover') }}</p>
                     <img alt="" class="block w-auto mb-2 h-40" src="/images/DeleteMessage.png"/>
                 </div>
@@ -171,9 +176,9 @@ function route(name: string) {
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_access_settings') }}</h1>
                             <p class="text-base-content mb-2">{{ t('manual.channel_bar_gear') }}</p>
-                            <img class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
+                            <img alt="" class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
                             <p class="text-base-content mb-2">{{ t('manual.in_server_settings') }}</p>
-                            <img alt="" class="block w-auto mb-2 h-[600px]" src="/images/Settings.png"/>
+                            <img alt="" class="block w-auto mb-2 h-150" src="/images/Settings.png"/>
                         </div>
                     </div>
 
@@ -186,11 +191,11 @@ function route(name: string) {
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_access_roles') }}</h1>
                             <p class="text-base-content mb-2">{{ t('manual.channel_bar_gear') }}</p>
-                            <img class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
+                            <img alt="" class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
                             <p class="text-base-content mb-2">{{ t('manual.in_server_settings_roles') }}</p>
-                            <img class="block w-auto mb-2 h-80" src="/images/ToRoles.png"/>
+                            <img alt="" class="block w-auto mb-2 h-80" src="/images/ToRoles.png"/>
                             <p class="text-base-content mb-2">{{ t('manual.to_create_role') }}</p>
-                            <img class="block w-auto mb-2 h-80" src="/images/Roles.png"/>
+                            <img alt="" class="block w-auto mb-2 h-80" src="/images/Roles.png"/>
                             <p class="text-base-content mb-2">{{ t('manual.input_roles_info') }}</p>
                             <img alt="" class="block w-auto mb-2 h-80" src="/images/NewRole.png"/>
                         </div>
@@ -206,7 +211,7 @@ function route(name: string) {
                             <p class="text-base-content mb-2">{{ t('manual.channel_bar_gear') }}</p>
                             <img alt="" class="block w-full fill-current mb-2" src="/images/SettingsIcon.png"/>
                             <p class="text-base-content mb-2">{{ t('manual.in_server_settings_delete') }}</p>
-                            <img class="block w-auto mb-2 h-80" src="/images/DeleteServer.png"/>
+                            <img alt="" class="block w-auto mb-2 h-80" src="/images/DeleteServer.png"/>
                         </div>
                     </div>
                 </div>
@@ -221,9 +226,9 @@ function route(name: string) {
                 <div class="collapse-content">
                     <h1>{{ t('manual.to_create_an_account') }}</h1>
                     <p class="text-base-content mb-2">{{ t('manual.in_home_page_register') }}</p>
-                    <img class="block w-auto mb-2 h-60" src="/images/CreateAccount.png"/>
+                    <img alt="" class="block w-auto mb-2 h-60" src="/images/CreateAccount.png"/>
                     <p class="text-base-content mb-2">{{ t('manual.fill_out_info') }}</p>
-                    <img class="block w-auto mb-2 h-80" src="/images/Register.png"/>
+                    <img alt="" class="block w-auto mb-2 h-80" src="/images/Register.png"/>
                     <p class="text-base-content mb-2">{{ t('manual.afterwards_email') }}</p>
                     <img alt="" class="block w-auto mb-2 h-80" src="/images/VerifyEmail.png"/>
                 </div>
@@ -244,9 +249,9 @@ function route(name: string) {
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_go_to_profile') }}</h1>
                             <p class="text-base-content"> {{ t('manual.click_profile_picture') }}</p>
-                            <img class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
+                            <img alt="" class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
                             <p class="text-base-content"> {{ t('manual.in_profile_page_change') }}</p>
-                            <img class="block w-auto mb-2 h-80" src="/images/Profile info.png"/>
+                            <img alt="" class="block w-auto mb-2 h-80" src="/images/Profile info.png"/>
                         </div>
                     </div>
                     <div class="collapse collapse-arrow bg-base-100 mb-5 border border-white">
@@ -257,9 +262,9 @@ function route(name: string) {
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_update_password') }}</h1>
                             <p class="text-base-content"> {{ t('manual.click_profile_profile') }}</p>
-                            <img class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
+                            <img alt="" class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
                             <p class="text-base-content"> {{ t('manual.in_profile_page_update') }}</p>
-                            <img class="block w-auto mb-2 h-80" src="/images/UpdatePassword.png"/>
+                            <img alt="" class="block w-auto mb-2 h-80" src="/images/UpdatePassword.png"/>
                         </div>
                     </div>
                     <div class="collapse collapse-arrow bg-base-100 mb-5 border border-white">
@@ -270,9 +275,9 @@ function route(name: string) {
                         <div class="collapse-content">
                             <h1>{{ t('manual.to_delete_account') }}</h1>
                             <p class="text-base-content"> {{ t('manual.click_profile_profile') }}</p>
-                            <img class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
+                            <img alt="" class="block w-auto mb-2 h-auto" src="/images/Profile.png"/>
                             <p class="text-base-content"> {{ t('manual.in_profile_page_delete') }}</p>
-                            <img class="block w-auto mb-2 h-40" src="/images/DeleteAccount.png"/>
+                            <img alt="" class="block w-auto mb-2 h-40" src="/images/DeleteAccount.png"/>
                         </div>
                     </div>
                 </div>

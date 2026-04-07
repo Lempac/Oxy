@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { server } from '@/routes/home';
-import { addUser, removeUser as roles_removeUser } from '@/routes/roles';
-import { removeUser as server_removeUser } from '@/routes/server';
+import {server} from '@/routes/home';
+import {addUser, removeUser as roles_removeUser} from '@/routes/roles';
+import {removeUser as server_removeUser} from '@/routes/server';
 
 import {Link, router, usePage} from "@inertiajs/vue3";
 import {Perms, PermType, Role, Server, User} from "@/types";
@@ -92,19 +92,19 @@ if (selectedServer && selectedServer.roles !== null) {
                                     class="btn m-1 {{server.roles.length === 0 ? 'tooltip' : ''}}"
                                     data-tip="Your server doesnt have roles."
                                     tabindex="0">
-                                    {{ user.rolesWithServer.map(role => role.name).join(', ') || 'None' }}
+                                    {{ user.rolesWithServer.map((role: User) => role.name).join(', ') || 'None' }}
                                 </button>
                                 <ul
-                                    class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow gap-y-1"
+                                    class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow gap-y-1"
                                     tabindex="0">
                                     <li v-for="role in selectedServer.roles" :key="role.id">
                                         <button
-                                            :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-base-300' : ''"
+                                            :class="user.rolesWithServer.find((objRole: Role) => objRole.id === role.id) ? 'bg-base-300' : ''"
                                             :disabled="!perms.has(PermType.CAN_EDIT_MEMBER_ROLES)"
                                             class="btn"
-                                            @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))">
+                                            @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find((objRole: Role) => objRole.id === role.id))">
                                             <v-icon
-                                                v-if="user.rolesWithServer.find(objRole => objRole.id === role.id)"
+                                                v-if="user.rolesWithServer.find((objRole: Role) => objRole.id === role.id)"
                                                 name="bi-check-lg"/>
                                             {{ role.name }}
                                         </button>

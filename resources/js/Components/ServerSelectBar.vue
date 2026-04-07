@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { home, logout } from '@/routes';
-import { server as serverRoute } from '@/routes/home';
-import { edit } from '@/routes/profile';
-import { create } from '@/routes/server';
+import {home, logout} from '@/routes';
+import {server as serverRoute} from '@/routes/home';
+import {edit} from '@/routes/profile';
+import {create} from '@/routes/server';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
@@ -115,7 +115,7 @@ const updateIcon = (val: File) => {
                         </div>
                     </div>
                 </div>
-                <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow" tabindex="0">
+                <ul class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow" tabindex="0">
                     <li>
                         <Link :href="edit.url()">Profile</Link>
                     </li>

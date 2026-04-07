@@ -5,7 +5,6 @@ import path from 'node:path';
 import {wayfinder} from "@laravel/vite-plugin-wayfinder";
 import tailwindcss from '@tailwindcss/vite';
 
-// /** @type {import('vite').UserConfig} */
 export default defineConfig({
     plugins: [
         tailwindcss(),

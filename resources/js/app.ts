@@ -1,17 +1,12 @@
 import './bootstrap';
 import '../css/app.css';
 
-import {createApp, DefineComponent, h, watch} from 'vue';
+import {createApp, DefineComponent, h} from 'vue';
 import {createInertiaApp, router} from '@inertiajs/vue3';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import {OhVueIcon} from 'oh-vue-icons';
 import {Themes, ThemeType} from "@/types";
-import { configureEcho } from '@laravel/echo-vue';
-import { configureEcho } from '@laravel/echo-vue';
-
-configureEcho({
-    broadcaster: 'reverb',
-});
+import {configureEcho} from '@laravel/echo-vue';
 
 configureEcho({
     broadcaster: 'reverb',
@@ -27,18 +22,17 @@ createInertiaApp({
             .component("v-icon", OhVueIcon)
             .use(plugin)
             .mount(el);
-
         // Apply theme globally and listen for updates
         const updateTheme = (theme: ThemeType | null) => {
-            document.documentElement.setAttribute('data-theme', theme || Themes.OXY);
+            document.documentElement.setAttribute('data-theme', theme || Themes.OXY_DARK);
         };
 
         // Initial application
-        updateTheme((props.initialPage.props as any).user?.theme);
+        updateTheme(props.initialPage.props.user?.theme ?? Themes.OXY_DARK);
 
         // Listen for updates (including theme changes via profile update)
         router.on('success', (event) => {
-            updateTheme((event.detail.page.props as any).user?.theme);
+            updateTheme(event.detail.page.props.user?.theme ?? Themes.OXY_DARK);
         });
     },
     progress: {

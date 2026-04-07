@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { create, deleteMethod, edit } from '@/routes/channel';
-import { channel as channelRoute } from '@/routes/home/text';
+import {create, deleteMethod, edit} from '@/routes/channel';
+import {channel as channelRoute} from '@/routes/home/text';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import axios from "axios";
@@ -87,7 +87,7 @@ const editChannel = async (channelId: number) => {
 };
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 if (selectedServer) {
     echo.private(`channels.${selectedServer.id}`)

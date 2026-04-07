@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { members, role, server } from '@/routes/settings';
+import {members, role, server} from '@/routes/settings';
 
 import {Link, usePage} from "@inertiajs/vue3";
 import {Perms, PermType, Role, Server} from "@/types";
@@ -13,7 +13,7 @@ const {selectedServer} = defineProps<{
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 
 </script>
