@@ -31,7 +31,7 @@ class ChannelController
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        Channel::create(['name' => $request->get('name'), 'type' => $request->get('type'), 'server_id' => $serverId]);
+        Channel::create(['name' => $request->input('name'), 'type' => $request->input('type'), 'server_id' => $serverId]);
 
         //        broadcast(new ChannelCreated($serverId));
 
@@ -56,7 +56,7 @@ class ChannelController
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        $channel->name = $request->get('name');
+        $channel->name = $request->input('name');
         $channel->save();
 
         //        broadcast(new ChannelEdited($channelId));

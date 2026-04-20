@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\MessageType;
 use App\Models\Message;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Random\RandomException;
 
 /**
  * @extends Factory<Message>
@@ -15,6 +16,8 @@ class MessageFactory extends Factory
      * Define the model's default state.
      *
      * @return array<string, mixed>
+     *
+     * @throws RandomException
      */
     public function definition(): array
     {

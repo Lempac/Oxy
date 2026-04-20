@@ -120,7 +120,7 @@ const updateIcon = (val: File) => {
                         <Link :href="edit.url()">Profile</Link>
                     </li>
                     <li>
-                        <Link :href="logout.url()" as="button" method="post">Log Out</Link>
+                        <Link :href="logout.url()" method="post">Log Out</Link>
                     </li>
                 </ul>
             </div>
@@ -211,7 +211,11 @@ const updateIcon = (val: File) => {
                     </div>
                     <button
                         class="btn btn-secondary w-full"
-                        @click="async () => {val = await joinServer(code!.value); val[0] === 200 ? serverModal?.close() : ''; form.reset();}">
+                        @click="async () => {
+                            val = await joinServer(code!.value);
+                            if(val[0] === 200) serverModal?.close();
+                            form.reset();
+                        }">
                         Join Server
                     </button>
                     <ErrorAlert v-if="val && val[0] !== 200" :message="val[1]" class="mt-3"/>
@@ -220,7 +224,7 @@ const updateIcon = (val: File) => {
                 <div class="modal-action">
                     <button
                         class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                        @click="() => serverModal?.close()">✕
+                        @click="serverModal?.close()">✕
                     </button>
                 </div>
             </div>

@@ -263,6 +263,6 @@ class ServerController extends Controller
 
         $server->users()->detach(Auth::id());
 
-        return response()->json(['message' => 'You have left the server.'], 200);
+        return response()->json(['message' => 'You have left the server.']);
     }
 }

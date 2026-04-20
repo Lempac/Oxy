@@ -1,6 +1,6 @@
-import { addUser } from '@/routes/server';
+import {addUser} from '@/routes/server';
 import axios, {AxiosError} from 'axios';
-import './echo.ts';
+import './echo';
 import {router} from "@inertiajs/vue3";
 import {Perms} from "@/types";
 

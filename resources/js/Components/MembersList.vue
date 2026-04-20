@@ -20,9 +20,8 @@ defineProps<{
                 </div>
             </div>
 
-            <!--                v-if="index < ((selectedServer?.users?.length || 0) - 1)"-->
             <div
-                v-if="index < (selectedServer?.users?.length ?? 1)"
+                v-if="index + 1 < (selectedServer?.users?.length ?? 0)"
                 class="divider divider-horizontal px-0 mx-0"
             />
         </div>

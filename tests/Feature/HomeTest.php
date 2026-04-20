@@ -5,6 +5,7 @@ use App\Models\Channel;
 use App\Models\Server;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
+use Random\RandomException;
 
 test('home page is displayed', function () {
     $user = User::factory()->create();
@@ -15,8 +16,12 @@ test('home page is displayed', function () {
     $response->assertOk();
 });
 
-test('home select server', function () {
-    $user = User::factory()->has(Server::factory()->hasChannels(random_int(1, 2)))->create();
+test(/**
+ * @throws RandomException
+ */ 'home select server', function () {
+    $user = random_int(1, 2)
+            |> Server::factory()(...)
+            |> User::factory()(...)->create();
     $this->actingAs($user);
 
     $response = $this
@@ -35,7 +40,6 @@ test('home returns all channels', function () {
         ->has('channels', $user->servers->first()->channels->count())
     );
 });
-
 test('home select channel', function () {
     $user = User::factory()->has(Server::factory()->has(Channel::factory()->count(random_int(1, 3))->state(['type' => ChannelType::Text])))->create();
     $server = $user->servers->first();

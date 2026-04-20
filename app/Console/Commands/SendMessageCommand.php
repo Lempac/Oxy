@@ -31,14 +31,14 @@ class SendMessageCommand extends Command
 
         $text = $this->ask('What is your message?');
 
-        Message::create([
+        $message = Message::create([
             'type' => MessageType::Text->value,
             'mdata' => $text,
             'channel_id' => $channelId,
             'user_id' => $userId,
         ]);
 
-        event(new MessageCreated($text, $userId, $channelId));
+        event(new MessageCreated($message));
 
         $this->info('Message sent successfully!');
         $timezone = now()->getTimezone();

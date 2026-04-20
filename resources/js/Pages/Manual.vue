@@ -44,7 +44,7 @@ const back = () => {
     <body class="bg-base-200 flex flex-col min-h-screen">
     <div class="card card-body grow">
         <header class="flex justify-between items-center">
-            <Link href="" @click="(_event) => back()">
+            <Link href="" @click="(_event: unknown) => back()">
                 <ApplicationLogo :data-tip="t('manual.home')" class="navbar-center mb-1.5 tooltip tooltip-bottom"/>
             </Link>
             <div class="join ml-auto">

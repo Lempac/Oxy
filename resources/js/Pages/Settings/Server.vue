@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { server as serverRoute } from '@/routes/home';
-import { destroy, update } from '@/routes/server';
-import { ref} from 'vue';
+import {server as serverRoute} from '@/routes/home';
+import {destroy, update} from '@/routes/server';
+import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {Link, router, useForm, usePage} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
@@ -83,7 +83,7 @@ if (selectedServer && selectedServer.roles !== null) {
                 <!-- Server info -->
                 <div class="bg-base-300 p-6 rounded-lg mb-8">
                     <div class="flex items-center">
-                        <label class="relative cursor-pointer has-[:disabled]:cursor-not-allowed" for="serverIcon">
+                        <label class="relative cursor-pointer has-disabled:cursor-not-allowed" for="serverIcon">
                             <input
                                 id="serverIcon"
                                 :disabled="!perms.has(PermType.CAN_EDIT_SERVER)"

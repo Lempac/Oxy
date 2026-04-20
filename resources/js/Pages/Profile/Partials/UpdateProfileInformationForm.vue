@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { update } from '@/routes/profile';
-import { send } from '@/routes/verification';
+import {update} from '@/routes/profile';
+import {send} from '@/routes/verification';
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
@@ -25,7 +25,7 @@ const form = useForm<{ name: string, email: string, icon: File | null, theme: Th
     name: user.name,
     email: user.email,
     icon: inputFile.value!,
-    theme: user.theme || Themes.OXY,
+    theme: user.theme || Themes.OXY_DARK,
 });
 
 

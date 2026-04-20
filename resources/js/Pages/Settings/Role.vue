@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { server } from '@/routes/home';
-import { create, deleteMethod, edit, index } from '@/routes/roles';
+import {server} from '@/routes/home';
+import {create, deleteMethod, edit, index} from '@/routes/roles';
 import {ref} from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import axios, {AxiosResponse} from 'axios';
@@ -195,7 +195,8 @@ const changeImportance = async (role: Role, direction: number) => {
                         <td :style="{ color: editingRole === role ? newRole.color : role.color }" class="py-2 px-4">
                             <span v-if="editingRole !== role">{{ role.name }}</span>
                             <input
-                                v-if="editingRole === role" v-model="newRole.name" class="p-1 text-base-content bg-base-100"
+                                v-if="editingRole === role" v-model="newRole.name"
+                                class="p-1 text-base-content bg-base-100"
                                 type="text"/>
                         </td>
                         <td v-if="editingRole === role" class="py-2 px-4">
@@ -230,7 +231,7 @@ const changeImportance = async (role: Role, direction: number) => {
                                     }}
                                 </button>
                                 <ul
-                                    class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1"
+                                    class="dropdown-content menu bg-base-100 rounded-box z-1 p-2 shadow gap-y-1"
                                     tabindex="0">
                                     <li v-for="(perm, index) in roleArray" :key="index">
                                         <button

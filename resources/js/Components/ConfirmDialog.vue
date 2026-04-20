@@ -11,18 +11,20 @@ withDefaults(defineProps<{
     text?: string,
     className: string,
 }>(), {
+    text: "",
     cancel: () => {
     },
     confirm: () => {
     }
 });
+
 </script>
 
 <template>
     <div>
         <button :class="className" @click="modal?.showModal">
             <span v-if="text">{{ text }}</span>
-            <slot v-else/>
+            <slot v-if="$slots.default"/>
         </button>
         <Teleport to="#teleported">
             <dialog ref="modal" class="modal">

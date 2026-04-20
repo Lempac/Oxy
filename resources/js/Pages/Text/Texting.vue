@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { create, deleteMethod, edit } from '@/routes/message';
+import {create, deleteMethod, edit} from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import TextSelectBar from "@/Components/TextSelectBar.vue";
 import {addIcons} from "oh-vue-icons";
@@ -167,7 +167,7 @@ if (selectedServer && selectedServer.roles !== null) {
             v-if="$page.url.match(/\/text\/\d+/)"
             class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-base-100 m-5 rounded-lg mx-auto mt-3 flex flex-col"
         >
-            <div ref="messageContainer" class="overflow-y-auto flex-grow p-3 mx-5 mt-5">
+            <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5">
                 <div v-if="messages && messages.length > 0">
                     <div
                         v-for="message in messages" :key="message.id"

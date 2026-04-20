@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { create, deleteMethod, edit } from '@/routes/channel';
-import { channel } from '@/routes/home/voice';
+import {create, deleteMethod, edit} from '@/routes/channel';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
@@ -22,7 +21,7 @@ const {selectedServer} = defineProps<{
 
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
-const editCurrent = ref<Function>();
+const editCurrent = ref<CallableFunction>();
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const form = useForm({
@@ -144,7 +143,7 @@ const leaveChannel = async () => {
                             class="avatar rounded-lg items-center justify-center h-16 bg-base-300"
                         >
                             <div class="flex w-10 h-auto rounded-full ml-5">
-                                <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon"/>
+                                <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" alt=""/>
                             </div>
                             <div class="flex items-center h-full w-full p-4">
                                 {{ user.name }}

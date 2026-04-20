@@ -62,9 +62,7 @@ const createChannel = async () => {
 
 const deleteChannel = async (channelId: number) => {
     console.log(channelId)
-    axios.delete(deleteMethod.url(channelId)).then(() => {
-        router.reload()
-    });
+    axios.delete(deleteMethod.url(channelId)).then(() => router.reload());
 };
 
 const editChannel = async (channelId: number) => {
