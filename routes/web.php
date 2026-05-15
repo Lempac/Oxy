@@ -3,8 +3,8 @@
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WhiteboardController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -31,6 +31,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/{server}/voice', 'voice')->name('.voice');
         Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
+
+        Route::get('/{server}/whiteboard', 'whiteboard')->name('.whiteboard');
+        Route::get('/{server}/whiteboard/{channel}', 'wchannel')->name('.whiteboard.channel');
     }
     );
 
@@ -56,13 +59,6 @@ Route::middleware('auth')->group(function () {
     );
 
     Route::controller(WhiteboardController::class)->prefix('whiteboard')->group(function () {
-        Route::get('/', 'index')->name('whiteboard.index');
-        Route::get('/create', 'create')->name('whiteboard.create');
-        Route::post('/', 'store')->name('whiteboard.store');
-        Route::get('/{whiteboard}', 'show')->name('whiteboard.show');
-        Route::get('/{whiteboard}/edit', 'edit')->name('whiteboard.edit');
-        Route::put('/{whiteboard}', 'update')->name('whiteboard.update');
-        Route::delete('/{whiteboard}', 'destroy')->name('whiteboard.destroy');
         Route::post('/{whiteboard}/save', 'saveState')->name('whiteboard.save');
     }
     );

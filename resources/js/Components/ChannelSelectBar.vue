@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { text, voice } from '@/routes/home';
-import { index } from '@/routes/whiteboard';
+import { whiteboard } from '@/routes/home';
 import { leave } from '@/routes/server';
 import { server } from '@/routes/settings';
 import {addIcons} from "oh-vue-icons";
@@ -89,7 +89,7 @@ function leaveServer() {
                 </button>
             </Link>
 
-            <Link :href="index.url()">
+            <Link :href="whiteboard.url(selectedServer?.id!)">
                 <button
                     :class="{'border-b-2 border-base-content text-base-content': $page.url.includes('/whiteboard') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative">

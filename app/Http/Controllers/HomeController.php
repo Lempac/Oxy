@@ -110,4 +110,39 @@ class HomeController extends Controller
             'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
+
+    public function whiteboard(Request $request, int $server): Response
+    {
+        $serverObj = Server::find($server);
+
+        return Inertia::render('Whiteboard/Whiteboarding', [
+            'servers' => $request->user()->servers,
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Whiteboard)->get(),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
+        ]);
+    }
+
+    public function wchannel(Request $request, int $server, int $channel): Response
+    {
+        $serverObj = Server::find($server);
+        $channelObj = Channel::with('whiteboard')->find($channel);
+
+        if (!$channelObj->whiteboard) {
+            $channelObj->whiteboard()->create();
+            $channelObj->load('whiteboard');
+        }
+
+        return Inertia::render('Whiteboard/Whiteboarding', [
+            'servers' => $request->user()->servers,
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'selectedChannel' => $channelObj,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Whiteboard)->get(),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
+        ]);
+    }
 }

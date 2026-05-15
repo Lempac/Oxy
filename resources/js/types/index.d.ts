@@ -7,6 +7,7 @@ export const ChannelType = {
     Text: 'text',
     Voice: 'voice',
     Board: 'board',
+    Whiteboard: 'whiteboard',
 } as const;
 
 export const MessageType = {
@@ -83,7 +84,7 @@ export interface Role extends Object {
 }
 
 export interface Whiteboard extends Object {
-    name: string;
+    channel_id: number;
     state: string | null;
 }
 

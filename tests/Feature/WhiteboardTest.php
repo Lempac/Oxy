@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\Server;
+use App\Models\Channel;
+use App\Enums\ChannelType;
 use App\Models\Whiteboard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -11,75 +14,62 @@ class WhiteboardTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_whiteboard_index_page_is_displayed(): void
+    public function test_whiteboard_channel_can_be_accessed(): void
     {
         $user = User::factory()->create();
+        $server = Server::factory()->create();
+        $server->users()->attach($user);
+        $channel = $server->channels()->create([
+            'name' => 'General Whiteboard',
+            'type' => ChannelType::Whiteboard,
+        ]);
 
         $response = $this
             ->actingAs($user)
-            ->get('/whiteboard');
+            ->get("/home/{$server->id}/whiteboard/{$channel->id}");
 
         $response->assertOk();
-    }
-
-    public function test_whiteboard_can_be_created(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->post('/whiteboard', [
-                'name' => 'Test Whiteboard',
-            ]);
-
-        $response->assertRedirect('/whiteboard');
-        $this->assertDatabaseHas('whiteboards', [
-            'name' => 'Test Whiteboard',
-        ]);
-    }
-
-    public function test_whiteboard_can_be_updated(): void
-    {
-        $user = User::factory()->create();
-        $whiteboard = Whiteboard::create(['name' => 'Old Name']);
-
-        $response = $this
-            ->actingAs($user)
-            ->put("/whiteboard/{$whiteboard->id}", [
-                'name' => 'New Name',
-            ]);
-
-        $response->assertRedirect('/whiteboard');
-        $this->assertEquals('New Name', $whiteboard->fresh()->name);
-    }
-
-    public function test_whiteboard_can_be_deleted(): void
-    {
-        $user = User::factory()->create();
-        $whiteboard = Whiteboard::create(['name' => 'To Delete']);
-
-        $response = $this
-            ->actingAs($user)
-            ->delete("/whiteboard/{$whiteboard->id}");
-
-        $response->assertRedirect('/whiteboard');
-        $this->assertDatabaseMissing('whiteboards', [
-            'id' => $whiteboard->id,
-        ]);
     }
 
     public function test_whiteboard_state_can_be_saved(): void
     {
         $user = User::factory()->create();
-        $whiteboard = Whiteboard::create(['name' => 'Test Whiteboard']);
+        $server = Server::factory()->create();
+        $server->users()->attach($user);
+        $channel = $server->channels()->create([
+            'name' => 'General Whiteboard',
+            'type' => ChannelType::Whiteboard,
+        ]);
+        $whiteboard = Whiteboard::create(['channel_id' => $channel->id]);
 
         $response = $this
             ->actingAs($user)
             ->post("/whiteboard/{$whiteboard->id}/save", [
-                'state' => '{"lines": []}',
+                'state' => '{"shapes": {}}',
             ]);
 
         $response->assertJson(['success' => true]);
-        $this->assertEquals('{"lines": []}', $whiteboard->fresh()->state);
+        $this->assertEquals('{"shapes": {}}', $whiteboard->fresh()->state);
+    }
+
+    public function test_non_member_cannot_save_whiteboard_state(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $server = Server::factory()->create();
+        $server->users()->attach($user); // only $user is a member
+        $channel = $server->channels()->create([
+            'name' => 'General Whiteboard',
+            'type' => ChannelType::Whiteboard,
+        ]);
+        $whiteboard = Whiteboard::create(['channel_id' => $channel->id]);
+
+        $response = $this
+            ->actingAs($otherUser)
+            ->post("/whiteboard/{$whiteboard->id}/save", [
+                'state' => '{"shapes": {}}',
+            ]);
+
+        $response->assertStatus(403);
     }
 }
