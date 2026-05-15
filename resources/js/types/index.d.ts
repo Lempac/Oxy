@@ -7,7 +7,6 @@ export const ChannelType = {
     Text: 'text',
     Voice: 'voice',
     Board: 'board',
-    Whiteboard: 'whiteboard',
 } as const;
 
 export const MessageType = {
@@ -83,9 +82,25 @@ export interface Role extends Object {
     server: Server | null;
 }
 
-export interface Whiteboard extends Object {
-    channel_id: number;
-    state: string | null;
+export interface Task extends Object {
+    title: string;
+    description: string;
+    kanban_column_id: number;
+    position: number;
+}
+
+export interface BoardColumn extends Object {
+    name: string;
+    kanban_column_id: number;
+    position: number;
+    tasks: Task[];
+}
+
+export interface Board extends Object {
+    name: string;
+    bio: string;
+    columns: BoardColumn[];
+    server_id: number;
 }
 
 export interface Channel extends Object {

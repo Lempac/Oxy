@@ -6,5 +6,4 @@ enum ChannelType: string
 {
     case Text = 'text';
     case Voice = 'voice';
-    case Whiteboard = 'whiteboard';
 }

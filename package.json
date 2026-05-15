@@ -3,8 +3,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vue-tsc && vite build && vite build --ssr",
-        "yjs": "y-websocket-server"
+        "build": "vue-tsc && vite build && vite build --ssr"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^1.2.0",
@@ -20,7 +19,6 @@
         "eslint-plugin-vue": "^10.7.0",
         "globals": "^17.1.0",
         "jiti": "^2.6.1",
-        "konva": "^10.3.0",
         "laravel-echo": "^1.19.0",
         "laravel-vite-plugin": "^1.0.5",
         "postcss": "^8.4.47",
@@ -30,11 +28,7 @@
         "typescript-eslint": "^8.53.1",
         "vite": "^5.4.11",
         "vue": "^3.5.12",
-        "vue-konva": "^3.4.0",
-        "vue-tsc": "^2.1.10",
-        "y-protocols": "^1.0.7",
-        "y-websocket": "^1.5.4",
-        "yjs": "^13.6.30"
+        "vue-tsc": "^2.1.10"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.3.0",

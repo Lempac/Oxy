@@ -22,7 +22,6 @@
   packages = with pkgs; [ sqlite nil nixd ];
   processes = {
     vite.exec = "npm run dev";
-    y-web.exec = "npm run yjs";
     php-serve.exec = "php artisan serve";
     php-queue.exec = "php artisan queue:work";
     php-reverb.exec = "php artisan reverb:start";
