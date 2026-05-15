@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\KanbanBoardController;
+use App\Http\Controllers\WhiteboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -55,14 +55,15 @@ Route::middleware('auth')->group(function () {
     }
     );
 
-    Route::controller(KanbanBoardController::class)->prefix('kanban')->group(function () {
-        Route::get('/', 'index')->name('kanban.index');
-        Route::get('/create', 'create')->name('kanban.create');
-        Route::post('/', 'store')->name('kanban.store');
-        Route::get('/{board}', 'show')->name('kanban.show');
-        Route::get('/{board}/edit', 'edit')->name('kanban.edit');
-        Route::put('/{board}', 'update')->name('kanban.update');
-        Route::delete('/{board}', 'destroy')->name('kanban.destroy');
+    Route::controller(WhiteboardController::class)->prefix('whiteboard')->group(function () {
+        Route::get('/', 'index')->name('whiteboard.index');
+        Route::get('/create', 'create')->name('whiteboard.create');
+        Route::post('/', 'store')->name('whiteboard.store');
+        Route::get('/{whiteboard}', 'show')->name('whiteboard.show');
+        Route::get('/{whiteboard}/edit', 'edit')->name('whiteboard.edit');
+        Route::put('/{whiteboard}', 'update')->name('whiteboard.update');
+        Route::delete('/{whiteboard}', 'destroy')->name('whiteboard.destroy');
+        Route::post('/{whiteboard}/save', 'saveState')->name('whiteboard.save');
     }
     );
 });

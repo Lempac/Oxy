@@ -19,6 +19,7 @@
         "eslint-plugin-vue": "^10.7.0",
         "globals": "^17.1.0",
         "jiti": "^2.6.1",
+        "konva": "^10.3.0",
         "laravel-echo": "^1.19.0",
         "laravel-vite-plugin": "^1.0.5",
         "postcss": "^8.4.47",
@@ -28,7 +29,10 @@
         "typescript-eslint": "^8.53.1",
         "vite": "^5.4.11",
         "vue": "^3.5.12",
-        "vue-tsc": "^2.1.10"
+        "vue-konva": "^3.4.0",
+        "vue-tsc": "^2.1.10",
+        "y-websocket": "^3.0.0",
+        "yjs": "^13.6.30"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.3.0",

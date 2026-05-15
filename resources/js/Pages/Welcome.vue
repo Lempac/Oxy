@@ -140,10 +140,9 @@ const submitRegister = () => {
                 </div>
 
                 <div class="card bg-neutral text-neutral-content p-4 w-1/3 text-center">
-                    <img alt="Kanban" class="w-16 h-16 mx-auto mb-4" src="/images/kanban.png"/>
-                    <h2 class="text-2xl font-bold">Kanban Board</h2>
-                    <p class="mt-2">Organize tasks into categories to manage projects with ease using our kanban
-                        board.</p>
+                    <v-icon name="bi-easel" scale="4" class="mx-auto mb-4" />
+                    <h3 class="text-xl font-bold">Whiteboard</h3>
+                    <p class="mt-2">Collaborate in real-time with your team using our interactive whiteboard.</p>
                 </div>
             </div>
 
@@ -197,7 +196,7 @@ const submitRegister = () => {
                                 well as what role
                                 they have. By creating a server you are also able to create text channels, voice
                                 channels and gain access
-                                to the kanban board.
+                                to the whiteboard.
                             </div>
                             <hr/>
                         </li>

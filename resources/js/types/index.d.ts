@@ -82,25 +82,9 @@ export interface Role extends Object {
     server: Server | null;
 }
 
-export interface Task extends Object {
-    title: string;
-    description: string;
-    kanban_column_id: number;
-    position: number;
-}
-
-export interface BoardColumn extends Object {
+export interface Whiteboard extends Object {
     name: string;
-    kanban_column_id: number;
-    position: number;
-    tasks: Task[];
-}
-
-export interface Board extends Object {
-    name: string;
-    bio: string;
-    columns: BoardColumn[];
-    server_id: number;
+    state: string | null;
 }
 
 export interface Channel extends Object {

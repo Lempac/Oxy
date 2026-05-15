@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { text, voice } from '@/routes/home';
-import { index } from '@/routes/kanban';
+import { index } from '@/routes/whiteboard';
 import { leave } from '@/routes/server';
 import { server } from '@/routes/settings';
 import {addIcons} from "oh-vue-icons";
-import {BiChatText, BiDoorOpen, BiGearFill, MdViewkanbanOutlined, RiChatVoiceLine} from "oh-vue-icons/icons";
+import {BiChatText, BiDoorOpen, BiGearFill, BiEasel, RiChatVoiceLine} from "oh-vue-icons/icons";
 import {Link, router, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import {Perms, PermType, Role, Server} from "@/types";
@@ -12,7 +12,7 @@ import {bigIntToPerms} from "@/bootstrap";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import axios from "axios";
 
-addIcons(BiChatText, RiChatVoiceLine, MdViewkanbanOutlined, BiGearFill, BiDoorOpen);
+addIcons(BiChatText, RiChatVoiceLine, BiEasel, BiGearFill, BiDoorOpen);
 
 const serverSettingsModal = ref<HTMLDialogElement>();
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
@@ -91,12 +91,12 @@ function leaveServer() {
 
             <Link :href="index.url()">
                 <button
-                    :class="{'border-b-2 border-base-content text-base-content': $page.url.includes('/kanban') }"
+                    :class="{'border-b-2 border-base-content text-base-content': $page.url.includes('/whiteboard') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative">
                     <svg class="h-5 w-5">
-                        <v-icon name="md-viewkanban-outlined"/>
+                        <v-icon name="bi-easel"/>
                     </svg>
-                    <span class="text-sm">Kanban Board</span>
+                    <span class="text-sm">Whiteboard</span>
                 </button>
             </Link>
         </div>
