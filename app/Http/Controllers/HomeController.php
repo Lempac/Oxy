@@ -130,7 +130,7 @@ class HomeController extends Controller
         $serverObj = Server::find($server);
         $channelObj = Channel::with('whiteboard')->find($channel);
 
-        if (!$channelObj->whiteboard) {
+        if (! $channelObj->whiteboard) {
             $channelObj->whiteboard()->create();
             $channelObj->load('whiteboard');
         }

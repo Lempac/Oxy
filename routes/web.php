@@ -3,8 +3,8 @@
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\WhiteboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WhiteboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;

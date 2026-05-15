@@ -2,10 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\Server;
-use App\Models\Channel;
 use App\Enums\ChannelType;
+use App\Models\Server;
+use App\Models\User;
 use App\Models\Whiteboard;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

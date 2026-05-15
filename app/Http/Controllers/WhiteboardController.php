@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Whiteboard;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class WhiteboardController extends Controller
 {
@@ -16,7 +15,7 @@ class WhiteboardController extends Controller
 
         // Authorization check: User must be a member of the server the whiteboard belongs to
         $server = $whiteboard->channel->server;
-        if (!$server->users()->where('user_id', $request->user()->id)->exists()) {
+        if (! $server->users()->where('user_id', $request->user()->id)->exists()) {
             abort(403);
         }
 
