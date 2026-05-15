@@ -58,7 +58,7 @@ class HomeController extends Controller
             'selectedServer.roles' => $serverObj->roles,
             'selectedChannel' => Channel::find($channel),
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::where('channel_id', $channel)->with('user')->get()->each(function (Message $message) {
+            'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server.'#'.hash('xxh32', $server),
@@ -75,7 +75,7 @@ class HomeController extends Controller
             'selectedChannel' => Channel::find($channel),
             'selectedMessage' => Message::find($message),
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::where('channel_id', $channel)->with('user')->get()->each(function (Message $message) {
+            'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server.'#'.hash('xxh32', $server),
@@ -111,6 +111,20 @@ class HomeController extends Controller
         ]);
     }
 
+    public function whiteboard(Request $request, int $server): Response
+    {
+        $serverObj = Server::find($server);
+
+        return Inertia::render('Whiteboard/Whiteboarding')->with([
+            'servers' => $request->user()->servers,
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Whiteboard)->get(),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
+        ]);
+    }
+
     public function wchannel(Request $request, int $server, int $channel): Response
     {
         $serverObj = Server::find($server);
@@ -127,20 +141,6 @@ class HomeController extends Controller
             'selectedServer.users' => $serverObj->users,
             'selectedServer.roles' => $serverObj->roles,
             'selectedChannel' => $channelObj,
-            'channels' => $serverObj->channels()->where('type', ChannelType::Whiteboard)->get(),
-            'inviteCode' => $server.'#'.hash('xxh32', $server),
-        ]);
-    }
-
-    public function whiteboard(Request $request, int $server): Response
-    {
-        $serverObj = Server::find($server);
-
-        return Inertia::render('Whiteboard/Whiteboarding')->with([
-            'servers' => $request->user()->servers,
-            'selectedServer' => $serverObj,
-            'selectedServer.users' => $serverObj->users,
-            'selectedServer.roles' => $serverObj->roles,
             'channels' => $serverObj->channels()->where('type', ChannelType::Whiteboard)->get(),
             'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
