@@ -4,17 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::dropIfExists('kanban_tasks');
-        Schema::dropIfExists('kanban_columns');
-        Schema::dropIfExists('kanban_boards');
-
         Schema::create('whiteboards', function (Blueprint $table) {
             $table->id();
             $table->foreignId('channel_id')->constrained()->cascadeOnDelete();
