@@ -1,22 +1,22 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import {onMounted, onUnmounted, ref} from 'vue';
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
-import { Whiteboard as WhiteboardType } from '@/types';
-import { save } from '@/routes/whiteboard';
+import {WebsocketProvider} from 'y-websocket';
+import {Whiteboard as WhiteboardType} from '@/types';
+import {save} from '@/routes/whiteboard';
 import axios from 'axios';
-import { addIcons } from "oh-vue-icons";
+import {addIcons} from "oh-vue-icons";
 import {
-    HiSolidPencil,
     BiEraser,
-    MdRectangleOutlined,
-    MdCircleOutlined,
-    MdHorizontalrule,
-    MdUndo,
-    MdRedo,
-    MdDeleteoutline,
+    HiSolidPencil,
     MdAdsclick,
-    MdFormatcolorfillOutlined
+    MdCircleOutlined,
+    MdDeleteoutline,
+    MdFormatcolorfillOutlined,
+    MdHorizontalrule,
+    MdRectangleOutlined,
+    MdRedo,
+    MdUndo
 } from "oh-vue-icons/icons";
 
 addIcons(HiSolidPencil, BiEraser, MdRectangleOutlined, MdCircleOutlined, MdHorizontalrule, MdUndo, MdRedo, MdDeleteoutline, MdAdsclick, MdFormatcolorfillOutlined);
@@ -40,14 +40,14 @@ const fillColor = ref('transparent');
 const strokeWidth = ref(2);
 
 const colorPresets = [
-    { name: 'Primary', value: 'oklch(var(--p))', class: 'bg-primary' },
-    { name: 'Secondary', value: 'oklch(var(--s))', class: 'bg-secondary' },
-    { name: 'Accent', value: 'oklch(var(--a))', class: 'bg-accent' },
-    { name: 'Neutral', value: 'oklch(var(--n))', class: 'bg-neutral' },
-    { name: 'Info', value: 'oklch(var(--in))', class: 'bg-info' },
-    { name: 'Success', value: 'oklch(var(--su))', class: 'bg-success' },
-    { name: 'Warning', value: 'oklch(var(--wa))', class: 'bg-warning' },
-    { name: 'Error', value: 'oklch(var(--er))', class: 'bg-error' },
+    {name: 'Primary', value: 'oklch(var(--p))', class: 'bg-primary'},
+    {name: 'Secondary', value: 'oklch(var(--s))', class: 'bg-secondary'},
+    {name: 'Accent', value: 'oklch(var(--a))', class: 'bg-accent'},
+    {name: 'Neutral', value: 'oklch(var(--n))', class: 'bg-neutral'},
+    {name: 'Info', value: 'oklch(var(--in))', class: 'bg-info'},
+    {name: 'Success', value: 'oklch(var(--su))', class: 'bg-success'},
+    {name: 'Warning', value: 'oklch(var(--wa))', class: 'bg-warning'},
+    {name: 'Error', value: 'oklch(var(--er))', class: 'bg-error'},
 ];
 
 const getColorValue = (preset: any) => {
@@ -223,7 +223,7 @@ const handleMouseDown = (e: any) => {
 
     currentShapeId = Math.random().toString(36).substring(7);
 
-    let newShape: any = {
+    const newShape: any = {
         id: currentShapeId,
         tool: tool.value,
         color: tool.value === 'eraser' ? '#ffffff' : color.value,
@@ -260,7 +260,7 @@ const handleMouseMove = (e: any) => {
     const shape = yshapes.get(currentShapeId);
     if (!shape) return;
 
-    const updatedShape = { ...shape };
+    const updatedShape = {...shape};
 
     if (tool.value === 'pencil' || (tool.value === 'eraser' && e.evt.shiftKey)) {
         updatedShape.points = updatedShape.points.concat([pos.x, pos.y]);
@@ -274,7 +274,7 @@ const handleMouseMove = (e: any) => {
     yshapes.set(currentShapeId, updatedShape);
 };
 
-const handleMouseUp = (e: any) => {
+const handleMouseUp = () => {
     if (selectionRect.value.visible) {
         selectionRect.value.visible = false;
         const stage = stageRef.value.getStage();
@@ -285,7 +285,7 @@ const handleMouseUp = (e: any) => {
             y2: Math.max(selectionRect.value.y, selectionRect.value.y + selectionRect.value.height),
         };
 
-        const selected = shapes.value.filter((shape) => {
+        selectedShapeIds.value = shapes.value.filter((shape) => {
             const node = stage.findOne('#' + shape.id);
             if (!node) return false;
             const r = node.getClientRect();
@@ -296,8 +296,6 @@ const handleMouseUp = (e: any) => {
                 r.y + r.height <= box.y2
             );
         }).map(s => s.id);
-
-        selectedShapeIds.value = selected;
         updateTransformer();
     }
 
@@ -390,7 +388,7 @@ const updateTransformer = () => {
 const saveState = async () => {
     const state = JSON.stringify(Object.fromEntries(yshapes.entries()));
     try {
-        await axios.post(save.url(props.whiteboard.id), { state });
+        await axios.post(save.url(props.whiteboard.id), {state});
     } catch (e) {
         console.error("Failed to save whiteboard state", e);
     }
@@ -417,36 +415,49 @@ const deleteSelected = () => {
 <template>
     <div class="whiteboard-container flex flex-col h-full bg-base-100">
         <!-- Toolbar -->
-        <div class="toolbar flex items-center justify-center gap-2 px-4 border-b bg-base-200 overflow-visible text-base-content h-16">
+        <div
+            class="toolbar flex items-center justify-center gap-2 px-4 border-b bg-base-200 overflow-visible text-base-content h-16">
             <div class="flex items-center gap-1">
                 <div class="tooltip tooltip-bottom" data-tip="Select Tool">
-                    <button @click="tool = 'select'" :class="{'btn-active': tool === 'select'}" class="btn btn-sm btn-ghost">
-                        <v-icon name="md-adsclick" />
+                    <button
+                        :class="{'btn-active': tool === 'select'}" class="btn btn-sm btn-ghost"
+                        @click="tool = 'select'">
+                        <v-icon name="md-adsclick"/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Pencil Tool">
-                    <button @click="tool = 'pencil'" :class="{'btn-active': tool === 'pencil'}" class="btn btn-sm btn-ghost">
-                        <v-icon name="hi-solid-pencil" />
+                    <button
+                        :class="{'btn-active': tool === 'pencil'}" class="btn btn-sm btn-ghost"
+                        @click="tool = 'pencil'">
+                        <v-icon name="hi-solid-pencil"/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Line Tool">
-                    <button @click="tool = 'line'" :class="{'btn-active': tool === 'line'}" class="btn btn-sm btn-ghost">
-                        <v-icon name="md-horizontalrule" />
+                    <button
+                        :class="{'btn-active': tool === 'line'}" class="btn btn-sm btn-ghost"
+                        @click="tool = 'line'">
+                        <v-icon name="md-horizontalrule"/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Rectangle Tool">
-                    <button @click="tool = 'rect'" :class="{'btn-active': tool === 'rect'}" class="btn btn-sm btn-ghost">
-                        <v-icon name="md-rectangle-outlined" />
+                    <button
+                        :class="{'btn-active': tool === 'rect'}" class="btn btn-sm btn-ghost"
+                        @click="tool = 'rect'">
+                        <v-icon name="md-rectangle-outlined"/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Circle Tool">
-                    <button @click="tool = 'circle'" :class="{'btn-active': tool === 'circle'}" class="btn btn-sm btn-ghost">
-                        <v-icon name="md-circle-outlined" />
+                    <button
+                        :class="{'btn-active': tool === 'circle'}" class="btn btn-sm btn-ghost"
+                        @click="tool = 'circle'">
+                        <v-icon name="md-circle-outlined"/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Eraser (Shift+Drag for brush style)">
-                    <button @click="tool = 'eraser'" :class="{'btn-active': tool === 'eraser'}" class="btn btn-sm btn-ghost">
-                        <v-icon name="bi-eraser" />
+                    <button
+                        :class="{'btn-active': tool === 'eraser'}" class="btn btn-sm btn-ghost"
+                        @click="tool = 'eraser'">
+                        <v-icon name="bi-eraser"/>
                     </button>
                 </div>
             </div>
@@ -457,37 +468,53 @@ const deleteSelected = () => {
                 <div class="flex flex-col items-center justify-center">
                     <span class="text-[10px] font-bold uppercase opacity-50 mb-1">Stroke</span>
                     <div class="flex items-center gap-1">
-                        <div v-for="preset in colorPresets" :key="preset.name"
-                            class="w-3 h-3 rounded-full cursor-pointer border border-base-content/20 hover:scale-125 transition-transform"
+                        <div
+                            v-for="preset in colorPresets" :key="preset.name"
                             :class="preset.class"
                             :title="preset.name"
+                            class="w-3 h-3 rounded-full cursor-pointer border border-base-content/20 hover:scale-125 transition-transform"
                             @click="setPresetColor(preset, 'stroke')"
                         ></div>
                         <div class="tooltip tooltip-bottom flex ml-1" data-tip="Custom Color">
-                            <input type="color" v-model="color" class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden" />
+                            <input
+                                v-model="color"
+                                class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden"
+                                type="color"/>
                         </div>
                     </div>
                 </div>
                 <div v-if="['rect', 'circle'].includes(tool)" class="flex flex-col items-center justify-center">
                     <span class="text-[10px] font-bold uppercase opacity-50 mb-1">Fill</span>
                     <div class="flex items-center gap-1">
-                        <div v-for="preset in colorPresets" :key="'fill-' + preset.name"
-                            class="w-3 h-3 rounded-full cursor-pointer border border-base-content/20 hover:scale-125 transition-transform"
+                        <div
+                            v-for="preset in colorPresets" :key="'fill-' + preset.name"
                             :class="preset.class"
                             :title="'Fill ' + preset.name"
+                            class="w-3 h-3 rounded-full cursor-pointer border border-base-content/20 hover:scale-125 transition-transform"
                             @click="setPresetColor(preset, 'fill')"
                         ></div>
                         <div class="tooltip tooltip-bottom flex ml-1" data-tip="Custom Fill">
-                            <input type="color" v-model="fillColor" :disabled="fillColor === 'transparent'" class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden disabled:opacity-30" />
+                            <input
+                                v-model="fillColor" :disabled="fillColor === 'transparent'"
+                                class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden disabled:opacity-30"
+                                type="color"/>
                         </div>
                         <div class="tooltip tooltip-bottom flex" data-tip="No Fill">
-                            <button @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'" :class="{'btn-active bg-base-300': fillColor === 'transparent'}" class="btn btn-xs btn-ghost p-0 min-h-0 h-5 w-5 ml-1 flex items-center justify-center">
-                                 <v-icon name="md-formatcolorfill-outlined" scale="0.6" :class="{'text-error': fillColor === 'transparent'}" />
+                            <button
+                                :class="{'btn-active bg-base-300': fillColor === 'transparent'}"
+                                class="btn btn-xs btn-ghost p-0 min-h-0 h-5 w-5 ml-1 flex items-center justify-center"
+                                @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'">
+                                <v-icon
+                                    :class="{'text-error': fillColor === 'transparent'}"
+                                    name="md-formatcolorfill-outlined"
+                                    scale="0.6"/>
                             </button>
                         </div>
                     </div>
                 </div>
-                <select v-model="strokeWidth" class="select select-sm select-bordered tooltip tooltip-bottom" data-tip="Stroke Width">
+                <select
+                    v-model="strokeWidth" class="select select-sm select-bordered tooltip tooltip-bottom"
+                    data-tip="Stroke Width">
                     <option :value="1">1px</option>
                     <option :value="2">2px</option>
                     <option :value="5">5px</option>
@@ -499,13 +526,13 @@ const deleteSelected = () => {
 
             <div class="flex items-center gap-1">
                 <div class="tooltip tooltip-bottom" data-tip="Undo (Ctrl+Z)">
-                    <button @click="undo" class="btn btn-sm btn-ghost">
-                        <v-icon name="md-undo" />
+                    <button class="btn btn-sm btn-ghost" @click="undo">
+                        <v-icon name="md-undo"/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Redo (Ctrl+Y)">
-                    <button @click="redo" class="btn btn-sm btn-ghost">
-                        <v-icon name="md-redo" />
+                    <button class="btn btn-sm btn-ghost" @click="redo">
+                        <v-icon name="md-redo"/>
                     </button>
                 </div>
             </div>
@@ -514,27 +541,34 @@ const deleteSelected = () => {
 
             <div class="flex items-center gap-2">
                 <div class="tooltip tooltip-bottom" data-tip="Delete Selected (Del)">
-                    <button @click="deleteSelected" :disabled="selectedShapeIds.length === 0" class="btn btn-sm btn-ghost text-error hover:bg-error/10">
-                        <v-icon name="md-deleteoutline" />
+                    <button
+                        :disabled="selectedShapeIds.length === 0"
+                        class="btn btn-sm btn-ghost text-error hover:bg-error/10"
+                        @click="deleteSelected">
+                        <v-icon name="md-deleteoutline"/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Clear All Canvas">
-                    <button @click="clear" class="btn btn-sm btn-ghost text-error">
+                    <button class="btn btn-sm btn-ghost text-error" @click="clear">
                         Clear
                     </button>
                 </div>
             </div>
 
             <div class="ml-auto flex items-center gap-2 pr-2">
-                <div class="tooltip tooltip-left flex items-center gap-2" :data-tip="isConnected ? (latency !== null ? `Latency: ${latency}ms` : 'Connected') : 'Disconnected'">
-                    <span class="status-dot" :class="isConnected ? 'bg-success' : 'bg-warning'"></span>
+                <div
+                    :data-tip="isConnected ? (latency !== null ? `Latency: ${latency}ms` : 'Connected') : 'Disconnected'"
+                    class="tooltip tooltip-left flex items-center gap-2">
+                    <span :class="isConnected ? 'bg-success' : 'bg-warning'" class="status-dot"></span>
                     <span class="text-xs">{{ isConnected ? 'Live' : 'Connecting...' }}</span>
                 </div>
             </div>
         </div>
 
         <!-- Canvas Area -->
-        <div ref="container" class="canvas-area flex-grow relative overflow-hidden cursor-crosshair" :class="{'cursor-default': tool === 'select'}">
+        <div
+            ref="container" :class="{'cursor-default': tool === 'select'}"
+            class="canvas-area grow relative overflow-hidden cursor-crosshair">
             <v-stage
                 ref="stageRef"
                 :config="stageConfig"
@@ -642,15 +676,18 @@ const deleteSelected = () => {
 .whiteboard-container {
     user-select: none;
 }
+
 .btn-active {
     background-color: hsl(var(--bc) / 0.1);
 }
+
 .status-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     display: inline-block;
 }
+
 .canvas-area {
     background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
     background-size: 20px 20px;
