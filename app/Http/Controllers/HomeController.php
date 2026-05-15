@@ -115,7 +115,7 @@ class HomeController extends Controller
     {
         $serverObj = Server::find($server);
 
-        return Inertia::render('Whiteboard/Whiteboarding', [
+        return Inertia::render('Whiteboard/Whiteboarding')->with([
             'servers' => $request->user()->servers,
             'selectedServer' => $serverObj,
             'selectedServer.users' => $serverObj->users,
@@ -135,7 +135,7 @@ class HomeController extends Controller
             $channelObj->load('whiteboard');
         }
 
-        return Inertia::render('Whiteboard/Whiteboarding', [
+        return Inertia::render('Whiteboard/Whiteboarding')->with([
             'servers' => $request->user()->servers,
             'selectedServer' => $serverObj,
             'selectedServer.users' => $serverObj->users,

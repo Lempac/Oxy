@@ -120,8 +120,9 @@ const selectionRect = ref({
 });
 
 const handleMouseDown = (e: any) => {
-    const clickedOnEmpty = e.target === e.target.getStage();
-    const pos = e.target.getStage().getPointerPosition();
+    const stage = e.target.getStage();
+    const clickedOnEmpty = e.target === stage;
+    const pos = stage.getPointerPosition();
 
     if (tool.value === 'select') {
         if (clickedOnEmpty) {
@@ -142,7 +143,13 @@ const handleMouseDown = (e: any) => {
 
     if (tool.value === 'eraser' && !e.evt.shiftKey) {
         if (!clickedOnEmpty) {
-            const id = e.target.id();
+            // Traverse up to find the group/node with an ID
+            let target = e.target;
+            while (target && target !== stage && !target.id()) {
+                target = target.getParent();
+            }
+
+            const id = target?.id();
             if (id) {
                 yshapes.delete(id);
                 saveState();
@@ -157,7 +164,7 @@ const handleMouseDown = (e: any) => {
         id: currentShapeId,
         tool: tool.value,
         color: tool.value === 'eraser' ? '#ffffff' : color.value,
-        fill: tool.value === 'rect' || tool.value === 'circle' ? (fillColor.value === 'transparent' ? null : fillColor.value) : null,
+        fill: tool.value === 'rect' || tool.value === 'circle' ? (fillColor.value === 'transparent' ? 'rgba(0,0,0,0)' : fillColor.value) : null,
         strokeWidth: strokeWidth.value,
         points: [pos.x, pos.y],
         x: 0,
@@ -330,41 +337,59 @@ const deleteSelected = () => {
         <!-- Toolbar -->
         <div class="toolbar flex items-center gap-4 p-2 border-b bg-gray-50 overflow-x-auto text-base-content">
             <div class="flex border-r pr-4 gap-1">
-                <button @click="tool = 'select'" :class="{'btn-active': tool === 'select'}" class="btn btn-sm btn-ghost" title="Select">
-                    <v-icon name="md-adsclick" />
-                </button>
-                <button @click="tool = 'pencil'" :class="{'btn-active': tool === 'pencil'}" class="btn btn-sm btn-ghost" title="Pencil">
-                    <v-icon name="hi-solid-pencil" />
-                </button>
-                <button @click="tool = 'line'" :class="{'btn-active': tool === 'line'}" class="btn btn-sm btn-ghost" title="Line">
-                    <v-icon name="md-horizontalrule" />
-                </button>
-                <button @click="tool = 'rect'" :class="{'btn-active': tool === 'rect'}" class="btn btn-sm btn-ghost" title="Rectangle">
-                    <v-icon name="md-rectangle-outlined" />
-                </button>
-                <button @click="tool = 'circle'" :class="{'btn-active': tool === 'circle'}" class="btn btn-sm btn-ghost" title="Circle">
-                    <v-icon name="md-circle-outlined" />
-                </button>
-                <button @click="tool = 'eraser'" :class="{'btn-active': tool === 'eraser'}" class="btn btn-sm btn-ghost" title="Eraser">
-                    <v-icon name="bi-eraser" />
-                </button>
+                <div class="tooltip tooltip-bottom" data-tip="Select Tool">
+                    <button @click="tool = 'select'" :class="{'btn-active': tool === 'select'}" class="btn btn-sm btn-ghost">
+                        <v-icon name="md-adsclick" />
+                    </button>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="Pencil Tool">
+                    <button @click="tool = 'pencil'" :class="{'btn-active': tool === 'pencil'}" class="btn btn-sm btn-ghost">
+                        <v-icon name="hi-solid-pencil" />
+                    </button>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="Line Tool">
+                    <button @click="tool = 'line'" :class="{'btn-active': tool === 'line'}" class="btn btn-sm btn-ghost">
+                        <v-icon name="md-horizontalrule" />
+                    </button>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="Rectangle Tool">
+                    <button @click="tool = 'rect'" :class="{'btn-active': tool === 'rect'}" class="btn btn-sm btn-ghost">
+                        <v-icon name="md-rectangle-outlined" />
+                    </button>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="Circle Tool">
+                    <button @click="tool = 'circle'" :class="{'btn-active': tool === 'circle'}" class="btn btn-sm btn-ghost">
+                        <v-icon name="md-circle-outlined" />
+                    </button>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="Eraser (Shift+Drag to erase brush style)">
+                    <button @click="tool = 'eraser'" :class="{'btn-active': tool === 'eraser'}" class="btn btn-sm btn-ghost">
+                        <v-icon name="bi-eraser" />
+                    </button>
+                </div>
             </div>
 
-            <div class="flex border-r pr-4 gap-2 items-center">
-                <div class="flex flex-col items-center">
+            <div class="flex border-r pr-4 gap-4 items-center">
+                <div class="flex flex-col items-center tooltip tooltip-bottom" data-tip="Stroke Color">
                     <span class="text-[10px] leading-none mb-1">Stroke</span>
-                    <input type="color" v-model="color" class="w-8 h-8 cursor-pointer border-none p-0 bg-transparent" title="Stroke Color" />
+                    <input type="color" v-model="color" class="w-8 h-8 cursor-pointer border-none p-0 bg-transparent" />
                 </div>
-                <div class="flex flex-col items-center">
-                    <span class="text-[10px] leading-none mb-1">Fill</span>
-                    <div class="flex items-center gap-1">
-                        <input type="color" v-model="fillColor" :disabled="fillColor === 'transparent'" class="w-8 h-8 cursor-pointer border-none p-0 bg-transparent disabled:opacity-30" title="Fill Color" />
-                        <button @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'" :class="{'btn-active': fillColor === 'transparent'}" class="btn btn-xs btn-ghost p-0 min-h-0 h-8 w-8" title="Toggle Transparency">
-                             <v-icon name="md-formatcolorfill-outlined" scale="0.8" :class="{'text-error': fillColor === 'transparent'}" />
-                        </button>
+                <div v-if="['rect', 'circle'].includes(tool)" class="flex gap-2 items-center">
+                    <div class="flex flex-col items-center">
+                        <span class="text-[10px] leading-none mb-1">Fill</span>
+                        <div class="flex items-center gap-1">
+                            <div class="tooltip tooltip-bottom" data-tip="Fill Color">
+                                <input type="color" v-model="fillColor" :disabled="fillColor === 'transparent'" class="w-8 h-8 cursor-pointer border-none p-0 bg-transparent disabled:opacity-30" />
+                            </div>
+                            <div class="tooltip tooltip-bottom" data-tip="Toggle Transparency">
+                                <button @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'" :class="{'btn-active': fillColor === 'transparent'}" class="btn btn-xs btn-ghost p-0 min-h-0 h-8 w-8">
+                                     <v-icon name="md-formatcolorfill-outlined" scale="0.8" :class="{'text-error': fillColor === 'transparent'}" />
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <select v-model="strokeWidth" class="select select-sm select-bordered ml-2" title="Stroke Width">
+                <select v-model="strokeWidth" class="select select-sm select-bordered tooltip tooltip-bottom" data-tip="Stroke Width">
                     <option :value="1">1px</option>
                     <option :value="2">2px</option>
                     <option :value="5">5px</option>
@@ -373,21 +398,29 @@ const deleteSelected = () => {
             </div>
 
             <div class="flex border-r pr-4 gap-1">
-                <button @click="undo" class="btn btn-sm btn-ghost" title="Undo">
-                    <v-icon name="md-undo" />
-                </button>
-                <button @click="redo" class="btn btn-sm btn-ghost" title="Redo">
-                    <v-icon name="md-redo" />
-                </button>
+                <div class="tooltip tooltip-bottom" data-tip="Undo (Ctrl+Z)">
+                    <button @click="undo" class="btn btn-sm btn-ghost">
+                        <v-icon name="md-undo" />
+                    </button>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="Redo (Ctrl+Y)">
+                    <button @click="redo" class="btn btn-sm btn-ghost">
+                        <v-icon name="md-redo" />
+                    </button>
+                </div>
             </div>
 
             <div class="flex gap-1">
-                <button @click="deleteSelected" :disabled="selectedShapeIds.length === 0" class="btn btn-sm btn-ghost text-error" title="Delete Selected">
-                    <v-icon name="md-deleteoutline" />
-                </button>
-                <button @click="clear" class="btn btn-sm btn-ghost text-error" title="Clear All">
-                    Clear
-                </button>
+                <div class="tooltip tooltip-bottom" data-tip="Delete Selected (Del)">
+                    <button @click="deleteSelected" :disabled="selectedShapeIds.length === 0" class="btn btn-sm btn-ghost text-error">
+                        <v-icon name="md-deleteoutline" />
+                    </button>
+                </div>
+                <div class="tooltip tooltip-bottom" data-tip="Clear All Canvas">
+                    <button @click="clear" class="btn btn-sm btn-ghost text-error">
+                        Clear
+                    </button>
+                </div>
             </div>
 
             <div class="ml-auto flex items-center gap-2 pr-2">
@@ -415,6 +448,7 @@ const deleteSelected = () => {
                                 points: shape.points,
                                 stroke: shape.color,
                                 strokeWidth: shape.strokeWidth,
+                                hitStrokeWidth: 20,
                                 lineCap: 'round',
                                 lineJoin: 'round',
                                 tension: shape.tool === 'line' ? 0 : 0.5,
@@ -441,6 +475,7 @@ const deleteSelected = () => {
                                 stroke: shape.color,
                                 fill: shape.fill,
                                 strokeWidth: shape.strokeWidth,
+                                hitStrokeWidth: 20,
                                 draggable: tool === 'select',
                                 scaleX: shape.scaleX || 1,
                                 scaleY: shape.scaleY || 1,
@@ -457,10 +492,11 @@ const deleteSelected = () => {
                                 id: shape.id,
                                 x: shape.x + (shape.width / 2),
                                 y: shape.y + (shape.height / 2),
-                                radius: Math.sqrt(Math.pow(shape.width / 2, 2) + Math.pow(shape.height / 2, 2)),
+                                radius: Math.max(Math.abs(shape.width / 2), Math.abs(shape.height / 2)),
                                 stroke: shape.color,
                                 fill: shape.fill,
                                 strokeWidth: shape.strokeWidth,
+                                hitStrokeWidth: 20,
                                 draggable: tool === 'select',
                                 scaleX: shape.scaleX || 1,
                                 scaleY: shape.scaleY || 1,
