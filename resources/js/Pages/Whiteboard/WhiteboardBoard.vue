@@ -287,10 +287,19 @@ const handleTransformEnd = (e: any) => {
     const shape = yshapes.get(id);
     if (!shape) return;
 
+    let newX = node.x();
+    let newY = node.y();
+
+    // If it's a circle, we need to convert the center position back to the top-left "x" we store in state
+    if (shape.tool === 'circle') {
+        newX = newX - (shape.width * node.scaleX() / 2);
+        newY = newY - (shape.height * node.scaleY() / 2);
+    }
+
     yshapes.set(id, {
         ...shape,
-        x: node.x(),
-        y: node.y(),
+        x: newX,
+        y: newY,
         scaleX: node.scaleX(),
         scaleY: node.scaleY(),
         rotation: node.rotation(),
@@ -299,14 +308,24 @@ const handleTransformEnd = (e: any) => {
 };
 
 const handleDragEnd = (e: any) => {
-    const id = e.target.id();
+    const node = e.target;
+    const id = node.id();
     const shape = yshapes.get(id);
     if (!shape) return;
 
+    let newX = node.x();
+    let newY = node.y();
+
+    // If it's a circle, we need to convert the center position back to the top-left "x" we store in state
+    if (shape.tool === 'circle') {
+        newX = newX - (shape.width / 2);
+        newY = newY - (shape.height / 2);
+    }
+
     yshapes.set(id, {
         ...shape,
-        x: e.target.x(),
-        y: e.target.y(),
+        x: newX,
+        y: newY,
     });
     saveState();
 };
