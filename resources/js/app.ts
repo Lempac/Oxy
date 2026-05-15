@@ -1,18 +1,18 @@
 import './bootstrap';
 import '../css/app.css';
 
-import {createApp, DefineComponent, h} from 'vue';
-import {createInertiaApp, router} from '@inertiajs/vue3';
-import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
-import {OhVueIcon} from 'oh-vue-icons';
-import {Themes, ThemeType} from "@/types";
+import {createInertiaApp, router} from '@inertiajs/vue3'
 import {configureEcho} from '@laravel/echo-vue';
+import {OhVueIcon} from "oh-vue-icons";
+import {createApp, DefineComponent, h} from "vue";
+import {resolvePageComponent} from "laravel-vite-plugin/inertia-helpers";
+import {Themes, ThemeType} from "@/types";
 
 configureEcho({
     broadcaster: 'reverb',
 });
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName: string = import.meta.env.VITE_APP_NAME ?? 'Laravel';
 
 // noinspection JSIgnoredPromiseFromCall
 createInertiaApp({
@@ -27,7 +27,6 @@ createInertiaApp({
         const updateTheme = (theme: ThemeType | null) => {
             document.documentElement.setAttribute('data-theme', theme || Themes.OXY_DARK);
         };
-
         // Initial application
         updateTheme(props.initialPage.props.user?.theme ?? Themes.OXY_DARK);
 

@@ -14,6 +14,7 @@
   '';
 
   languages.javascript.enable = true;
+  languages.javascript.pnpm.enable = true;
   languages.javascript.package = pkgs.nodejs_24;
   languages.nix.enable = true;
   languages.python.enable = true;
@@ -21,7 +22,7 @@
   languages.python.uv.enable = true;
   packages = with pkgs; [ sqlite nil nixd ];
   processes = {
-    vite.exec = "npm run dev";
+    vite.exec = "pnpm run dev";
     php-serve.exec = "php artisan serve";
     php-queue.exec = "php artisan queue:work";
     php-reverb.exec = "php artisan reverb:start";

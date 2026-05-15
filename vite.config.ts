@@ -2,6 +2,7 @@ import {defineConfig} from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
+import inertia from '@inertiajs/vite'
 import {wayfinder} from "@laravel/vite-plugin-wayfinder";
 import tailwindcss from '@tailwindcss/vite';
 
@@ -22,6 +23,7 @@ export default defineConfig({
                 },
             },
         }),
+        inertia(),
     ],
     resolve: {
         alias: {
