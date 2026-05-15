@@ -37,6 +37,45 @@ const tool = ref<'pencil' | 'eraser' | 'rect' | 'circle' | 'line' | 'select'>('p
 const color = ref('#000000');
 const fillColor = ref('transparent');
 const strokeWidth = ref(2);
+
+const colorPresets = [
+    { name: 'Primary', value: 'oklch(var(--p))', class: 'bg-primary' },
+    { name: 'Secondary', value: 'oklch(var(--s))', class: 'bg-secondary' },
+    { name: 'Accent', value: 'oklch(var(--a))', class: 'bg-accent' },
+    { name: 'Neutral', value: 'oklch(var(--n))', class: 'bg-neutral' },
+    { name: 'Info', value: 'oklch(var(--in))', class: 'bg-info' },
+    { name: 'Success', value: 'oklch(var(--su))', class: 'bg-success' },
+    { name: 'Warning', value: 'oklch(var(--wa))', class: 'bg-warning' },
+    { name: 'Error', value: 'oklch(var(--er))', class: 'bg-error' },
+];
+
+const getColorValue = (preset: any) => {
+    const el = document.createElement('div');
+    el.className = preset.class;
+    document.body.appendChild(el);
+    const color = getComputedStyle(el).backgroundColor;
+    document.body.removeChild(el);
+    return color;
+};
+
+const setPresetColor = (preset: any, target: 'stroke' | 'fill') => {
+    const val = getColorValue(preset);
+    if (target === 'stroke') {
+        color.value = rgbToHex(val);
+    } else {
+        fillColor.value = rgbToHex(val);
+    }
+};
+
+const rgbToHex = (rgb: string) => {
+    if (rgb.startsWith('#')) return rgb;
+    const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    if (!match) return rgb;
+    const r = parseInt(match[1]);
+    const g = parseInt(match[2]);
+    const b = parseInt(match[3]);
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+};
 const selectedShapeIds = ref<string[]>([]);
 
 const transformerRef = ref<any>(null);
@@ -333,10 +372,10 @@ const deleteSelected = () => {
 </script>
 
 <template>
-    <div class="whiteboard-container flex flex-col h-full bg-white">
+    <div class="whiteboard-container flex flex-col h-full bg-base-100">
         <!-- Toolbar -->
-        <div class="toolbar flex items-center gap-4 p-2 border-b bg-gray-50 overflow-x-auto text-base-content">
-            <div class="flex border-r pr-4 gap-1">
+        <div class="toolbar flex items-center justify-center gap-2 px-4 border-b bg-base-200 overflow-visible text-base-content h-16">
+            <div class="flex items-center gap-1">
                 <div class="tooltip tooltip-bottom" data-tip="Select Tool">
                     <button @click="tool = 'select'" :class="{'btn-active': tool === 'select'}" class="btn btn-sm btn-ghost">
                         <v-icon name="md-adsclick" />
@@ -362,30 +401,46 @@ const deleteSelected = () => {
                         <v-icon name="md-circle-outlined" />
                     </button>
                 </div>
-                <div class="tooltip tooltip-bottom" data-tip="Eraser (Shift+Drag to erase brush style)">
+                <div class="tooltip tooltip-bottom" data-tip="Eraser (Shift+Drag for brush style)">
                     <button @click="tool = 'eraser'" :class="{'btn-active': tool === 'eraser'}" class="btn btn-sm btn-ghost">
                         <v-icon name="bi-eraser" />
                     </button>
                 </div>
             </div>
 
-            <div class="flex border-r pr-4 gap-4 items-center">
-                <div class="flex flex-col items-center tooltip tooltip-bottom" data-tip="Stroke Color">
-                    <span class="text-[10px] leading-none mb-1">Stroke</span>
-                    <input type="color" v-model="color" class="w-8 h-8 cursor-pointer border-none p-0 bg-transparent" />
+            <div class="divider divider-horizontal h-10 my-auto mx-1"></div>
+
+            <div class="flex items-center gap-6">
+                <div class="flex flex-col items-center justify-center">
+                    <span class="text-[10px] font-bold uppercase opacity-50 mb-1">Stroke</span>
+                    <div class="flex items-center gap-1">
+                        <div v-for="preset in colorPresets" :key="preset.name"
+                            class="w-3 h-3 rounded-full cursor-pointer border border-base-content/20 hover:scale-125 transition-transform"
+                            :class="preset.class"
+                            :title="preset.name"
+                            @click="setPresetColor(preset, 'stroke')"
+                        ></div>
+                        <div class="tooltip tooltip-bottom flex ml-1" data-tip="Custom Color">
+                            <input type="color" v-model="color" class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden" />
+                        </div>
+                    </div>
                 </div>
-                <div v-if="['rect', 'circle'].includes(tool)" class="flex gap-2 items-center">
-                    <div class="flex flex-col items-center">
-                        <span class="text-[10px] leading-none mb-1">Fill</span>
-                        <div class="flex items-center gap-1">
-                            <div class="tooltip tooltip-bottom" data-tip="Fill Color">
-                                <input type="color" v-model="fillColor" :disabled="fillColor === 'transparent'" class="w-8 h-8 cursor-pointer border-none p-0 bg-transparent disabled:opacity-30" />
-                            </div>
-                            <div class="tooltip tooltip-bottom" data-tip="Toggle Transparency">
-                                <button @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'" :class="{'btn-active': fillColor === 'transparent'}" class="btn btn-xs btn-ghost p-0 min-h-0 h-8 w-8">
-                                     <v-icon name="md-formatcolorfill-outlined" scale="0.8" :class="{'text-error': fillColor === 'transparent'}" />
-                                </button>
-                            </div>
+                <div v-if="['rect', 'circle'].includes(tool)" class="flex flex-col items-center justify-center">
+                    <span class="text-[10px] font-bold uppercase opacity-50 mb-1">Fill</span>
+                    <div class="flex items-center gap-1">
+                        <div v-for="preset in colorPresets" :key="'fill-' + preset.name"
+                            class="w-3 h-3 rounded-full cursor-pointer border border-base-content/20 hover:scale-125 transition-transform"
+                            :class="preset.class"
+                            :title="'Fill ' + preset.name"
+                            @click="setPresetColor(preset, 'fill')"
+                        ></div>
+                        <div class="tooltip tooltip-bottom flex ml-1" data-tip="Custom Fill">
+                            <input type="color" v-model="fillColor" :disabled="fillColor === 'transparent'" class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden disabled:opacity-30" />
+                        </div>
+                        <div class="tooltip tooltip-bottom flex" data-tip="No Fill">
+                            <button @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'" :class="{'btn-active bg-base-300': fillColor === 'transparent'}" class="btn btn-xs btn-ghost p-0 min-h-0 h-5 w-5 ml-1">
+                                 <v-icon name="md-formatcolorfill-outlined" scale="0.6" :class="{'text-error': fillColor === 'transparent'}" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -397,7 +452,9 @@ const deleteSelected = () => {
                 </select>
             </div>
 
-            <div class="flex border-r pr-4 gap-1">
+            <div class="divider divider-horizontal h-10 my-auto mx-1"></div>
+
+            <div class="flex items-center gap-1">
                 <div class="tooltip tooltip-bottom" data-tip="Undo (Ctrl+Z)">
                     <button @click="undo" class="btn btn-sm btn-ghost">
                         <v-icon name="md-undo" />
@@ -410,7 +467,9 @@ const deleteSelected = () => {
                 </div>
             </div>
 
-            <div class="flex gap-1">
+            <div class="divider divider-horizontal h-8 my-auto mx-1"></div>
+
+            <div class="flex items-center gap-2">
                 <div class="tooltip tooltip-bottom" data-tip="Delete Selected (Del)">
                     <button @click="deleteSelected" :disabled="selectedShapeIds.length === 0" class="btn btn-sm btn-ghost text-error">
                         <v-icon name="md-deleteoutline" />
