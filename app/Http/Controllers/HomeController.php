@@ -58,7 +58,7 @@ class HomeController extends Controller
             'selectedServer.roles' => $serverObj->roles,
             'selectedChannel' => Channel::find($channel),
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
+            'messages' => Message::where('channel_id', $channel)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server.'#'.hash('xxh32', $server),
@@ -75,7 +75,7 @@ class HomeController extends Controller
             'selectedChannel' => Channel::find($channel),
             'selectedMessage' => Message::find($message),
             'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::where('channel_id', $channel)->get()->each(function (Message $message) {
+            'messages' => Message::where('channel_id', $channel)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server.'#'.hash('xxh32', $server),
