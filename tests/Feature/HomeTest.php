@@ -20,7 +20,7 @@ test('home select server', function () {
     $this->actingAs($user);
 
     $response = $this
-        ->get(route('home.server', ['server' => $user->servers->first()->id]));
+        ->get(route('home.server', ['server' => $user->servers->first()->slug]));
 
     $response->assertOk();
 });
@@ -30,7 +30,7 @@ test('home returns all channels', function () {
     $this->actingAs($user);
 
     $response = $this
-        ->get(route('home.text', ['server' => $user->servers->first()->id]));
+        ->get(route('home.text', ['server' => $user->servers->first()->slug]));
     $response->assertInertia(fn (Assert $page) => $page
         ->has('channels', $user->servers->first()->channels->count())
     );
@@ -43,7 +43,7 @@ test('home select channel', function () {
     $this->actingAs($user);
 
     $response = $this
-        ->get(route('home.text.channel', ['server' => $server->id, 'channel' => $selectedChannel->id]));
+        ->get(route('home.text.channel', ['server' => $server->slug, 'channel' => $selectedChannel->slug]));
     $response->assertInertia(fn (Assert $page) => $page
         ->has('channels', $user->servers->first()->channels->count())
         ->has('selectedChannel')->where('selectedChannel.id', $selectedChannel->id)

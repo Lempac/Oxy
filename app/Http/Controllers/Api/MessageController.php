@@ -13,7 +13,7 @@ use Storage;
 
 class MessageController
 {
-    public function create(Request $request, int $channelId)
+    public function create(Request $request, Channel $channel)
     {
         $request->validate([
             'type' => 'required|in:'.implode(',', array_column(MessageType::cases(), 'value')),
@@ -22,12 +22,6 @@ class MessageController
         $request->validate([
             'mdata' => $request->type === MessageType::Text->value ? 'required|string|max:500' : 'required|file|max:200000000',
         ]);
-
-        $channel = Channel::find($channelId);
-
-        if (! $channel) {
-            return response()->json(['message' => 'Channel not found'], 404);
-        }
 
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
@@ -66,17 +60,11 @@ class MessageController
         return response()->json(['message' => 'Message created'], 201);
     }
 
-    public function edit(Request $request, int $messageId)
+    public function edit(Request $request, Message $message)
     {
         $request->validate([
             'mdata' => 'required|string',
         ]);
-
-        $message = Message::find($messageId);
-
-        if (! $message) {
-            return response()->json(['message' => 'Message not found'], 404);
-        }
 
         if ($message->type != MessageType::Text->value) {
             return response()->json(['message' => 'Message can not be edited'], 400);
@@ -92,14 +80,8 @@ class MessageController
         return response()->json(['message' => 'Message updated'], 201);
     }
 
-    public function delete(int $messageId)
+    public function delete(Message $message)
     {
-        $message = Message::find($messageId);
-
-        if (! $message) {
-            return response()->json(['message' => 'Message not found'], 404);
-        }
-
         if ($message->type != MessageType::Text->value) {
             Storage::disk('public')->delete($message->mdata);
         }

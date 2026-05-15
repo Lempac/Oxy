@@ -26,6 +26,11 @@ class Channel extends Model
         'deleted' => ChannelDeleted::class,
     ];
 
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
