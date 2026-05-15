@@ -3,8 +3,8 @@
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\KanbanBoardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WhiteboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -31,6 +31,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/{server}/voice', 'voice')->name('.voice');
         Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
+
+        Route::get('/{server}/whiteboard', 'whiteboard')->name('.whiteboard');
+        Route::get('/{server}/whiteboard/{channel}', 'wchannel')->name('.whiteboard.channel');
     }
     );
 
@@ -55,14 +58,8 @@ Route::middleware('auth')->group(function () {
     }
     );
 
-    Route::controller(KanbanBoardController::class)->prefix('kanban')->group(function () {
-        Route::get('/', 'index')->name('kanban.index');
-        Route::get('/create', 'create')->name('kanban.create');
-        Route::post('/', 'store')->name('kanban.store');
-        Route::get('/{board}', 'show')->name('kanban.show');
-        Route::get('/{board}/edit', 'edit')->name('kanban.edit');
-        Route::put('/{board}', 'update')->name('kanban.update');
-        Route::delete('/{board}', 'destroy')->name('kanban.destroy');
+    Route::controller(WhiteboardController::class)->prefix('whiteboard')->group(function () {
+        Route::post('/{whiteboard}/save', 'saveState')->name('whiteboard.save');
     }
     );
 });
