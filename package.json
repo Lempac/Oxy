@@ -4,7 +4,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vue-tsc && vite build && vite build --ssr",
-        "yjs": "npx y-websocket"
+        "yjs": "y-websocket-server"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^1.2.0",
@@ -33,7 +33,7 @@
         "vue-konva": "^3.4.0",
         "vue-tsc": "^2.1.10",
         "y-protocols": "^1.0.7",
-        "y-websocket": "^3.0.0",
+        "y-websocket": "^1.5.4",
         "yjs": "^13.6.30"
     },
     "dependencies": {

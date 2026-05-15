@@ -76,13 +76,31 @@ onMounted(() => {
     }
 
     window.addEventListener('resize', handleResize);
+    window.addEventListener('keydown', handleKeyDown);
 });
 
 onUnmounted(() => {
     provider.destroy();
     ydoc.destroy();
     window.removeEventListener('resize', handleResize);
+    window.removeEventListener('keydown', handleKeyDown);
 });
+
+const handleKeyDown = (e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+            redo();
+        } else {
+            undo();
+        }
+    } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        redo();
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (tool.value === 'select') {
+            deleteSelected();
+        }
+    }
+};
 
 const handleResize = () => {
     if (container.value) {
@@ -93,18 +111,46 @@ const handleResize = () => {
 
 let currentShapeId: string | null = null;
 
+const selectionRect = ref({
+    visible: false,
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+});
+
 const handleMouseDown = (e: any) => {
     const clickedOnEmpty = e.target === e.target.getStage();
+    const pos = e.target.getStage().getPointerPosition();
 
     if (tool.value === 'select') {
         if (clickedOnEmpty) {
             selectedShapeIds.value = [];
             updateTransformer();
+
+            // Start selection rectangle
+            selectionRect.value = {
+                visible: true,
+                x: pos.x,
+                y: pos.y,
+                width: 0,
+                height: 0,
+            };
         }
         return;
     }
 
-    const pos = e.target.getStage().getPointerPosition();
+    if (tool.value === 'eraser' && !e.evt.shiftKey) {
+        if (!clickedOnEmpty) {
+            const id = e.target.id();
+            if (id) {
+                yshapes.delete(id);
+                saveState();
+            }
+        }
+        return;
+    }
+
     currentShapeId = Math.random().toString(36).substring(7);
 
     let newShape: any = {
@@ -131,15 +177,22 @@ const handleMouseDown = (e: any) => {
 };
 
 const handleMouseMove = (e: any) => {
+    const pos = e.target.getStage().getPointerPosition();
+
+    if (selectionRect.value.visible) {
+        selectionRect.value.width = pos.x - selectionRect.value.x;
+        selectionRect.value.height = pos.y - selectionRect.value.y;
+        return;
+    }
+
     if (!currentShapeId) return;
 
-    const pos = e.target.getStage().getPointerPosition();
     const shape = yshapes.get(currentShapeId);
     if (!shape) return;
 
     const updatedShape = { ...shape };
 
-    if (tool.value === 'pencil' || tool.value === 'eraser') {
+    if (tool.value === 'pencil' || (tool.value === 'eraser' && e.evt.shiftKey)) {
         updatedShape.points = updatedShape.points.concat([pos.x, pos.y]);
     } else if (tool.value === 'rect' || tool.value === 'circle') {
         updatedShape.width = pos.x - updatedShape.x;
@@ -151,7 +204,33 @@ const handleMouseMove = (e: any) => {
     yshapes.set(currentShapeId, updatedShape);
 };
 
-const handleMouseUp = () => {
+const handleMouseUp = (e: any) => {
+    if (selectionRect.value.visible) {
+        selectionRect.value.visible = false;
+        const stage = stageRef.value.getStage();
+        const box = {
+            x1: Math.min(selectionRect.value.x, selectionRect.value.x + selectionRect.value.width),
+            y1: Math.min(selectionRect.value.y, selectionRect.value.y + selectionRect.value.height),
+            x2: Math.max(selectionRect.value.x, selectionRect.value.x + selectionRect.value.width),
+            y2: Math.max(selectionRect.value.y, selectionRect.value.y + selectionRect.value.height),
+        };
+
+        const selected = shapes.value.filter((shape) => {
+            const node = stage.findOne('#' + shape.id);
+            if (!node) return false;
+            const r = node.getClientRect();
+            return (
+                r.x >= box.x1 &&
+                r.y >= box.y1 &&
+                r.x + r.width <= box.x2 &&
+                r.y + r.height <= box.y2
+            );
+        }).map(s => s.id);
+
+        selectedShapeIds.value = selected;
+        updateTransformer();
+    }
+
     currentShapeId = null;
     saveState();
 };
@@ -397,8 +476,20 @@ const deleteSelected = () => {
                     <v-transformer
                         ref="transformerRef"
                         :config="{
-                            enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
+                            enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'top-center', 'bottom-center', 'middle-left', 'middle-right'],
                             rotateEnabled: true,
+                        }"
+                    />
+                    <v-rect
+                        v-if="selectionRect.visible"
+                        :config="{
+                            x: Math.min(selectionRect.x, selectionRect.x + selectionRect.width),
+                            y: Math.min(selectionRect.y, selectionRect.y + selectionRect.height),
+                            width: Math.abs(selectionRect.width),
+                            height: Math.abs(selectionRect.height),
+                            fill: 'rgba(0,0,255,0.1)',
+                            stroke: 'blue',
+                            strokeWidth: 1,
                         }"
                     />
                 </v-layer>

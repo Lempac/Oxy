@@ -20,11 +20,11 @@ const {selectedChannel, selectedServer} = defineProps<{
 
         <div
             v-if="$page.url.match(/\/whiteboard\/\d+/)"
-            class="flex-grow h-[calc(100vh-64px-64px)] m-5 rounded-lg overflow-hidden border border-base-300"
+            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-base-100 m-5 rounded-lg mx-auto mt-3 flex flex-col overflow-hidden border border-base-300"
         >
             <WhiteboardBoard v-if="selectedChannel?.whiteboard" :whiteboard="selectedChannel.whiteboard" />
         </div>
-        <div v-else class="flex items-center justify-center h-[calc(100vh-64px-64px)] text-base-content/50">
+        <div v-else class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-base-100 m-5 rounded-lg mx-auto mt-3 flex items-center justify-center text-base-content/50">
             <p>Select a whiteboard channel to start drawing!</p>
         </div>
     </AuthenticatedLayout>
