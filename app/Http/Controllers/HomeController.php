@@ -47,12 +47,12 @@ class HomeController extends Controller
     {
         return Inertia::render('Text/Texting', [
             'servers' => $request->user()->servers,
-            'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
-            'selectedServer.roles' => $server->roles,
-            'selectedChannel' => $channel,
-            'channels' => $server->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::where('channel_id', $channel->id)->get()->each(function (Message $message) {
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'selectedChannel' => Channel::find($channel),
+            'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
+            'messages' => Message::where('channel_id', $channel)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server->id.'#'.hash('xxh32', $server->id),
@@ -63,11 +63,11 @@ class HomeController extends Controller
     {
         return Inertia::render('Text/Texting', [
             'servers' => $request->user()->servers,
-            'selectedServer' => $server,
-            'selectedChannel' => $channel,
-            'selectedMessage' => $message,
-            'channels' => $server->channels()->where('type', ChannelType::Text)->get(),
-            'messages' => Message::where('channel_id', $channel->id)->get()->each(function (Message $message) {
+            'selectedServer' => $serverObj,
+            'selectedChannel' => Channel::find($channel),
+            'selectedMessage' => Message::find($message),
+            'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
+            'messages' => Message::where('channel_id', $channel)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server->id.'#'.hash('xxh32', $server->id),
@@ -96,6 +96,41 @@ class HomeController extends Controller
             'selectedChannel' => $channel,
             'channels' => $server->channels()->where('type', ChannelType::Voice)->get(),
             'inviteCode' => $server->id.'#'.hash('xxh32', $server->id),
+        ]);
+    }
+
+    public function wchannel(Request $request, int $server, int $channel): Response
+    {
+        $serverObj = Server::find($server);
+        $channelObj = Channel::with('whiteboard')->find($channel);
+
+        if (! $channelObj->whiteboard) {
+            $channelObj->whiteboard()->create();
+            $channelObj->load('whiteboard');
+        }
+
+        return Inertia::render('Whiteboard/Whiteboarding')->with([
+            'servers' => $request->user()->servers,
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'selectedChannel' => $channelObj,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Whiteboard)->get(),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
+        ]);
+    }
+
+    public function whiteboard(Request $request, int $server): Response
+    {
+        $serverObj = Server::find($server);
+
+        return Inertia::render('Whiteboard/Whiteboarding')->with([
+            'servers' => $request->user()->servers,
+            'selectedServer' => $serverObj,
+            'selectedServer.users' => $serverObj->users,
+            'selectedServer.roles' => $serverObj->roles,
+            'channels' => $serverObj->channels()->where('type', ChannelType::Whiteboard)->get(),
+            'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
 }

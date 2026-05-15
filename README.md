@@ -9,11 +9,9 @@ that lets you create, manage groups with roles in company or group of people wit
 ![Group Chat](/assets/group_chat.png)
 ![Group Voice Chat](/assets/group_voice_chat.png)
 
-### And plan on kanban board.
-![Kanban Boards](/assets/kanban_boards.png)
-![Kanban Cards](/assets/kanban_cards.png)
+### And collaborate on whiteboard.
 
-### Settings for managing groups and kanban boards.
+### Settings for managing groups and whiteboards.
 ![Settings](/assets/group_settings.png)
 
 ## How to build our project
