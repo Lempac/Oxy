@@ -33,6 +33,7 @@ const stageConfig = ref({
 const container = ref<HTMLDivElement | null>(null);
 const shapes = ref<any[]>([]);
 const isConnected = ref(false);
+const latency = ref<number | null>(null);
 const tool = ref<'pencil' | 'eraser' | 'rect' | 'circle' | 'line' | 'select'>('pencil');
 const color = ref('#000000');
 const fillColor = ref('transparent');
@@ -89,6 +90,25 @@ const undoManager = new Y.UndoManager(yshapes);
 const wsUrl = import.meta.env.VITE_YJS_WS_URL || 'ws://localhost:1234';
 const provider = new WebsocketProvider(wsUrl, `whiteboard-${props.whiteboard.id}`, ydoc);
 
+let heartbeatInterval: any = null;
+
+const startHeartbeat = () => {
+    heartbeatInterval = setInterval(async () => {
+        if (!isConnected.value) {
+            latency.value = null;
+            return;
+        }
+        const start = Date.now();
+        try {
+            await axios.get('/up');
+            latency.value = Date.now() - start;
+        } catch (e) {
+            console.error("Heartbeat failed", e);
+            latency.value = null;
+        }
+    }, 10000);
+};
+
 onMounted(() => {
     if (container.value) {
         stageConfig.value.width = container.value.offsetWidth;
@@ -101,6 +121,9 @@ onMounted(() => {
 
     provider.on('status', (event: any) => {
         isConnected.value = event.status === 'connected';
+        if (isConnected.value && !heartbeatInterval) {
+            startHeartbeat();
+        }
     });
 
     if (props.whiteboard.state && yshapes.size === 0) {
@@ -119,6 +142,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
     provider.destroy();
     ydoc.destroy();
     window.removeEventListener('resize', handleResize);
@@ -457,7 +481,7 @@ const deleteSelected = () => {
                             <input type="color" v-model="fillColor" :disabled="fillColor === 'transparent'" class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden disabled:opacity-30" />
                         </div>
                         <div class="tooltip tooltip-bottom flex" data-tip="No Fill">
-                            <button @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'" :class="{'btn-active bg-base-300': fillColor === 'transparent'}" class="btn btn-xs btn-ghost p-0 min-h-0 h-5 w-5 ml-1">
+                            <button @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'" :class="{'btn-active bg-base-300': fillColor === 'transparent'}" class="btn btn-xs btn-ghost p-0 min-h-0 h-5 w-5 ml-1 flex items-center justify-center">
                                  <v-icon name="md-formatcolorfill-outlined" scale="0.6" :class="{'text-error': fillColor === 'transparent'}" />
                             </button>
                         </div>
@@ -486,11 +510,11 @@ const deleteSelected = () => {
                 </div>
             </div>
 
-            <div class="divider divider-horizontal h-8 my-auto mx-1"></div>
+            <div class="divider divider-horizontal h-10 my-auto mx-1"></div>
 
             <div class="flex items-center gap-2">
                 <div class="tooltip tooltip-bottom" data-tip="Delete Selected (Del)">
-                    <button @click="deleteSelected" :disabled="selectedShapeIds.length === 0" class="btn btn-sm btn-ghost text-error">
+                    <button @click="deleteSelected" :disabled="selectedShapeIds.length === 0" class="btn btn-sm btn-ghost text-error hover:bg-error/10">
                         <v-icon name="md-deleteoutline" />
                     </button>
                 </div>
@@ -502,8 +526,10 @@ const deleteSelected = () => {
             </div>
 
             <div class="ml-auto flex items-center gap-2 pr-2">
-                <span class="status-dot" :class="isConnected ? 'bg-success' : 'bg-warning'"></span>
-                <span class="text-xs">{{ isConnected ? 'Live' : 'Connecting...' }}</span>
+                <div class="tooltip tooltip-left flex items-center gap-2" :data-tip="isConnected ? (latency !== null ? `Latency: ${latency}ms` : 'Connected') : 'Disconnected'">
+                    <span class="status-dot" :class="isConnected ? 'bg-success' : 'bg-warning'"></span>
+                    <span class="text-xs">{{ isConnected ? 'Live' : 'Connecting...' }}</span>
+                </div>
             </div>
         </div>
 
