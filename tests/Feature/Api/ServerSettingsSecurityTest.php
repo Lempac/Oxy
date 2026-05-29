@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\PermsType;
+use App\Models\Role;
 use App\Models\Server;
 use App\Models\User;
-use App\Models\Role;
-use App\Enums\PermsType;
 
 test('user without permissions cannot view server settings', function () {
     $user = User::factory()->create();
