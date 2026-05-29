@@ -100,16 +100,16 @@ class MessageController
             return response()->json(['message' => 'Message not found'], 404);
         }
 
-        if ($message->type != MessageType::Text->value) {
-            Storage::disk('public')->delete($message->mdata);
-        }
-
         $roles = $message->channel->server->roles->intersect(Auth::user()->roles);
 
         if ($message->user->id !== Auth::id() && $roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_DELETE_MESSAGE->value);
         })) {
             return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        if ($message->type != MessageType::Text->value) {
+            Storage::disk('public')->delete($message->mdata);
         }
 
         $message->delete();
