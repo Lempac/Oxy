@@ -28,14 +28,17 @@ export const bigIntToPerms = (newPrem: bigint): Perms => ({
     }
 });
 
-export const joinServer = async (code: string): Promise<[number, string?]> => {
-    return Promise.resolve(await axios.post(addUser.url(), {code: code})
-        .then(() => {
-            router.reload({only: ['servers']});
-            return [200, 'Successfully joined to server.'] as [number, string];
-        })
-        .catch((err: AxiosError<{ message: string }>) => {
-            return [err.status!, err.response?.data.message];
-        }))
+export const joinServer = (code: string): Promise<[number, string?]> => {
+    return new Promise((resolve) => {
+        router.post(addUser.url(), {code: code}, {
+            onSuccess: () => {
+                resolve([200, 'Successfully joined to server.']);
+            },
+            onError: (errors) => {
+                const message = errors.message || errors.code || 'Failed to join server.';
+                resolve([400, message]);
+            }
+        });
+    });
 }
 

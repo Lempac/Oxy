@@ -4,7 +4,6 @@ import { channel } from '@/routes/home/voice';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
-import axios from "axios";
 import {ref} from "vue";
 import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
@@ -34,7 +33,7 @@ const openModal = (channel?: Channel) => {
     if (channel) {
         isEditing.value = true;
         form.name = channel?.name || '';
-        editCurrent.value = () => editText(channel.id);
+        editCurrent.value = () => editText(channel.slug);
     } else {
         isEditing.value = false;
         form.name = '';
@@ -43,22 +42,26 @@ const openModal = (channel?: Channel) => {
 };
 
 const createText = async () => {
-    axios.postForm(create.url(selectedServer!.id), form.data()).then(() => {
-        channelModal.value?.close();
-        router.reload()
+    form.post(create.url(selectedServer!.slug), {
+        onSuccess: () => {
+            channelModal.value?.close();
+            form.reset();
+        }
     });
 };
 
-const deleteText = async (channelId: number) => {
-    axios.delete(deleteMethod.url(channelId)).then(() => {
-        router.reload()
+const deleteText = async (channelSlug: string) => {
+    router.delete(deleteMethod.url(channelSlug), {
+        onSuccess: () => router.reload()
     });
 };
 
-const editText = async (channelId: number) => {
-    axios.patch(edit.url(channelId), form.data()).then(() => {
-        channelModal.value?.close();
-        router.reload()
+const editText = async (channelSlug: string) => {
+    form.patch(edit.url(channelSlug), {
+        onSuccess: () => {
+            channelModal.value?.close();
+            form.reset();
+        }
     });
 };
 
@@ -113,7 +116,7 @@ const leaveChannel = async () => {
                     v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
                     class="indicator-item indicator-top absolute hidden group-hover:block">
                     <ConfirmDialog
-                        :confirm="() => deleteText(channel.id)"
+                        :confirm="() => deleteText(channel.slug)"
                         :description="`Are you sure you want to delete ${channel.name} channel?`"
                         class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
                         title="Delete Channel"

@@ -6,7 +6,6 @@ import {addIcons} from "oh-vue-icons";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
 import {Channel, Message, MessageType, Perms, PermType, Role, Server} from "@/types";
-import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 import {
     FaRegularFile,
@@ -93,11 +92,12 @@ const createMessage = async () => {
             hasError.value = true;
             return;
         }
-        axios.postForm(create.url(selectedChannel!.id), form.data())
-            .then(() => {
+        form.post(create.url(selectedChannel!.slug), {
+            onSuccess: () => {
                 clearFile();
                 hasError.value = false;
-            });
+            }
+        });
         await new Promise((resolve) => setTimeout(resolve, 500))
     } catch (error) {
         console.error('Error sending message:', error);
@@ -124,15 +124,18 @@ watch(
 );
 
 const deleteMessage = async (messageId: number) => {
-    await axios.delete(deleteMethod.url(messageId));
+    router.delete(deleteMethod.url(messageId));
 };
 
 const editMessage = async () => {
     if (messageIdToEdit.value !== null) {
-        await axios.patch(edit.url(messageIdToEdit.value), {mdata: form.mdata});
-        messageModal.value?.close();
-        form.reset();
-        router.reload();
+        router.patch(edit.url(messageIdToEdit.value), {mdata: form.mdata}, {
+            onSuccess: () => {
+                messageModal.value?.close();
+                form.reset();
+                router.reload();
+            }
+        });
     }
 };
 

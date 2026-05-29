@@ -26,6 +26,11 @@ class Server extends Model
         'updated' => ServerEdited::class,
     ];
 
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'role_server_user')

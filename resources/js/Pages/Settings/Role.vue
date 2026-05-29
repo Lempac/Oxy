@@ -2,8 +2,7 @@
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {ref} from 'vue';
-import {Link, usePage} from '@inertiajs/vue3';
-import axios, {AxiosResponse} from 'axios';
+import {Link, usePage, router} from '@inertiajs/vue3';
 import {Perms, PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
@@ -29,18 +28,18 @@ const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
-const fetchRoles = async () => {
+const fetchRoles = () => {
     try {
-        const response: AxiosResponse<Role[] | null> = await axios.get(index.url(selectedServer?.id));
-        roles.value = response.data ?? []; // Default to an empty array if undefined
-        // Sort roles by importance
+        // Fetch via inertia visit or by accessing server directly
+        // Assuming fetchRoles might be better served by just using selectedServer.roles initially and letting Inertia handle updates
+        roles.value = selectedServer?.roles ?? []; // Use passed roles
         roles.value.sort((a, b) => a.importance - b.importance);
 
         if (selectedServer && selectedServer.roles !== null) {
             perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
         }
     } catch (error) {
-        console.error('Error fetching roles:', error);
+        console.error('Error setting up roles:', error);
     }
 };
 
@@ -61,14 +60,13 @@ const updateRole = async () => {
     const currentEditingRole = editingRole.value;
 
     if (currentEditingRole) {
-        const response = await axios.patch(edit.url(currentEditingRole.id), newRole.value);
-
-        const index = roles.value.findIndex(r => r.id === currentEditingRole.id);
-        roles.value[index] = response.data.role;
-
-        editingRole.value = null;
-        closeModal(); // Reset modal state
-        await fetchRoles();
+        router.patch(edit.url(currentEditingRole.id), newRole.value, {
+            onSuccess: () => {
+                editingRole.value = null;
+                closeModal();
+                fetchRoles();
+            }
+        });
     }
 };
 
@@ -81,15 +79,17 @@ const addRole = async () => {
             newRole.value.importance = maxImportance + 1;
         }
 
-        await axios.post(create.url(selectedServer?.id), {
+        router.post(create.url(selectedServer?.slug), {
             name: newRole.value.name,
             color: newRole.value.color,
             perms: newRole.value.perms,
             importance: newRole.value.importance,
+        }, {
+            onSuccess: () => {
+                closeModal();
+                fetchRoles();
+            }
         });
-
-        closeModal();
-        await fetchRoles();
     } catch (error) {
         console.error('Error adding role:', error);
     }
@@ -97,19 +97,20 @@ const addRole = async () => {
 
 const deleteRole = async (role: Role) => {
     try {
-        await axios.delete(deleteMethod.url(role.id));
+        router.delete(deleteMethod.url(role.id), {
+            onSuccess: () => {
+                roles.value = roles.value.filter(r => r.id !== role.id);
 
-        roles.value = roles.value.filter(r => r.id !== role.id);
+                roles.value.forEach(r => {
+                    if (r.importance > role.importance) {
+                        r.importance -= 1;
+                        router.patch(edit.url(r.id), {importance: r.importance});
+                    }
+                });
 
-        roles.value.forEach(r => {
-            if (r.importance > role.importance) {
-                r.importance -= 1;
-                axios.patch(edit.url(r.id), {importance: r.importance});
+                roles.value.sort((a, b) => a.importance - b.importance);
             }
         });
-
-        roles.value.sort((a, b) => a.importance - b.importance);
-
     } catch (error) {
         console.error('Error deleting role:', error);
     }
@@ -149,8 +150,18 @@ const changeImportance = async (role: Role, direction: number) => {
         role.importance = swapRole.importance;
         swapRole.importance = tempImportance;
 
-        await axios.patch(edit.url(role.id), {importance: role.importance});
-        await axios.patch(edit.url(swapRole.id), {importance: swapRole.importance});
+        router.patch(edit.url(role.id), {importance: role.importance}, {
+            onSuccess: () => {
+                if (swapRole) {
+                    router.patch(edit.url(swapRole.id), {importance: swapRole.importance}, {
+                        onSuccess: () => {
+                            roles.value.sort((a, b) => a.importance - b.importance);
+                        }
+                    });
+                }
+            }
+        });
+        return;
     }
 
     roles.value.sort((a, b) => a.importance - b.importance);
@@ -165,7 +176,7 @@ const changeImportance = async (role: Role, direction: number) => {
             <!-- Navbar for Navigation -->
             <SettingsHeader :selected-server/>
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="server.url(selectedServer?.id)" class="btn btn-neutral">
+                <Link :href="server.url(selectedServer?.slug)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>

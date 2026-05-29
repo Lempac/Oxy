@@ -90,12 +90,14 @@ export interface Whiteboard extends Object {
 
 export interface Channel extends Object {
     name: string;
+    slug: string;
     type: ChannelType;
     server_id: number;
 }
 
 export interface Server extends Object {
     name: string;
+    slug: string;
     description: string;
     icon: string | null;
     users: User[] | null;
