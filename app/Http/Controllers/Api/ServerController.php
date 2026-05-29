@@ -161,6 +161,14 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
+        $roles = $server->roles->intersect(Auth::user()->roles);
+
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value) || $role->hasPerms(PermsType::CAN_MANAGE_SERVER->value);
+        })) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
         return Inertia::render('Settings/Server')->with([
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
