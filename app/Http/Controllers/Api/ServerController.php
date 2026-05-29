@@ -205,9 +205,7 @@ class ServerController extends Controller
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        $server->roles->each(function ($role) {
-            $role->delete();
-        });
+        Role::whereIn('id', $server->roles->pluck('id'))->delete();
         $server->delete();
 
         return response()->json(['message' => 'Server deleted successfully.']);
