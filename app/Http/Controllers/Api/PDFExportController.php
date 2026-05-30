@@ -10,7 +10,7 @@ class PDFExportController extends Controller
 {
     public function exportPDF()
     {
-        $user = Auth::user();
+        $user = Auth::user()->load(['servers', 'messages.channel.server']);
         $pdf = PDF::loadView('export', compact('user'));
 
         return $pdf->download('user_'.$user->id.'_details.pdf');
