@@ -7,8 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Server;
 use App\Models\User;
-use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class RoleController extends Controller
@@ -75,11 +75,18 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $roles = $role->server->first()->roles->intersect(Auth::user()->roles);
+        $hasPerms = false;
+        foreach ($role->server as $server) {
+            $userRoles = $server->roles->intersect(Auth::user()->roles);
+            if ($userRoles->contains(function (Role $r) {
+                return $r->hasPerms(PermsType::CAN_EDIT_ROLE->value);
+            })) {
+                $hasPerms = true;
+                break;
+            }
+        }
 
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_ROLE->value);
-        })) {
+        if (! $hasPerms) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -98,10 +105,18 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $roles = $role->server->first()->roles->intersect(Auth::user()->roles);
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_ROLE->value);
-        })) {
+        $hasPerms = false;
+        foreach ($role->server as $server) {
+            $userRoles = $server->roles->intersect(Auth::user()->roles);
+            if ($userRoles->contains(function (Role $r) {
+                return $r->hasPerms(PermsType::CAN_DELETE_ROLE->value);
+            })) {
+                $hasPerms = true;
+                break;
+            }
+        }
+
+        if (! $hasPerms) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -155,9 +170,28 @@ class RoleController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        $user->roles()->attach($role);
+        $hasPerms = false;
+        foreach ($role->server as $server) {
+            $userRoles = $server->roles->intersect(Auth::user()->roles);
+            if ($userRoles->contains(function (Role $r) {
+                return $r->hasPerms(PermsType::CAN_EDIT_MEMBER_ROLES->value) || $r->hasPerms(PermsType::CAN_MANAGE_ROLE->value);
+            })) {
+                $hasPerms = true;
+                break;
+            }
+        }
 
-        return response()->json(['message' => 'Role deleted successfully.']);
+        if (! $hasPerms) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        // We need to attach the role to the user, with the server_id pivot
+        // If a role belongs to multiple servers, attach it for the first one for simplicity or we should pass the server_id
+        // Currently the schema has server_id on the role_server_user pivot. Let's attach using the first server id for now, as that's how it would have behaved.
+        $serverId = $role->server->first()->id ?? null;
+        $user->roles()->attach($role, ['server_id' => $serverId]);
+
+        return response()->json(['message' => 'Role added successfully.']);
     }
 
     public function removeUser(int $roleId, int $userId)
@@ -171,6 +205,21 @@ class RoleController extends Controller
 
         if (! $user) {
             return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        $hasPerms = false;
+        foreach ($role->server as $server) {
+            $userRoles = $server->roles->intersect(Auth::user()->roles);
+            if ($userRoles->contains(function (Role $r) {
+                return $r->hasPerms(PermsType::CAN_EDIT_MEMBER_ROLES->value) || $r->hasPerms(PermsType::CAN_MANAGE_ROLE->value);
+            })) {
+                $hasPerms = true;
+                break;
+            }
+        }
+
+        if (! $hasPerms) {
+            return response()->json(['message' => 'Forbidden.'], 403);
         }
 
         $user->roles()->detach($role);
