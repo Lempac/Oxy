@@ -1,10 +1,10 @@
 <?php
 
+use App\Enums\MessageType;
 use App\Models\Channel;
+use App\Models\Message;
 use App\Models\Server;
 use App\Models\User;
-use App\Models\Message;
-use App\Enums\MessageType;
 
 test('user can edit their own message', function () {
     $user = User::factory()->create();
@@ -21,7 +21,7 @@ test('user can edit their own message', function () {
     ]);
 
     $response = $this->patch("/api/message/{$message->id}", [
-        'mdata' => 'Updated message'
+        'mdata' => 'Updated message',
     ]);
 
     $response->assertStatus(201);
@@ -29,7 +29,7 @@ test('user can edit their own message', function () {
 
     $this->assertDatabaseHas('messages', [
         'id' => $message->id,
-        'mdata' => 'Updated message'
+        'mdata' => 'Updated message',
     ]);
 });
 
@@ -50,7 +50,7 @@ test('user cannot edit another user\'s message', function () {
     // Act as user2 and try to edit user1's message
     $this->actingAs($user2);
     $response = $this->patch("/api/message/{$message->id}", [
-        'mdata' => 'Hacked message'
+        'mdata' => 'Hacked message',
     ]);
 
     $response->assertStatus(403);
@@ -58,6 +58,6 @@ test('user cannot edit another user\'s message', function () {
 
     $this->assertDatabaseHas('messages', [
         'id' => $message->id,
-        'mdata' => 'Original message'
+        'mdata' => 'Original message',
     ]);
 });
