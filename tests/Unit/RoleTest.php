@@ -1,13 +1,14 @@
 <?php
 
-use App\Models\Role;
 use App\Enums\PermsType;
+use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class, RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 test('hasPerms correctly checks single Enum permission', function () {
-    $role = new Role();
+    $role = new Role;
     $role->perms = PermsType::CAN_DELETE_SERVER->value;
 
     expect($role->hasPerms(PermsType::CAN_DELETE_SERVER))->toBeTrue();
@@ -15,7 +16,7 @@ test('hasPerms correctly checks single Enum permission', function () {
 });
 
 test('hasPerms correctly checks array of Enum permissions', function () {
-    $role = new Role();
+    $role = new Role;
     $role->perms = PermsType::CAN_DELETE_SERVER->value | PermsType::CAN_EDIT_SERVER->value;
 
     expect($role->hasPerms([PermsType::CAN_DELETE_SERVER, PermsType::CAN_EDIT_SERVER]))->toBeTrue();
@@ -23,7 +24,7 @@ test('hasPerms correctly checks array of Enum permissions', function () {
 });
 
 test('hasPerms correctly checks single int permission', function () {
-    $role = new Role();
+    $role = new Role;
     $role->perms = PermsType::CAN_DELETE_SERVER->value | PermsType::CAN_EDIT_SERVER->value;
 
     expect($role->hasPerms(PermsType::CAN_DELETE_SERVER->value))->toBeTrue();
@@ -31,7 +32,7 @@ test('hasPerms correctly checks single int permission', function () {
 });
 
 test('hasAnyPerms correctly checks if role has at least one permission', function () {
-    $role = new Role();
+    $role = new Role;
     $role->perms = PermsType::CAN_DELETE_SERVER->value;
 
     expect($role->hasAnyPerms([PermsType::CAN_DELETE_SERVER, PermsType::CAN_EDIT_SERVER]))->toBeTrue();

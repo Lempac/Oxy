@@ -45,12 +45,13 @@ class Role extends Model
     {
         return is_array($permsType)
             ? array_reduce(array_column($permsType, 'value'), fn (?int $a, int $b) => ($a ?? 0) | $b, 0)
-            : (is_numeric($permsType) ? (int)$permsType : $permsType->value);
+            : (is_numeric($permsType) ? (int) $permsType : $permsType->value);
     }
 
     public function hasPerms(array|PermsType|int $permsType): bool
     {
         $mask = $this->getPermsMask($permsType);
+
         return ($this->perms & $mask) === $mask;
     }
 

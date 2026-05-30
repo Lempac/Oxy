@@ -26,6 +26,7 @@ class RoleEdited implements ShouldBroadcast
         foreach ($this->role->server as $server) {
             $channels[] = new PrivateChannel('roles.'.$server->id);
         }
+
         return $channels;
     }
 
