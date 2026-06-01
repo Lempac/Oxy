@@ -75,18 +75,11 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $hasPerms = false;
-        foreach ($role->server as $server) {
-            $userRoles = $server->roles->intersect(Auth::user()->roles);
-            if ($userRoles->contains(function (Role $r) {
-                return $r->hasPerms(PermsType::CAN_EDIT_ROLE->value);
-            })) {
-                $hasPerms = true;
-                break;
-            }
-        }
+        $roles = $role->server->first()->roles->intersect(Auth::user()->roles);
 
-        if (! $hasPerms) {
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_EDIT_ROLE->value);
+        })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -105,18 +98,10 @@ class RoleController extends Controller
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $hasPerms = false;
-        foreach ($role->server as $server) {
-            $userRoles = $server->roles->intersect(Auth::user()->roles);
-            if ($userRoles->contains(function (Role $r) {
-                return $r->hasPerms(PermsType::CAN_DELETE_ROLE->value);
-            })) {
-                $hasPerms = true;
-                break;
-            }
-        }
-
-        if (! $hasPerms) {
+        $roles = $role->server->first()->roles->intersect(Auth::user()->roles);
+        if ($roles->doesntContain(function (Role $role) {
+            return $role->hasPerms(PermsType::CAN_DELETE_ROLE->value);
+        })) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -186,8 +171,6 @@ class RoleController extends Controller
         }
 
         // We need to attach the role to the user, with the server_id pivot
-        // If a role belongs to multiple servers, attach it for the first one for simplicity or we should pass the server_id
-        // Currently the schema has server_id on the role_server_user pivot. Let's attach using the first server id for now, as that's how it would have behaved.
         $serverId = $role->server->first()->id ?? null;
         $user->roles()->attach($role, ['server_id' => $serverId]);
 
