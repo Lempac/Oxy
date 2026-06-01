@@ -131,6 +131,18 @@ const togglePerm = (perm: typeof PermType | number, state: boolean) => {
 
 const roleArray = Object.entries(PermType);
 
+const formatRolePerms = (role: Role) => {
+    const rolePermsBigInt = BigInt(role.perms);
+    const filtered = roleArray.filter(roleObj => BigInt(roleObj[1]) & rolePermsBigInt);
+    const length = filtered.length;
+    if (length === 0) return 'None';
+    const firstThree = filtered.slice(0, 3).map(roleObj => roleObj[0]).join(', ');
+    if (length > 3) {
+        return `${firstThree} +${length - 3} others`;
+    }
+    return firstThree;
+};
+
 const changeImportance = async (role: Role, direction: number) => {
     const currentImportance = role.importance;
     const newImportance = currentImportance + direction;
@@ -219,15 +231,7 @@ const changeImportance = async (role: Role, direction: number) => {
                                 <button
                                     class="btn m-1"
                                     tabindex="0">
-                                    {{
-                                        roleArray
-                                            .filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms))
-                                            .map(roleObj => roleObj[0])
-                                            .slice(0, 3)
-                                            .join(', ') + (roleArray.filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms)).length > 3 ?
-                                            ' +' + (roleArray.filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms)).length - 3).toString() + ' others' : '') + (roleArray.filter(roleObj => BigInt(roleObj[1]) & BigInt(role.perms)).length === 0 ? 'None'
-                                            : '')
-                                    }}
+                                    {{ formatRolePerms(role) }}
                                 </button>
                                 <ul
                                     class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1"
