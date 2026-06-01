@@ -236,19 +236,21 @@ const changeImportance = async (role: Role, direction: number) => {
                                 <ul
                                     class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1"
                                     tabindex="0">
-                                    <li v-for="(perm, index) in roleArray" :key="index">
-                                        <button
-                                            :class="(bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])) ? 'bg-base-300' : '')"
-                                            :disabled="editingRole !== role"
-                                            class="btn"
-                                            @click="() => togglePerm(perm[1], !bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1])))"
-                                        >
-                                            <v-icon
-                                                v-if="bigIntToPerms(BigInt(role.perms)).has(BigInt(perm[1]))"
-                                                name="bi-check-lg"/>
-                                            {{ perm[0] }}
-                                        </button>
-                                    </li>
+                                    <template v-for="rolePerms in [bigIntToPerms(BigInt(role.perms))]" :key="'perms-' + role.id">
+                                        <li v-for="(perm, index) in roleArray" :key="index">
+                                            <button
+                                                :class="(rolePerms.has(BigInt(perm[1])) ? 'bg-base-300' : '')"
+                                                :disabled="editingRole !== role"
+                                                class="btn"
+                                                @click="() => togglePerm(perm[1], !rolePerms.has(BigInt(perm[1])))"
+                                            >
+                                                <v-icon
+                                                    v-if="rolePerms.has(BigInt(perm[1]))"
+                                                    name="bi-check-lg"/>
+                                                {{ perm[0] }}
+                                            </button>
+                                        </li>
+                                    </template>
                                 </ul>
                             </div>
                         </td>
