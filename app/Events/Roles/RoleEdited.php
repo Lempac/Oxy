@@ -20,14 +20,9 @@ class RoleEdited implements ShouldBroadcast
         public Role $role
     ) {}
 
-    public function broadcastOn(): array
+    public function broadcastOn(): PrivateChannel
     {
-        $channels = [];
-        foreach ($this->role->server as $server) {
-            $channels[] = new PrivateChannel('roles.'.$server->id);
-        }
-
-        return $channels;
+        return new PrivateChannel('roles.'.$this->role->server->id);
     }
 
     public function broadcastAs(): string

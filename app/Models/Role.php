@@ -41,34 +41,25 @@ class Role extends Model
             ->withTimestamps();
     }
 
-    private function getPermsMask(array|PermsType|int $permsType): int
-    {
-        return is_array($permsType)
-            ? array_reduce(array_column($permsType, 'value'), fn (?int $a, int $b) => ($a ?? 0) | $b, 0)
-            : (is_numeric($permsType) ? (int) $permsType : $permsType->value);
-    }
-
     public function hasPerms(array|PermsType|int $permsType): bool
     {
-        $mask = $this->getPermsMask($permsType);
-
-        return ($this->perms & $mask) === $mask;
+        return ($this->perms & (is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value))) === $permsType;
     }
 
     public function hasAnyPerms(array|PermsType|int $permsType): bool
     {
-        return ($this->perms & $this->getPermsMask($permsType)) !== 0;
+        return ($this->perms & (is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value))) !== 0;
     }
 
     public function addPerms(array|PermsType|int $permsType): void
     {
-        $this->perms |= $this->getPermsMask($permsType);
+        $this->perms |= $this->perms & (is_array($permsType) ? array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? $permsType : $permsType->value));
         $this->save();
     }
 
     public function removePerms(array|PermsType|int $permsType): void
     {
-        $this->perms &= ~$this->getPermsMask($permsType);
+        $this->perms &= $this->perms & (is_array($permsType) ? ~array_reduce(array_column($permsType, 'value'), fn (int $a, int $b) => $a | $b) : (is_numeric($permsType) ? ~$permsType : ~$permsType->value));
         $this->save();
     }
 

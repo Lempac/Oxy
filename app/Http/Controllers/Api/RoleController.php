@@ -127,7 +127,7 @@ class RoleController extends Controller
         return response()->json(['message' => 'Role deleted successfully.']);
     }
 
-    public function showSettings(int $serverId)
+    public function showSettings($serverId)
     {
         $server = Server::find($serverId);
         if (! $server) {
@@ -141,7 +141,7 @@ class RoleController extends Controller
         ]);
     }
 
-    public function showMembers(int $serverId)
+    public function showMembers($serverId)
     {
         $server = Server::find($serverId);
         if (! $server) {

@@ -78,10 +78,6 @@ class MessageController
             return response()->json(['message' => 'Message not found'], 404);
         }
 
-        if ($message->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Forbidden.'], 403);
-        }
-
         if ($message->type != MessageType::Text->value) {
             return response()->json(['message' => 'Message can not be edited'], 400);
         }

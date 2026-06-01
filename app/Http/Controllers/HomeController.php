@@ -42,7 +42,7 @@ class HomeController extends Controller
             'selectedServer' => $serverObj,
             'selectedServer.users' => $serverObj->users,
             'selectedServer.roles' => $serverObj->roles,
-            'channels' => $serverObj->channels()->where('type', ChannelType::Text)->get(),
+            'channels' => Server::find($server)->channels()->where('type', ChannelType::Text)->get(),
             'inviteCode' => $server.'#'.hash('xxh32', $server),
         ]);
     }
