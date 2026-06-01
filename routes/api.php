@@ -39,7 +39,7 @@ Route::middleware(['web'])->group(function () {
         Route::post('/{server}', 'create')->name('.create');
         Route::patch('/{channel}', 'edit')->name('.edit');
         Route::delete('/{channel}', 'delete')->name('.delete');
-        Route::post('/{channel}', 'upload')->name('.upload');
+        Route::post('/{channel}/upload', 'upload')->name('.upload');
     });
 
     Route::controller(RoleController::class)->prefix('roles')->name('roles')->group(function () {

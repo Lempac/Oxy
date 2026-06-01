@@ -88,7 +88,7 @@ class ChannelController
 
     public function upload(Request $request, int $channelId)
     {
-        $request->validate(['audio' => 'required|file']);
+        $request->validate(['audio' => 'required|file|mimes:webm,mp3,wav,ogg|mimetypes:audio/webm,audio/mpeg,audio/wav,audio/ogg']);
 
         $channel = Channel::find($channelId);
         if (! $channel) {
