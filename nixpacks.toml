@@ -1,0 +1,28 @@
+providers = ["node", "php"]
+
+[variables]
+NODE_ENV = "production"
+
+[phases.setup]
+nixPkgs = ["nodejs_24", "sqlite", "python3"]
+
+[phases.install]
+cmds = [
+    "npm ci",
+    "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader"
+]
+
+[phases.build]
+cmds = [
+    "npm run build"
+]
+
+[start]
+cmd = "php artisan package:discover --ansi && php artisan optimize && /bin/sh /assets/start.sh"
+
+[processes]
+# Nixpacks web provider automatically exposes the PHP web app using Nginx + PHP-FPM using the default start.sh
+# queue, reverb and yjs run alongside
+queue = "php artisan queue:work --tries=3 --max-time=3600"
+reverb = "php artisan reverb:start --host=0.0.0.0 --port=8080"
+yjs = "npm run yjs"
