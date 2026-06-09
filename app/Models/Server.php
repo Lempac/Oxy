@@ -13,12 +13,27 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Server extends Model
 {
+    public function getRouteKeyName() { return 'slug'; }
     use HasFactory;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($server) {
+            if (!$server->slug) {
+                $server->slug = \Illuminate\Support\Str::slug($server->name) . '-' . $server->id;
+                $server->save();
+            }
+        });
+    }
+
 
     protected $fillable = [
         'name',
         'description',
         'icon',
+        'slug',
     ];
 
     protected $dispatchesEvents = [

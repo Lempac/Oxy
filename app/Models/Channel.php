@@ -13,12 +13,27 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Channel extends Model
 {
+    public function getRouteKeyName() { return 'slug'; }
     use HasFactory;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($channel) {
+            if (!$channel->slug) {
+                $channel->slug = \Illuminate\Support\Str::slug($channel->name) . '-' . $channel->id;
+                $channel->save();
+            }
+        });
+    }
+
 
     protected $fillable = [
         'name',
         'type',
         'server_id',
+        'slug',
     ];
 
     protected $dispatchesEvents = [

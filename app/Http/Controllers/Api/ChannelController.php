@@ -13,15 +13,13 @@ use Illuminate\Http\Request;
 
 class ChannelController
 {
-    public function create(Request $request, int $serverId)
+    public function create(Request $request, Server $server)
     {
         $request->validate(['name' => 'required|string|max:50', 'type' => 'required|in:'.implode(',', array_column(ChannelType::cases(), 'value'))]);
 
-        $server = Server::find($serverId);
 
-        if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
+
+
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
@@ -31,22 +29,20 @@ class ChannelController
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        Channel::create(['name' => $request->get('name'), 'type' => $request->get('type'), 'server_id' => $serverId]);
+        Channel::create(['name' => $request->get('name'), 'type' => $request->get('type'), 'server_id' => $server->id]);
 
         //        broadcast(new ChannelCreated($serverId));
 
         return response()->json(['message' => 'Channel added to server successfully.']);
     }
 
-    public function edit(Request $request, int $channelId)
+    public function edit(Request $request, Channel $channel)
     {
         $request->validate(['name' => 'required|string|max:50']);
 
-        $channel = Channel::find($channelId);
 
-        if (! $channel) {
-            return response()->json(['message' => 'Channel not found.'], 404);
-        }
+
+
 
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
@@ -64,12 +60,10 @@ class ChannelController
         return response()->json(['message' => 'Channel updated successfully.']);
     }
 
-    public function delete(int $channelId)
+    public function delete(Channel $channel)
     {
-        $channel = Channel::find($channelId);
-        if (! $channel) {
-            return response()->json(['message' => 'Channel not found.'], 404);
-        }
+
+
 
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
@@ -86,14 +80,12 @@ class ChannelController
         return response()->json(['message' => 'Channel deleted successfully.']);
     }
 
-    public function upload(Request $request, int $channelId)
+    public function upload(Request $request, Channel $channel)
     {
         $request->validate(['audio' => 'required|file|mimes:webm,mp3,wav,ogg|mimetypes:audio/webm,audio/mpeg,audio/wav,audio/ogg']);
 
-        $channel = Channel::find($channelId);
-        if (! $channel) {
-            return response()->json(['message' => 'Channel not found.'], 404);
-        }
+
+
 
         $audioData = file_get_contents($request->file('audio')->getRealPath());
 

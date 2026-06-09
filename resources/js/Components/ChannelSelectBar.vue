@@ -10,7 +10,7 @@ import {ref} from "vue";
 import {Perms, PermType, Role, Server} from "@/types";
 import {bigIntToPerms} from "@/bootstrap";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import axios from "axios";
+
 
 addIcons(BiChatText, RiChatVoiceLine, BiEasel, BiGearFill, BiDoorOpen);
 
@@ -30,16 +30,13 @@ function leaveServer() {
         return;
     }
 
-    axios.delete(
-        leave.url(selectedServer.id)).then(() => {
-        router.reload();
-    });
+    router.delete(leave.url(selectedServer.slug), { preserveScroll: true, onSuccess: () => router.reload() });
 }
 
 </script>
 
 <template>
-    <div v-if="selectedServer?.id">
+    <div v-if="selectedServer?.slug">
         <div class="navbar bg-base-100 border-b border-base-300 justify-around">
             <!-- Leave server -->
             <ConfirmDialog
@@ -54,7 +51,7 @@ function leaveServer() {
                 </div>
             </ConfirmDialog>
 
-            <Link :href="text.url(selectedServer?.id)">
+            <Link :href="text.url(selectedServer?.slug)">
                 <button
                     :class="{ 'border-b-2 border-base-content text-base-content': $page.url.includes('/text') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
@@ -68,7 +65,7 @@ function leaveServer() {
             <!-- Server settings -->
             <Link
                 v-if="perms.hasAny(PermType.CAN_MANAGE_SERVER | PermType.CAN_MANAGE_ROLE | PermType.CAN_MANAGE_MEMBERS)"
-                :href="server.url(selectedServer?.id)"
+                :href="server.url(selectedServer?.slug)"
                 class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
                 <button
                     class="flex items-center justify-center h-10 w-auto my-auto"
@@ -77,7 +74,7 @@ function leaveServer() {
                 </button>
             </Link>
 
-            <Link :href="voice.url(selectedServer?.id)">
+            <Link :href="voice.url(selectedServer?.slug)">
                 <button
                     :class="{ 'border-b-2 border-base-content text-base-content': $page.url.includes('/voice') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
@@ -89,7 +86,7 @@ function leaveServer() {
                 </button>
             </Link>
 
-            <Link :href="whiteboard.url(selectedServer?.id!)">
+            <Link :href="whiteboard.url(selectedServer?.slug!)">
                 <button
                     :class="{'border-b-2 border-base-content text-base-content': $page.url.includes('/whiteboard') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative">

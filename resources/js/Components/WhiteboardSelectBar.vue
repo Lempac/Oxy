@@ -3,7 +3,7 @@ import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as channelRoute } from '@/routes/home/whiteboard';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
-import axios from "axios";
+
 import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {addIcons} from "oh-vue-icons";
@@ -35,7 +35,7 @@ const openModal = (channel?: Channel) => {
     if (channel) {
         isEditing.value = true;
         form.name = channel?.name || '';
-        editCurrent.value = () => editChannel(channel.id);
+        editCurrent.value = () => editChannel(channel.slug);
     } else {
         isEditing.value = false;
         form.name = '';
@@ -46,49 +46,25 @@ const openModal = (channel?: Channel) => {
 const createChannel = async () => {
     if (loading.value) return;
     loading.value = true;
-    axios.postForm(create.url(selectedServer!.id), form.data())
-        .then(() => {
-            channelModal.value?.close();
-            router.reload();
-            form.reset();
-        })
-        .catch((err) => {
-            console.error('Error creating server:', err);
-        })
-        .finally(() => {
-            loading.value = false;
-        });
+    form.post(create.url(selectedServer!.slug), { preserveScroll: true, onSuccess: () => { channelModal.value?.close(); form.reset(); }, onFinish: () => loading.value = false });
 };
 
-const deleteChannel = async (channelId: number) => {
-    axios.delete(deleteMethod.url(channelId)).then(() => {
-        router.reload()
-    });
+const deleteChannel = async (channelId: string) => {
+    router.delete(deleteMethod.url(channelId), { preserveScroll: true });
 };
 
-const editChannel = async (channelId: number) => {
+const editChannel = async (channelId: string) => {
     if (loading.value) return;
     loading.value = true;
 
-    axios.patch(edit.url(channelId), form.data())
-        .then(() => {
-            channelModal.value?.close();
-            router.reload()
-            form.reset();
-        })
-        .catch((err) => {
-            console.error('Error editing channel:', err);
-        })
-        .finally(() => {
-            loading.value = false;
-        });
+    form.patch(edit.url(channelId), { preserveScroll: true, onSuccess: () => { channelModal.value?.close(); form.reset(); }, onFinish: () => loading.value = false });
 };
 
 if (selectedServer && selectedServer.roles !== null) {
     perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
 }
 if (selectedServer) {
-    echo.private(`channels.${selectedServer.id}`)
+    echo.private(`channels.${selectedServer.slug}`)
         .listen('.ChannelCreated', () => {
             router.reload({only: ['channels', 'selected_channel']});
         })
@@ -105,12 +81,12 @@ if (selectedServer) {
 <template>
     <div
         class="navbar bg-base-100 border-b border-base-300 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
-        <div v-for="channel in channels" :key="channel.id" class="indicator relative group m-2">
+        <div v-for="channel in channels" :key="channel.slug" class="indicator relative group m-2">
             <div
                 v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
                 class="indicator-item indicator-top absolute hidden group-hover:block">
                 <ConfirmDialog
-                    :confirm="() => deleteChannel(channel.id)"
+                    :confirm="() => deleteChannel(channel.slug)"
                     :description="`Are you sure you want to delete ${channel.name} whiteboard channel?`"
                     class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
                     title="Delete Channel"
@@ -128,9 +104,9 @@ if (selectedServer) {
                 </button>
             </div>
 
-            <Link :href="channelRoute.url({server : selectedServer?.id!, channel : channel.id})">
+            <Link :href="channelRoute.url({server : selectedServer?.slug!, channel : channel.slug})">
                 <button
-                    :class="{'bg-base-300 text-base-content' : selectedChannel?.id === channel.id}"
+                    :class="{'bg-base-300 text-base-content' : selectedChannel?.slug === channel.slug}"
                     class="btn btn-outline btn-sm">
                     {{ channel.name }}
                 </button>

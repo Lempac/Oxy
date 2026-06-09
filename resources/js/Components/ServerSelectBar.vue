@@ -7,7 +7,7 @@ import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
 import {baseUrl, defaultIcon, joinServer} from "@/bootstrap";
-import axios from "axios";
+
 import {addIcons} from "oh-vue-icons";
 import {HiSolidSun, OiPlus, RiMoonClearFill} from "oh-vue-icons/icons";
 import {Server} from "@/types";
@@ -37,21 +37,7 @@ const loading = ref(false);
 const createServer = async () => {
     if (loading.value) return;
     loading.value = true;
-    axios.postForm(create.url(), form.data())
-        .then(() => {
-            serverModal.value?.close();
-            router.reload({only: ['servers']});
-            form.reset();
-        })
-        .catch((err) => {
-            for (const [name, errors] of (Object.entries(err.response.data.errors) as [name: string, errors: string[]][])) {
-                errors.forEach(error => form.setError(name as "description" | "icon" | "name", error))
-            }
-            console.error('Error creating server:', err);
-        })
-        .finally(() => {
-            loading.value = false;
-        });
+    form.post(create.url(), { preserveScroll: true, onSuccess: () => { serverModal.value?.close(); form.reset(); }, onFinish: () => loading.value = false });
 };
 
 const icon = ref<string | null>(null);
@@ -75,9 +61,9 @@ const updateIcon = (val: File) => {
         </div>
         <div
             class="navbar-center w-3/5 overflow-x-auto overflow-y-hidden whitespace-nowrap flex justify-center items-center">
-            <div v-for="server in servers" :key="server.id">
+            <div v-for="server in servers" :key="server.slug">
                 <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                    <Link :href="serverRoute.url(server.id)">
+                    <Link :href="serverRoute.url(server.slug)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div class="btn btn-ghost btn-circle avatar">
                                 <div class="w-14 rounded-full">

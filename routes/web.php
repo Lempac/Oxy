@@ -40,13 +40,13 @@ Route::middleware('auth')->group(function () {
     // Setting routes
     Route::prefix('settings')->group(function () {
         Route::controller(ServerController::class)->prefix('server')->group(function () {
-            Route::get('/{id}', 'showSettings')->name('settings.server');
-            Route::post('/{id}', 'update')->name('server.update');
-            Route::delete('/{id}', 'destroy')->name('server.destroy');
+            Route::get('/{server}', 'showSettings')->name('settings.server');
+            Route::post('/{server}', 'update')->name('server.update');
+            Route::delete('/{server}', 'destroy')->name('server.destroy');
         }
         );
-        Route::get('/role/{id}', [RoleController::class, 'showSettings'])->name('settings.role');
-        Route::get('/members/{id}', [RoleController::class, 'showMembers'])->name('settings.members');
+        Route::get('/role/{server}', [RoleController::class, 'showSettings'])->name('settings.role');
+        Route::get('/members/{server}', [RoleController::class, 'showMembers'])->name('settings.members');
     }
     );
 

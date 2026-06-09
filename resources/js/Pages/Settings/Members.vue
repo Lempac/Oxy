@@ -8,7 +8,7 @@ import {Perms, PermType, Role, Server, User} from "@/types";
 import {BiCheckLg, GiBootKick} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
-import axios from "axios";
+
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {ref} from "vue";
 import {bigIntToPerms} from "@/bootstrap";
@@ -31,20 +31,20 @@ const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const toggleRole = (roleId: number, userId: number, state: boolean) => {
     if (state) {
-        axios.post(addUser.url({role: roleId, user: userId})).then(() => {
-            router.reload({only: ['selected_server']});
-        })
+        router.post(addUser.url({role: roleId, user: userId}), {}, { preserveScroll: true, onSuccess: () => router.reload({only: ['selected_server']}) })
+    ;
+
     } else {
-        axios.delete(roles_removeUser.url({role: roleId, user: userId})).then(() => {
-            router.reload({only: ['selected_server']});
-        })
+        router.delete(roles_removeUser.url({role: roleId, user: userId}), { preserveScroll: true, onSuccess: () => router.reload({only: ['selected_server']}) })
+    ;
+
     }
 };
 
 const kickMember = (userId: number) =>
-    axios.delete(server_removeUser.url(selectedServer.id), {data: {'user_id': userId}}).then(() =>
-        router.reload({only: ['selected_server']})
-    )
+    router.delete(server_removeUser.url(selectedServer.slug), {data: {'user_id': userId}, preserveScroll: true, onSuccess: () => router.reload({only: ['selected_server']}) })
+
+
 
 
 if (selectedServer && selectedServer.roles !== null) {
@@ -62,7 +62,7 @@ if (selectedServer && selectedServer.roles !== null) {
             <SettingsHeader :selected-server/>
 
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="server.url(selectedServer?.id)" class="btn btn-neutral">
+                <Link :href="server.url(selectedServer?.slug)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
+import { router } from '@inertiajs/vue3';
 import {onMounted, onUnmounted, ref} from 'vue';
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import {Whiteboard as WhiteboardType} from '@/types';
 import {save} from '@/routes/whiteboard';
-import axios from 'axios';
+
 import {addIcons} from "oh-vue-icons";
 import {
     BiEraser,
@@ -100,7 +101,7 @@ const startHeartbeat = () => {
         }
         const start = Date.now();
         try {
-            await axios.get('/up');
+            await fetch('/up', { headers: { accept: "application/json" } });
             latency.value = Date.now() - start;
         } catch (e) {
             console.error("Heartbeat failed", e);
@@ -388,7 +389,7 @@ const updateTransformer = () => {
 const saveState = async () => {
     const state = JSON.stringify(Object.fromEntries(yshapes.entries()));
     try {
-        await axios.post(save.url(props.whiteboard.id), {state});
+        router.post(save.url(props.whiteboard.id), {state}, { preserveScroll: true, preserveState: true });
     } catch (e) {
         console.error("Failed to save whiteboard state", e);
     }

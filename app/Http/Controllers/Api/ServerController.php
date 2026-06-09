@@ -69,7 +69,7 @@ class ServerController extends Controller
             return response()->json(['message' => 'Code is invalid.'], 404);
         }
 
-        $server = Server::find($serverId);
+
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
@@ -85,13 +85,13 @@ class ServerController extends Controller
         return response()->json(['message' => 'User added to server successfully.']);
     }
 
-    public function removeUser(Request $request, int $serverId)
+    public function removeUser(Request $request, Server $server)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
 
-        $server = Server::find($serverId);
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
@@ -107,12 +107,12 @@ class ServerController extends Controller
 
         $server->users()->detach($request->user_id);
 
-        broadcast(new ServerLeft($request->user_id, $serverId));
+        broadcast(new ServerLeft($request->user_id, $server->id));
 
         return response()->json(['message' => 'User removed from server successfully.']);
     }
 
-    public function edit(Request $request, int $serverId)
+    public function edit(Request $request, Server $server)
     {
         $request->validate([
             'name' => 'required|string|max:50',
@@ -120,7 +120,7 @@ class ServerController extends Controller
             'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        $server = Server::find($serverId);
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
@@ -154,9 +154,9 @@ class ServerController extends Controller
         return response()->json(['message' => 'Server updated successfully.']);
     }
 
-    public function showSettings(int $serverId)
+    public function showSettings(Server $server)
     {
-        $server = Server::find($serverId);
+
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
@@ -176,9 +176,9 @@ class ServerController extends Controller
         ]);
     }
 
-    public function destroy(int $serverId)
+    public function destroy(Server $server)
     {
-        $server = Server::find($serverId);
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
@@ -197,9 +197,9 @@ class ServerController extends Controller
         return redirect('/home');
     }
 
-    public function delete(int $serverId)
+    public function delete(Server $server)
     {
-        $server = Server::find($serverId);
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
@@ -219,7 +219,7 @@ class ServerController extends Controller
         return response()->json(['message' => 'Server deleted successfully.']);
     }
 
-    public function update(Request $request, int $serverId)
+    public function update(Request $request, Server $server)
     {
         $request->validate([
             'name' => 'required|string|max:50',
@@ -227,7 +227,7 @@ class ServerController extends Controller
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
-        $server = Server::find($serverId);
+
         if (! $server) {
             return redirect()->back()->withErrors(['message' => 'Server not found.']);
         }
@@ -255,13 +255,13 @@ class ServerController extends Controller
         $server->description = $request->input('description', $server->description);
         $server->save();
 
-        return redirect()->route('settings.server', ['id' => $serverId])
+        return redirect()->route('settings.server', ['server' => $server->slug])
             ->with('message', 'Server updated successfully.');
     }
 
-    public function leave(int $serverId)
+    public function leave(Server $server)
     {
-        $server = Server::find($serverId);
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);

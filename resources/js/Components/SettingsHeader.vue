@@ -28,18 +28,18 @@ if (selectedServer && selectedServer.roles !== null) {
         <div class="flex space-x-6">
             <Link
                 v-if="perms.has(PermType.CAN_MANAGE_SERVER)"
-                :href="server.url(selectedServer?.id)"
+                :href="server.url(selectedServer?.slug)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Server
             </Link>
             <Link
-                v-if="perms.has(PermType.CAN_MANAGE_ROLE)" :href="role.url(selectedServer?.id)"
+                v-if="perms.has(PermType.CAN_MANAGE_ROLE)" :href="role.url(selectedServer?.slug)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Roles
             </Link>
             <Link
                 v-if="perms.has(PermType.CAN_MANAGE_MEMBERS)"
-                :href="members.url(selectedServer?.id)"
+                :href="members.url(selectedServer?.slug)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Members
             </Link>

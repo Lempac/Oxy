@@ -2,8 +2,8 @@
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {ref} from 'vue';
-import {Link, usePage} from '@inertiajs/vue3';
-import axios, {AxiosResponse} from 'axios';
+import {Link, router, usePage} from '@inertiajs/vue3';
+
 import {Perms, PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
@@ -17,7 +17,7 @@ const {selectedServer} = defineProps<{
     selectedServer: Server,
 }>();
 
-const roles = ref<Role[]>([]);
+import { computed } from "vue"; const roles = computed(() => { const sorted = [...(selectedServer.roles ?? [])]; sorted.sort((a, b) => a.importance - b.importance); return sorted; });
 const newRole = ref({
     name: '',
     color: '#ffffff',
@@ -28,21 +28,6 @@ const newRole = ref({
 const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
 const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
-
-const fetchRoles = async () => {
-    try {
-        const response: AxiosResponse<Role[] | null> = await axios.get(index.url(selectedServer?.id));
-        roles.value = response.data ?? []; // Default to an empty array if undefined
-        // Sort roles by importance
-        roles.value.sort((a, b) => a.importance - b.importance);
-
-        if (selectedServer && selectedServer.roles !== null) {
-            perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
-        }
-    } catch (error) {
-        console.error('Error fetching roles:', error);
-    }
-};
 
 const closeModal = () => {
     isModalOpen.value = false;
@@ -61,15 +46,14 @@ const updateRole = async () => {
     const currentEditingRole = editingRole.value;
 
     if (currentEditingRole) {
-        const response = await axios.patch(edit.url(currentEditingRole.id), newRole.value);
+        router.patch(edit.url(currentEditingRole.id), newRole.value, { onSuccess: () => { editingRole.value = null; closeModal(); router.reload(); }});
 
-        const index = roles.value.findIndex(r => r.id === currentEditingRole.id);
-        roles.value[index] = response.data.role;
 
-        editingRole.value = null;
-        closeModal(); // Reset modal state
-        await fetchRoles();
-    }
+
+
+
+
+        }
 };
 
 const addRole = async () => {
@@ -81,34 +65,28 @@ const addRole = async () => {
             newRole.value.importance = maxImportance + 1;
         }
 
-        await axios.post(create.url(selectedServer?.id), {
+        router.post(create.url(selectedServer?.slug!), {
             name: newRole.value.name,
             color: newRole.value.color,
             perms: newRole.value.perms,
             importance: newRole.value.importance,
-        });
+        }, { onSuccess: () => { closeModal(); router.reload(); }});
 
         closeModal();
-        await fetchRoles();
-    } catch (error) {
+        } catch (error) {
         console.error('Error adding role:', error);
     }
 };
 
 const deleteRole = async (role: Role) => {
     try {
-        await axios.delete(deleteMethod.url(role.id));
+        router.delete(deleteMethod.url(role.id), { preserveScroll: true, onSuccess: () => router.reload() });
 
-        roles.value = roles.value.filter(r => r.id !== role.id);
 
-        roles.value.forEach(r => {
-            if (r.importance > role.importance) {
-                r.importance -= 1;
-                axios.patch(edit.url(r.id), {importance: r.importance});
-            }
-        });
 
-        roles.value.sort((a, b) => a.importance - b.importance);
+
+
+
 
     } catch (error) {
         console.error('Error deleting role:', error);
@@ -117,8 +95,6 @@ const deleteRole = async (role: Role) => {
 
 
 // Fetch roles when the component mounts
-fetchRoles();
-
 const togglePerm = (perm: typeof PermType | number, state: boolean) => {
     if (editingRole.value?.perms === undefined) return;
     const currentPerm = bigIntToPerms(BigInt(editingRole.value?.perms))
@@ -161,11 +137,11 @@ const changeImportance = async (role: Role, direction: number) => {
         role.importance = swapRole.importance;
         swapRole.importance = tempImportance;
 
-        await axios.patch(edit.url(role.id), {importance: role.importance});
-        await axios.patch(edit.url(swapRole.id), {importance: swapRole.importance});
+        router.patch(edit.url(role.id), {importance: role.importance}, { preserveScroll: true, onSuccess: () => router.reload()});
+        router.patch(edit.url(swapRole.id), {importance: swapRole.importance}, { preserveScroll: true, onSuccess: () => router.reload()});
     }
 
-    roles.value.sort((a, b) => a.importance - b.importance);
+
 };
 
 
@@ -177,7 +153,7 @@ const changeImportance = async (role: Role, direction: number) => {
             <!-- Navbar for Navigation -->
             <SettingsHeader :selected-server/>
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="server.url(selectedServer?.id)" class="btn btn-neutral">
+                <Link :href="server.url(selectedServer?.slug)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>
