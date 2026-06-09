@@ -23,6 +23,10 @@ class MessageController
             'mdata' => $request->type === MessageType::Text->value ? 'required|string|max:500' : 'required|file|max:200000000',
         ]);
 
+
+
+
+
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
         // TODO: Add checking for levels for message create
@@ -66,6 +70,10 @@ class MessageController
             'mdata' => 'required|string',
         ]);
 
+
+
+
+
         if ($message->user_id !== Auth::id()) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
@@ -86,6 +94,9 @@ class MessageController
 
     public function delete(Message $message)
     {
+
+
+
 
         $roles = $message->channel->server->roles->intersect(Auth::user()->roles);
 

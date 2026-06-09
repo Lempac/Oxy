@@ -69,6 +69,7 @@ class ServerController extends Controller
             return response()->json(['message' => 'Code is invalid.'], 404);
         }
 
+
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
@@ -89,6 +90,8 @@ class ServerController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
+
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
@@ -116,6 +119,8 @@ class ServerController extends Controller
             'description' => 'nullable|string|max:500',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
@@ -174,6 +179,7 @@ class ServerController extends Controller
     public function destroy(Server $server)
     {
 
+
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
@@ -193,6 +199,7 @@ class ServerController extends Controller
 
     public function delete(Server $server)
     {
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
@@ -219,6 +226,7 @@ class ServerController extends Controller
             'description' => 'nullable|string|max:255',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
+
 
         if (! $server) {
             return redirect()->back()->withErrors(['message' => 'Server not found.']);
@@ -253,6 +261,7 @@ class ServerController extends Controller
 
     public function leave(Server $server)
     {
+
 
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);

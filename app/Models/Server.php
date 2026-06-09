@@ -10,15 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Str;
 
 class Server extends Model
 {
-    public function getRouteKeyName()
-    {
-        return 'slug';
-    }
-
+    public function getRouteKeyName() { return 'slug'; }
     use HasFactory;
 
     protected static function boot()
@@ -26,12 +21,13 @@ class Server extends Model
         parent::boot();
 
         static::created(function ($server) {
-            if (! $server->slug) {
-                $server->slug = Str::slug($server->name).'-'.$server->id;
+            if (!$server->slug) {
+                $server->slug = \Illuminate\Support\Str::slug($server->name) . '-' . $server->id;
                 $server->save();
             }
         });
     }
+
 
     protected $fillable = [
         'name',

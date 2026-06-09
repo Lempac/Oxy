@@ -46,6 +46,6 @@ test('home select channel', function () {
         ->get(route('home.text.channel', ['server' => $server->slug, 'channel' => $selectedChannel->slug]));
     $response->assertInertia(fn (Assert $page) => $page
         ->has('channels', $user->servers->first()->channels->count())
-        ->has('selectedChannel')->where('selectedChannel.id', $selectedChannel->id)
+        ->has('selectedChannel')->where('selectedChannel.slug', $selectedChannel->slug)
     );
 });
