@@ -43,11 +43,11 @@ WORKDIR /app
 # Copy the application source code
 COPY . /app/
 
+# Install PHP dependencies first, so artisan is available for the frontend build (wayfinder)
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
 # Install Node.js dependencies and build frontend
 RUN npm ci && npm run build
-
-# Install PHP dependencies (allowing scripts so package:discover runs)
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
 # Create directory for supervisor socket and logs
 RUN mkdir -p /var/run/supervisor /var/log/supervisor
