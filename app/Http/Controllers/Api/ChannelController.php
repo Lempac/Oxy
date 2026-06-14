@@ -17,10 +17,6 @@ class ChannelController
     {
         $request->validate(['name' => 'required|string|max:50', 'type' => 'required|in:'.implode(',', array_column(ChannelType::cases(), 'value'))]);
 
-
-
-
-
         $roles = $server->roles->intersect(Auth::user()->roles);
 
         if ($roles->doesntContain(function (Role $role) {
@@ -39,10 +35,6 @@ class ChannelController
     public function edit(Request $request, Channel $channel)
     {
         $request->validate(['name' => 'required|string|max:50']);
-
-
-
-
 
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
@@ -63,8 +55,6 @@ class ChannelController
     public function delete(Channel $channel)
     {
 
-
-
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
         if ($roles->doesntContain(function (Role $role) {
@@ -83,9 +73,6 @@ class ChannelController
     public function upload(Request $request, Channel $channel)
     {
         $request->validate(['audio' => 'required|file|mimes:webm,mp3,wav,ogg|mimetypes:audio/webm,audio/mpeg,audio/wav,audio/ogg']);
-
-
-
 
         $audioData = file_get_contents($request->file('audio')->getRealPath());
 

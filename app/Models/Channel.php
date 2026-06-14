@@ -10,10 +10,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Channel extends Model
 {
-    public function getRouteKeyName() { return 'slug'; }
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     use HasFactory;
 
     protected static function boot()
@@ -21,13 +26,12 @@ class Channel extends Model
         parent::boot();
 
         static::created(function ($channel) {
-            if (!$channel->slug) {
-                $channel->slug = \Illuminate\Support\Str::slug($channel->name) . '-' . $channel->id;
+            if (! $channel->slug) {
+                $channel->slug = Str::slug($channel->name).'-'.$channel->id;
                 $channel->save();
             }
         });
     }
-
 
     protected $fillable = [
         'name',

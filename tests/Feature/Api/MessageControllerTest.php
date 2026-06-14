@@ -54,7 +54,6 @@ test('user cannot edit another user\'s message', function () {
 
     $response->assertStatus(403);
 
-
     $this->assertDatabaseHas('messages', [
         'id' => $message->id,
         'mdata' => 'Original message',

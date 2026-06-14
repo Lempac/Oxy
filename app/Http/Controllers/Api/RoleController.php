@@ -17,7 +17,6 @@ class RoleController extends Controller
     {
         $server->load('roles');
 
-
         return response()->json($server->roles);
     }
 
@@ -29,10 +28,6 @@ class RoleController extends Controller
             'perms' => 'required|integer',
             'importance' => 'required|integer|min:0',
         ]);
-
-
-
-
 
         $roles = $server->roles->intersect(Auth::user()->roles);
 
@@ -65,10 +60,6 @@ class RoleController extends Controller
             'importance' => 'nullable|integer|min:0',
         ]);
 
-
-
-
-
         $hasPerms = false;
         foreach ($role->server as $server) {
             $userRoles = $server->roles->intersect(Auth::user()->roles);
@@ -93,9 +84,6 @@ class RoleController extends Controller
 
     public function delete(Role $role)
     {
-
-
-
 
         $hasPerms = false;
         foreach ($role->server as $server) {
@@ -122,8 +110,6 @@ class RoleController extends Controller
     public function showSettings(Server $server)
     {
 
-
-
         return Inertia::render('Settings/Role')->with([
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
@@ -133,8 +119,6 @@ class RoleController extends Controller
 
     public function showMembers(Server $server)
     {
-
-
 
         return Inertia::render('Settings/Members')->with([
             'selectedServer' => $server,
@@ -147,12 +131,6 @@ class RoleController extends Controller
 
     public function addUser(Role $role, User $user)
     {
-
-
-
-
-
-
 
         $hasPerms = false;
         foreach ($role->server as $server) {
@@ -180,12 +158,6 @@ class RoleController extends Controller
 
     public function removeUser(Role $role, User $user)
     {
-
-
-
-
-
-
 
         $hasPerms = false;
         foreach ($role->server as $server) {
