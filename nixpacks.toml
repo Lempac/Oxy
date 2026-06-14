@@ -8,7 +8,7 @@ nixPkgs = ["nodejs_24", "sqlite", "python3"]
 
 [phases.install]
 cmds = [
-    "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
+    "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs",
     "npm ci"
 ]
 

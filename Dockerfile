@@ -44,7 +44,8 @@ WORKDIR /app
 COPY . /app/
 
 # Install PHP dependencies first, so artisan is available for the frontend build (wayfinder)
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+# Ignore platform reqs to bypass potential mismatch if base image uses 8.4 but composer.json requires 8.5
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
 
 # Install Node.js dependencies and build frontend
 RUN npm ci && npm run build
