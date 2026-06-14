@@ -1,0 +1,12 @@
+{
+  "image": {
+    "name": "deploy-test",
+    "size": 0,
+    "efficiencyScore": 1.0,
+    "wastedBytes": 0,
+    "wastedPercent": 0.0,
+    "userConfig": {
+      "rules": []
+    }
+  }
+}
