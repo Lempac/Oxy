@@ -23,13 +23,17 @@ class MessageController
             'mdata' => $request->type === MessageType::Text->value ? 'required|string|max:500' : 'required|file|max:200000000',
         ]);
 
+
+
+
+
         $roles = $channel->server->roles->intersect(Auth::user()->roles);
 
         // TODO: Add checking for levels for message create
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_CREATE_MESSAGE->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($request->type !== MessageType::Text->value && $request->file('mdata')?->isValid()) {
@@ -40,7 +44,7 @@ class MessageController
                 [$width, $height] = getimagesize($file->getRealPath());
 
                 if ($width > 1920 || $height > 1080) {
-                    return response()->json(['errors' => ['icon' => ['The image must not exceed 1920x1080 pixels.']], 'message' => 'The image must not exceed 1920x1080 pixels.'], 422);
+                    return back()->withErrors(['icon' => ['The image must not exceed 1920x1080 pixels.']]);
                 }
             }
 
@@ -57,7 +61,7 @@ class MessageController
 
         //        broadcast(new MessageCreated($request->mdata, $request->user()->id, $channel->id));
 
-        return response()->json(['message' => 'Message created'], 201);
+        return back();
     }
 
     public function edit(Request $request, Message $message)
@@ -66,12 +70,16 @@ class MessageController
             'mdata' => 'required|string',
         ]);
 
+
+
+
+
         if ($message->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($message->type != MessageType::Text->value) {
-            return response()->json(['message' => 'Message can not be edited'], 400);
+            abort(400, 'Message can not be edited');
         }
 
         $message->update([
@@ -81,18 +89,21 @@ class MessageController
 
         //        broadcast(new MessageEdited($message->id, $message->channel_id, $request->user()->id));
 
-        return response()->json(['message' => 'Message updated'], 201);
+        return back();
     }
 
     public function delete(Message $message)
     {
+
+
+
 
         $roles = $message->channel->server->roles->intersect(Auth::user()->roles);
 
         if ($message->user->id !== Auth::id() && $roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_DELETE_MESSAGE->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($message->type != MessageType::Text->value) {
@@ -110,6 +121,6 @@ class MessageController
         //            $request->user()->id
         //        ));
 
-        return response()->json(['message' => 'Message deleted'], 201);
+        return back();
     }
 }

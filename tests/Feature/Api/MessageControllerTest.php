@@ -24,8 +24,7 @@ test('user can edit their own message', function () {
         'mdata' => 'Updated message',
     ]);
 
-    $response->assertStatus(201);
-    $response->assertJson(['message' => 'Message updated']);
+    $response->assertStatus(302);
 
     $this->assertDatabaseHas('messages', [
         'id' => $message->id,
@@ -54,7 +53,7 @@ test('user cannot edit another user\'s message', function () {
     ]);
 
     $response->assertStatus(403);
-    $response->assertJson(['message' => 'Forbidden.']);
+
 
     $this->assertDatabaseHas('messages', [
         'id' => $message->id,

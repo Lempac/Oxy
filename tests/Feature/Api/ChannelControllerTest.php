@@ -21,8 +21,7 @@ test('channel upload allows valid audio files', function () {
         'audio' => $file,
     ]);
 
-    $response->assertStatus(200);
-    $response->assertJson(['message' => 'Audio data sent successfully']);
+    $response->assertStatus(302);
 });
 
 test('channel upload rejects invalid files', function () {

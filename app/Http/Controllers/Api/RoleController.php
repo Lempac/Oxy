@@ -17,6 +17,7 @@ class RoleController extends Controller
     {
         $server->load('roles');
 
+
         return response()->json($server->roles);
     }
 
@@ -29,12 +30,16 @@ class RoleController extends Controller
             'importance' => 'required|integer|min:0',
         ]);
 
+
+
+
+
         $roles = $server->roles->intersect(Auth::user()->roles);
 
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_CREATE_ROLE->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $role = Role::create([
@@ -48,7 +53,7 @@ class RoleController extends Controller
         $server->roles()->attach($role->id);
         //        broadcast(new RoleCreated($role));
 
-        return response()->json(['message' => 'Role added to server successfully.', 'role' => $role], 201);
+        return back();
     }
 
     public function edit(Request $request, Role $role)
@@ -59,6 +64,10 @@ class RoleController extends Controller
             'perms' => 'nullable|integer',
             'importance' => 'nullable|integer|min:0',
         ]);
+
+
+
+
 
         $hasPerms = false;
         foreach ($role->server as $server) {
@@ -72,18 +81,21 @@ class RoleController extends Controller
         }
 
         if (! $hasPerms) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $role->update($request->only(['name', 'color', 'perms', 'importance']));
 
         //        broadcast(new RoleEdited($role));
 
-        return response()->json(['message' => 'Role updated successfully.', 'role' => $role]);
+        return back();
     }
 
     public function delete(Role $role)
     {
+
+
+
 
         $hasPerms = false;
         foreach ($role->server as $server) {
@@ -97,18 +109,20 @@ class RoleController extends Controller
         }
 
         if (! $hasPerms) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $role->delete();
 
         //        broadcast(new RoleDeleted($role));
 
-        return response()->json(['message' => 'Role deleted successfully.']);
+        return back();
     }
 
     public function showSettings(Server $server)
     {
+
+
 
         return Inertia::render('Settings/Role')->with([
             'selectedServer' => $server,
@@ -119,6 +133,8 @@ class RoleController extends Controller
 
     public function showMembers(Server $server)
     {
+
+
 
         return Inertia::render('Settings/Members')->with([
             'selectedServer' => $server,
@@ -132,6 +148,12 @@ class RoleController extends Controller
     public function addUser(Role $role, User $user)
     {
 
+
+
+
+
+
+
         $hasPerms = false;
         foreach ($role->server as $server) {
             $userRoles = $server->roles->intersect(Auth::user()->roles);
@@ -144,7 +166,7 @@ class RoleController extends Controller
         }
 
         if (! $hasPerms) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         // We need to attach the role to the user, with the server_id pivot
@@ -153,11 +175,17 @@ class RoleController extends Controller
         $serverId = $role->server->first()->id ?? null;
         $user->roles()->attach($role, ['server_id' => $serverId]);
 
-        return response()->json(['message' => 'Role added successfully.']);
+        return back();
     }
 
     public function removeUser(Role $role, User $user)
     {
+
+
+
+
+
+
 
         $hasPerms = false;
         foreach ($role->server as $server) {
@@ -171,11 +199,11 @@ class RoleController extends Controller
         }
 
         if (! $hasPerms) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $user->roles()->detach($role);
 
-        return response()->json(['message' => 'Role deleted successfully.']);
+        return back();
     }
 }

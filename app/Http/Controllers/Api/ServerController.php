@@ -28,7 +28,7 @@ class ServerController extends Controller
             [$width, $height] = getimagesize($request->file('icon')->getRealPath());
 
             if ($width > 1920 || $height > 1080) {
-                return response()->json(['errors' => ['icon' => ['The image must not exceed 1920x1080 pixels.']], 'message' => 'The image must not exceed 1920x1080 pixels.'], 422);
+                return back()->withErrors(['icon' => ['The image must not exceed 1920x1080 pixels.']]);
             }
 
             $path = $request->file('icon')->store('uploads', 'public');
@@ -53,7 +53,7 @@ class ServerController extends Controller
 
         //        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
 
-        return response()->json(['message' => 'Server created successfully.']);
+        return back();
     }
 
     public function addUser(Request $request)
@@ -66,22 +66,23 @@ class ServerController extends Controller
         $serverId = $data[0];
         $code = $data[1];
         if (hash('xxh32', $serverId) !== $code) {
-            return response()->json(['message' => 'Code is invalid.'], 404);
+            abort(404, 'Code is invalid.');
         }
 
+
         if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
+            abort(404, 'Server not found.');
         }
 
         if ($server->users->contains(Auth::id())) {
-            return response()->json(['message' => 'You\'re already in the server.'], 409);
+            abort(409, 'You\'re already in the server.');
         }
 
         $server->users()->attach(Auth::id());
 
         broadcast(new ServerJoined(Auth::id(), $serverId));
 
-        return response()->json(['message' => 'User added to server successfully.']);
+        return back();
     }
 
     public function removeUser(Request $request, Server $server)
@@ -90,8 +91,10 @@ class ServerController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
+
+
         if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
+            abort(404, 'Server not found.');
         }
 
         $roles = $server->roles->intersect(Auth::user()->roles);
@@ -99,14 +102,14 @@ class ServerController extends Controller
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_KICK->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $server->users()->detach($request->user_id);
 
         broadcast(new ServerLeft($request->user_id, $server->id));
 
-        return response()->json(['message' => 'User removed from server successfully.']);
+        return back();
     }
 
     public function edit(Request $request, Server $server)
@@ -117,8 +120,10 @@ class ServerController extends Controller
             'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
+
+
         if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
+            abort(404, 'Server not found.');
         }
 
         $roles = $server->roles->intersect(Auth::user()->roles);
@@ -126,7 +131,7 @@ class ServerController extends Controller
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($request->file('icon')?->isValid()) {
@@ -146,14 +151,14 @@ class ServerController extends Controller
 
         //        broadcast(new ServerEdited($serverId, $server->name, $server->description, $server->icon));
 
-        return response()->json(['message' => 'Server updated successfully.']);
+        return back();
     }
 
     public function showSettings(Server $server)
     {
 
         if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
+            abort(404, 'Server not found.');
         }
 
         $roles = $server->roles->intersect(Auth::user()->roles);
@@ -161,7 +166,7 @@ class ServerController extends Controller
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value) || $role->hasPerms(PermsType::CAN_MANAGE_SERVER->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         return Inertia::render('Settings/Server')->with([
@@ -174,8 +179,9 @@ class ServerController extends Controller
     public function destroy(Server $server)
     {
 
+
         if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
+            abort(404, 'Server not found.');
         }
 
         $roles = $server->roles->intersect(Auth::user()->roles);
@@ -183,7 +189,7 @@ class ServerController extends Controller
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $server->delete();
@@ -194,8 +200,9 @@ class ServerController extends Controller
     public function delete(Server $server)
     {
 
+
         if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
+            abort(404, 'Server not found.');
         }
 
         $roles = $server->roles->intersect(Auth::user()->roles);
@@ -203,13 +210,13 @@ class ServerController extends Controller
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         Role::whereIn('id', $server->roles->pluck('id'))->delete();
         $server->delete();
 
-        return response()->json(['message' => 'Server deleted successfully.']);
+        return back();
     }
 
     public function update(Request $request, Server $server)
@@ -220,6 +227,7 @@ class ServerController extends Controller
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
+
         if (! $server) {
             return redirect()->back()->withErrors(['message' => 'Server not found.']);
         }
@@ -229,14 +237,14 @@ class ServerController extends Controller
         if ($roles->doesntContain(function (Role $role) {
             return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value);
         })) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($request->file('icon')?->isValid()) {
             [$width, $height] = getimagesize($request->file('icon')->getRealPath());
 
             if ($width > 1920 || $height > 1080) {
-                return response()->json(['errors' => ['icon' => ['The image must not exceed 1920x1080 pixels.']], 'message' => 'The image must not exceed 1920x1080 pixels.'], 422);
+                return back()->withErrors(['icon' => ['The image must not exceed 1920x1080 pixels.']]);
             }
 
             $path = $request->file('icon')->store('uploads', 'public');
@@ -254,8 +262,9 @@ class ServerController extends Controller
     public function leave(Server $server)
     {
 
+
         if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
+            abort(404, 'Server not found.');
         }
 
         $server->users()->detach(Auth::id());
