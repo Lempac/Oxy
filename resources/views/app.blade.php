@@ -4,7 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Oxy') }}</title>
+        <x-inertia::head>
+            <title data-inertia>{{ config('app.name', 'Oxy') }}</title>
+        </x-inertia::head>
 
         <!-- Reverb Config for Runtime -->
         <meta name="reverb-app-key" content="{{ config('broadcasting.connections.reverb.key') }}">
@@ -16,11 +18,10 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/js/app.ts', "resources/js/Pages/{$page['component']}.vue"])
-        @inertiaHead
+        @vite(['resources/js/app.ts'])
     </head>
     <body class="font-sans antialiased">
-        @inertia
+        <x-inertia::app />
         <div id="teleported"/>
     </body>
 </html>
