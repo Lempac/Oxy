@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    env_file: .env
+    restart: unless-stopped
+
+  y-web:
+    image: node:24-alpine
+    working_dir: /app
+    command: npx --yes @y/websocket-server
+    env_file: .env
+    restart: unless-stopped

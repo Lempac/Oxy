@@ -6,6 +6,11 @@
 
         <title inertia>{{ config('app.name', 'Oxy') }}</title>
 
+        <!-- Reverb Config for Runtime -->
+        <meta name="reverb-app-key" content="{{ config('broadcasting.connections.reverb.key') }}">
+        <meta name="reverb-host" content="{{ config('broadcasting.connections.reverb.options.host') }}">
+        <meta name="reverb-port" content="{{ config('broadcasting.connections.reverb.options.port') }}">
+        <meta name="reverb-scheme" content="{{ config('broadcasting.connections.reverb.options.scheme') }}">
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
