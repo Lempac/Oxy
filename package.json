@@ -7,7 +7,6 @@
         "yjs": "y-websocket-server"
     },
     "devDependencies": {
-        "@inertiajs/vite": "^3.4.0",
         "@inertiajs/vue3": "^3.4.0",
         "@laravel/echo-vue": "^2.3.7",
         "@laravel/vite-plugin-wayfinder": "^0.1.7",

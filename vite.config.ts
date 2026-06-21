@@ -11,7 +11,6 @@ export default defineConfig({
     plugins: [
         tailwindcss(),
         wayfinder(),
-        inertia(),
         laravel({
             input: 'resources/js/app.ts',
             ssr: 'resources/js/ssr.ts',
