@@ -1,25 +1,27 @@
 { pkgs, ... }:
 {
   name = "Oxy";
-  #    dotenv.enable = true;
-  languages.php.enable = true;
-  languages.php.version = "8.5";
-  languages.php.extensions = [ "xdebug" "pdo_mysql" ];
-  languages.php.ini = ''
-    xdebug.mode = debug
-    xdebug.discover_client_host = 1
-    xdebug.client_host = 127.0.0.1
-    upload_max_filesize = 200M
-    post_max_size = 200M
-  '';
-
-  languages.javascript.enable = true;
-  languages.javascript.package = pkgs.nodejs_24;
-  languages.nix.enable = true;
-  languages.python.enable = true;
-  languages.python.venv.enable = true;
-  languages.python.uv.enable = true;
-  packages = with pkgs; [ sqlite nil nixd ];
+  languages = {
+    php = {
+      enable = true;
+      version = "8.5";
+      extensions = [ "xdebug" "pdo_mysql" ];
+      ini = ''
+        xdebug.mode = debug
+        xdebug.discover_client_host = 1
+        xdebug.client_host = 127.0.0.1
+        upload_max_filesize = 200M
+        post_max_size = 200M
+      '';
+    };
+    javascript = {
+      enable = true;
+      package = pkgs.nodejs_24;
+      pnpm.enable = true;
+    };
+    nix.enable = true;
+  };
+  packages = with pkgs; [ sqlite nixd ];
   processes = {
     vite.exec = "npm run dev";
     y-web.exec = "npm run yjs";

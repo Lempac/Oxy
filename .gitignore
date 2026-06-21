@@ -35,3 +35,8 @@ devenv.local.nix
 /resources/js/routes/
 /resources/js/ziggy.d.ts
 /resources/js/ziggy.js
+/logs.txt
+
+**/caddy
+frankenphp
+frankenphp-worker.php
