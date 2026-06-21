@@ -7,6 +7,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    # Required by git-auto-commit-action to be able to push the code formatting changes
+    permissions:
+      contents: write
     strategy:
       fail-fast: true
       matrix:
@@ -15,6 +18,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Use GH_PAT if available so the pushed commit can trigger other workflows (like the test suite).
+          # Fallback to the default token otherwise.
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
