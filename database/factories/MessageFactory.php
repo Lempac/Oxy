@@ -20,7 +20,7 @@ class MessageFactory extends Factory
     {
         $type = fake()->randomElement(array_column(MessageType::cases(), 'value'));
 
-        $imageUrl = 'https://picsum.photos/'.random_int(120, 1920).'/'.random_int(120, 1080);
+        $imageUrl = 'https://imageplaceholder.net/'.random_int(120, 1920).'x'.random_int(120, 1080);
 
         return [
             'type' => $type,
