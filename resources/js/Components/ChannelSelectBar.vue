@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
-
 import { text, voice } from '@/routes/home';
 import { whiteboard } from '@/routes/home';
 import { leave } from '@/routes/server';
@@ -17,11 +15,14 @@ import axios from "axios";
 addIcons(BiChatText, RiChatVoiceLine, BiEasel, BiGearFill, BiDoorOpen);
 
 const serverSettingsModal = ref<HTMLDialogElement>();
-const perms = usePerms();
+const perms = ref<Perms>(bigIntToPerms([]));
 const {selectedServer} = defineProps<{
     selectedServer?: Server,
 }>();
 
+if (selectedServer && selectedServer.roles !== null) {
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
+}
 
 function leaveServer() {
     if (!selectedServer) {
@@ -66,7 +67,7 @@ function leaveServer() {
             </Link>
             <!-- Server settings -->
             <Link
-                v-if="perms.hasAny([PermType.CAN_MANAGE_SERVER, PermType.CAN_MANAGE_ROLE, PermType.CAN_MANAGE_MEMBERS])"
+                v-if="perms.hasAny(PermType.CAN_MANAGE_SERVER | PermType.CAN_MANAGE_ROLE | PermType.CAN_MANAGE_MEMBERS)"
                 :href="server.url(selectedServer?.id)"
                 class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
                 <button

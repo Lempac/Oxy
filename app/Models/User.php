@@ -7,11 +7,9 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -19,7 +17,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
-     * The attributes that are mass-assignable.
+     * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
@@ -65,16 +63,5 @@ class User extends Authenticatable implements MustVerifyEmail
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
-    }
-
-    public function allRoles(): MorphToMany
-    {
-        return $this->morphToMany(
-            config('permission.models.role'),
-            'model',
-            config('permission.table_names.model_has_roles'),
-            config('permission.column_names.model_morph_key'),
-            app(PermissionRegistrar::class)->pivotRole
-        );
     }
 }

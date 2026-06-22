@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
-
 import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as channelRoute } from '@/routes/home/whiteboard';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
@@ -17,7 +15,6 @@ import echo from "@/echo";
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const loading = ref(false);
-const perms = usePerms();
 const {selectedServer} = defineProps<{
     channels?: Channel[],
     selectedServer?: Server,
@@ -27,6 +24,7 @@ const {selectedServer} = defineProps<{
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<() => void>();
+const perms = ref<Perms>(bigIntToPerms([]));
 
 const form = useForm({
     type: ChannelType.Whiteboard,
@@ -86,6 +84,9 @@ const editChannel = async (channelId: number) => {
         });
 };
 
+if (selectedServer && selectedServer.roles !== null) {
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
+}
 if (selectedServer) {
     echo.private(`channels.${selectedServer.id}`)
         .listen('.ChannelCreated', () => {
@@ -106,7 +107,7 @@ if (selectedServer) {
         class="navbar bg-base-100 border-b border-base-300 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
         <div v-for="channel in channels" :key="channel.id" class="indicator relative group m-2">
             <div
-                v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
+                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
                 class="indicator-item indicator-top absolute hidden group-hover:block">
                 <ConfirmDialog
                     :confirm="() => deleteChannel(channel.id)"
@@ -118,7 +119,7 @@ if (selectedServer) {
                 </ConfirmDialog>
             </div>
             <div
-                v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
+                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)"
                 class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
                 <button
                     class="indicator-item badge badge-warning h-auto w-auto p-0.5"
@@ -136,7 +137,7 @@ if (selectedServer) {
             </Link>
         </div>
         <button
-            v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
+            v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
             class="btn btn-sm btn-square btn-outline mx-9"
             @click="openModal()">
             <v-icon name="oi-plus"/>

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
-
 import ServerSelectBar from "@/Components/ServerSelectBar.vue";
 import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
 import {router, usePage} from "@inertiajs/vue3";
@@ -19,14 +17,17 @@ const copyToClipboard = (text: string) => {
 }
 
 const toggle = ref(false);
+const perms = ref<Perms>(bigIntToPerms([]));
 
-const perms = usePerms();
 const {selectedServer} = defineProps<{
     servers?: Server[];
     inviteCode?: string,
     selectedServer?: Server,
 }>();
 
+if (selectedServer && selectedServer.roles !== null) {
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
+}
 
 if (selectedServer) {
     echo.private(`servers.${selectedServer.id}`)
@@ -63,7 +64,7 @@ if (selectedServer) {
         </main>
 
         <footer v-if="$page.url.match(/\/home\/\d+/)">
-            <div v-if="inviteCode !== undefined && perms.has([PermType.CAN_INVITE])" class="toast truncate mb-16">
+            <div v-if="inviteCode !== undefined && perms.has(PermType.CAN_INVITE)" class="toast truncate mb-16">
                 <div
                     class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0 bg-base-100"
                     @mouseenter="toggle = true" @mouseleave="toggle = false">
