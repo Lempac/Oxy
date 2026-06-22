@@ -38,7 +38,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $testUser->servers->each(function (Server $server) use ($testUser) {
-            $testUser->roles()->attach($server->roles()->first());
+            setPermissionsTeamId($server->id);
+            $testUser->assignRole($server->roles()->first());
             $server->channels->random(2)->each(function (Channel $channel) use ($testUser) {
                 Message::factory(10)->for($channel)->for($testUser)->create();
             });
