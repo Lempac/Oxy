@@ -69,7 +69,7 @@ if (selectedServer && selectedServer.roles !== null) {
             <div class="flex justify-end mb-6 space-x-4">
                 <button
                     :class="`btn ${form.isDirty ? 'btn-neutral' : ''} px-6`"
-                    :disabled="!perms.has(PermType.CAN_EDIT_SERVER)"
+                    :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
                     @click="handleSave">
                     Save Changes
                 </button>
@@ -86,7 +86,7 @@ if (selectedServer && selectedServer.roles !== null) {
                         <label class="relative cursor-pointer has-[:disabled]:cursor-not-allowed" for="serverIcon">
                             <input
                                 id="serverIcon"
-                                :disabled="!perms.has(PermType.CAN_EDIT_SERVER)"
+                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
                                 accept="image/png, image/jpeg"
                                 class="hidden peer"
                                 type="file"
@@ -105,7 +105,7 @@ if (selectedServer && selectedServer.roles !== null) {
                             <input
                                 id="serverName"
                                 v-model="form.name"
-                                :disabled="!perms.has(PermType.CAN_EDIT_SERVER)"
+                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
                                 class="input input-bordered w-full mt-2 bg-base-100 text-base-content"
                                 placeholder="Enter your server name"
                                 type="text"
@@ -115,7 +115,7 @@ if (selectedServer && selectedServer.roles !== null) {
                             <input
                                 id="description"
                                 v-model="form.description"
-                                :disabled="!perms.has(PermType.CAN_EDIT_SERVER)"
+                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
                                 class="input input-bordered w-full mt-2 bg-base-100 text-base-content h-24"
                                 placeholder="Enter server description"
                                 type="text"
@@ -136,7 +136,7 @@ if (selectedServer && selectedServer.roles !== null) {
                     </div>
                 </div>
                 <ConfirmDialog
-                    :class-name="`btn hover:btn-error mt-10 ${!perms.has(PermType.CAN_DELETE_SERVER) ? 'btn-disabled' : ''}`"
+                    :class-name="`btn hover:btn-error mt-10 ${!perms.has([PermType.CAN_DELETE_SERVER]) ? 'btn-disabled' : ''}`"
                     :confirm="deleteServer"
                     description="Are you sure you want to delete this server?"
                     text="Delete Server"

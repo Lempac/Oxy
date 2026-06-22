@@ -107,7 +107,7 @@ if (selectedServer) {
         class="navbar bg-base-100 border-b border-base-300 justify-evenly overflow-x-auto overflow-y-hidden whitespace-nowrap">
         <div v-for="channel in channels" :key="channel.id" class="indicator relative group m-2">
             <div
-                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
+                v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
                 class="indicator-item indicator-top absolute hidden group-hover:block">
                 <ConfirmDialog
                     :confirm="() => deleteChannel(channel.id)"
@@ -119,7 +119,7 @@ if (selectedServer) {
                 </ConfirmDialog>
             </div>
             <div
-                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)"
+                v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
                 class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
                 <button
                     class="indicator-item badge badge-warning h-auto w-auto p-0.5"
@@ -137,7 +137,7 @@ if (selectedServer) {
             </Link>
         </div>
         <button
-            v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
+            v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
             class="btn btn-sm btn-square btn-outline mx-9"
             @click="openModal()">
             <v-icon name="oi-plus"/>

@@ -100,7 +100,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                     <li v-for="role in selectedServer.roles" :key="role.id">
                                         <button
                                             :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-base-300' : ''"
-                                            :disabled="!perms.has(PermType.CAN_EDIT_MEMBER_ROLES)"
+                                            :disabled="!perms.has([PermType.CAN_EDIT_MEMBER_ROLES])"
                                             class="btn"
                                             @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))">
                                             <v-icon
@@ -114,7 +114,7 @@ if (selectedServer && selectedServer.roles !== null) {
                         </td>
                         <td v-if="user.id !== usePage().props.user?.id" class="py-2 px-4 text-end">
                             <ConfirmDialog
-                                :class-name="`btn btn-error ${!perms.has(PermType.CAN_KICK) ? 'btn-disabled' : ''}`"
+                                :class-name="`btn btn-error ${!perms.has([PermType.CAN_KICK]) ? 'btn-disabled' : ''}`"
                                 :confirm="() => kickMember(user.id)"
                                 description="Are you sure you want to kick this member?"
                                 title="Are you sure?">

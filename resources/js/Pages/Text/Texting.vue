@@ -202,7 +202,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                 </div>
 
                                 <div
-                                    v-if="message.user_id === $page.props.user?.id || perms.has(PermType.CAN_DELETE_MESSAGE)"
+                                    v-if="message.user_id === $page.props.user?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
                                     :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}"
                                     class="indicator-item indicator-top absolute hidden group-hover:block">
                                     <ConfirmDialog
@@ -240,13 +240,13 @@ if (selectedServer && selectedServer.roles !== null) {
                 </label>
                 <div class="items-center hidden">
                     <input
-                        id="file-upload" ref="fileInput" :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)"
+                        id="file-upload" ref="fileInput" :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
                         class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
                         type="file"
                         @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
                     />
                     <button
-                        :disabled="!perms.has(PermType.CAM_CREATE_ATTACHMENTS)"
+                        :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
                         class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1"
                         @click.prevent="clearFile">✕
                     </button>
@@ -256,13 +256,13 @@ if (selectedServer && selectedServer.roles !== null) {
                     <input
                         v-model="form.mdata"
                         :class="`input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5 ${hasError ? 'input-error' : ''}`"
-                        :disabled="loading || isDisabled || !perms.has(PermType.CAN_CREATE_MESSAGE)"
+                        :disabled="loading || isDisabled || !perms.has([PermType.CAN_CREATE_MESSAGE])"
                         placeholder="Type here"
                         type="text"
                         @keydown.enter="createMessage"
                     />
                     <button
-                        :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)"
+                        :disabled="!perms.hasAny([PermType.CAN_CREATE_MESSAGE, PermType.CAM_CREATE_ATTACHMENTS])"
                         class="btn join-item mr-5 mb-5"
                     >
                         <v-icon name="fa-regular-paper-plane"/>

@@ -67,7 +67,7 @@ function leaveServer() {
             </Link>
             <!-- Server settings -->
             <Link
-                v-if="perms.hasAny(PermType.CAN_MANAGE_SERVER | PermType.CAN_MANAGE_ROLE | PermType.CAN_MANAGE_MEMBERS)"
+                v-if="perms.hasAny([PermType.CAN_MANAGE_SERVER, PermType.CAN_MANAGE_ROLE, PermType.CAN_MANAGE_MEMBERS])"
                 :href="server.url(selectedServer?.id)"
                 class="right-2 mt-3 absolute btn btn-ghost tooltip tooltip-left" data-tip="Server settings">
                 <button

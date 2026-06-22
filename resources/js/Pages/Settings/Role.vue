@@ -187,7 +187,7 @@ const changeImportance = async (role: Role, direction: number) => {
                 <h1 class="text-3xl text-base-content mb-6">Role Settings</h1>
 
                 <!-- Button to Open Modal -->
-                <button :disabled="!perms.has(PermType.CAN_CREATE_ROLE)" class="btn mb-6" @click="isModalOpen = true">
+                <button :disabled="!perms.has([PermType.CAN_CREATE_ROLE])" class="btn mb-6" @click="isModalOpen = true">
                     Add Role
                 </button>
 
@@ -257,7 +257,7 @@ const changeImportance = async (role: Role, direction: number) => {
                         <td class="py-2 px-4 text-end">
                             <div class="flex justify-end space-x-2">
                                 <button
-                                    v-if="editingRole !== role" :disabled="!perms.has(PermType.CAN_EDIT_ROLE)"
+                                    v-if="editingRole !== role" :disabled="!perms.has([PermType.CAN_EDIT_ROLE])"
                                     class="btn hover:btn-info px-4 py-2 "
                                     @click="editRole(role)">Edit
                                 </button>
@@ -266,7 +266,7 @@ const changeImportance = async (role: Role, direction: number) => {
                                     @click="updateRole">Save
                                 </button>
                                 <ConfirmDialog
-                                    :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has(PermType.CAN_DELETE_ROLE) ? 'btn-disabled' : ''}`"
+                                    :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has([PermType.CAN_DELETE_ROLE]) ? 'btn-disabled' : ''}`"
                                     :confirm="() => deleteRole(role)"
                                     description="Are you sure you want to delete this role?"
                                     text="Delete" title="Are you sure?"/>

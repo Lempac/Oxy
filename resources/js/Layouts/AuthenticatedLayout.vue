@@ -64,7 +64,7 @@ if (selectedServer) {
         </main>
 
         <footer v-if="$page.url.match(/\/home\/\d+/)">
-            <div v-if="inviteCode !== undefined && perms.has(PermType.CAN_INVITE)" class="toast truncate mb-16">
+            <div v-if="inviteCode !== undefined && perms.has([PermType.CAN_INVITE])" class="toast truncate mb-16">
                 <div
                     class="alert transition-all delay-300 ease-in-out items-center justify-center gap-0 bg-base-100"
                     @mouseenter="toggle = true" @mouseleave="toggle = false">

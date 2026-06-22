@@ -110,7 +110,7 @@ const leaveChannel = async () => {
                 :key="channel.id"
                 class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7">
                 <span
-                    v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
+                    v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
                     class="indicator-item indicator-top absolute hidden group-hover:block">
                     <ConfirmDialog
                         :confirm="() => deleteText(channel.id)"
@@ -123,7 +123,7 @@ const leaveChannel = async () => {
                 </span>
 
                 <span
-                    v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)"
+                    v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
                     class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
                     <button
                         class="indicator-item badge badge-warning h-auto w-auto p-0.5"
@@ -166,7 +166,7 @@ const leaveChannel = async () => {
             </div>
 
             <button
-                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
+                v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
                 class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-base-100"
                 @click="openModal()">
                 <v-icon name="oi-plus" scale="3"/>
