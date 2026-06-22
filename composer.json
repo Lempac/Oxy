@@ -11,7 +11,7 @@
         "php": "^8.5",
         "ext-pdo": "*",
         "barryvdh/laravel-dompdf": "^3.1.1",
-        "inertiajs/inertia-laravel": "^2.0.20",
+        "inertiajs/inertia-laravel": "^3.0",
         "intervention/image": "^3.11.7",
         "intervention/image-laravel": "^1.5.6",
         "laravel/framework": "^12.52.0",

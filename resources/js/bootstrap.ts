@@ -4,12 +4,13 @@ import './echo.ts';
 import {router} from "@inertiajs/vue3";
 import {Perms} from "@/types";
 
-window.axios = axios;
-
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+if (typeof window !== 'undefined') {
+    window.axios = axios;
+    window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+}
 export const defaultIcon = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s";
 
-export const baseUrl = window.location.origin;
+export const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 //TODO: Need to go around and check if the perm never gets put in as number, before converted to bigint as it losses precision
 export const bigIntToPerms = (newPrem: bigint): Perms => ({
     perm: newPrem,
