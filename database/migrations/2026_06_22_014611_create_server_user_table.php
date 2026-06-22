@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('server_user', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('color');
-            // FIXME: Fix the limit of 64 permission
-            $table->bigInteger('perms');
-            $table->integer('importance');
+            $table->foreignId('server_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
+            $table->unique(['server_id', 'user_id']);
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('server_user');
     }
 };

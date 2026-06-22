@@ -15,7 +15,7 @@ const {selectedServer} = defineProps<{
 
 const icon = ref<string | null>(selectedServer?.icon ? baseUrl + selectedServer?.icon : null);
 const inputFile = ref<File | null>(null);
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const perms = ref<Perms>(bigIntToPerms([]));
 
 const form = useForm({
     name: selectedServer?.name,
@@ -55,7 +55,7 @@ function deleteServer() {
 }
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
 }
 
 </script>

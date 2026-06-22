@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\PermsType;
 use App\Models\Role;
 use App\Models\Server;
 use App\Models\User;
@@ -11,20 +10,22 @@ test('user without permissions cannot add user to role', function () {
     $server = Server::factory()->create();
 
     $role = Role::factory()->create([
-        'perms' => 0,
+
     ]);
 
     $targetRole = Role::factory()->create([
-        'perms' => 0,
+
     ]);
 
     $server->users()->attach($user->id);
     $server->users()->attach($targetUser->id);
 
-    $server->roles()->attach($role->id);
-    $server->roles()->attach($targetRole->id);
+    $server->roles()->save($role);
+    $server->roles()->save($targetRole);
 
-    $user->roles()->attach($role->id, ['server_id' => $server->id]);
+    $role->syncPermissions([]);
+    setPermissionsTeamId($server->id);
+    $user->assignRole($role);
 
     $this->actingAs($user);
 
@@ -39,20 +40,22 @@ test('user with permissions can add user to role', function () {
     $server = Server::factory()->create();
 
     $role = Role::factory()->create([
-        'perms' => PermsType::CAN_EDIT_MEMBER_ROLES->value,
+
     ]);
 
     $targetRole = Role::factory()->create([
-        'perms' => 0,
+
     ]);
 
     $server->users()->attach($user->id);
     $server->users()->attach($targetUser->id);
 
-    $server->roles()->attach($role->id);
-    $server->roles()->attach($targetRole->id);
+    $server->roles()->save($role);
+    $server->roles()->save($targetRole);
 
-    $user->roles()->attach($role->id, ['server_id' => $server->id]);
+    $role->syncPermissions(['CAN_EDIT_MEMBER_ROLES']);
+    setPermissionsTeamId($server->id);
+    $user->assignRole($role);
 
     $this->actingAs($user);
 
@@ -67,21 +70,24 @@ test('user without permissions cannot remove user from role', function () {
     $server = Server::factory()->create();
 
     $role = Role::factory()->create([
-        'perms' => 0,
+
     ]);
 
     $targetRole = Role::factory()->create([
-        'perms' => 0,
+
     ]);
 
     $server->users()->attach($user->id);
     $server->users()->attach($targetUser->id);
 
-    $server->roles()->attach($role->id);
-    $server->roles()->attach($targetRole->id);
+    $server->roles()->save($role);
+    $server->roles()->save($targetRole);
 
-    $user->roles()->attach($role->id, ['server_id' => $server->id]);
-    $targetUser->roles()->attach($targetRole->id, ['server_id' => $server->id]);
+    $role->syncPermissions([]);
+    setPermissionsTeamId($server->id);
+    $user->assignRole($role);
+    setPermissionsTeamId($server->id);
+    $targetUser->assignRole($targetRole);
 
     $this->actingAs($user);
 
@@ -96,21 +102,24 @@ test('user with permissions can remove user from role', function () {
     $server = Server::factory()->create();
 
     $role = Role::factory()->create([
-        'perms' => PermsType::CAN_EDIT_MEMBER_ROLES->value,
+
     ]);
 
     $targetRole = Role::factory()->create([
-        'perms' => 0,
+
     ]);
 
     $server->users()->attach($user->id);
     $server->users()->attach($targetUser->id);
 
-    $server->roles()->attach($role->id);
-    $server->roles()->attach($targetRole->id);
+    $server->roles()->save($role);
+    $server->roles()->save($targetRole);
 
-    $user->roles()->attach($role->id, ['server_id' => $server->id]);
-    $targetUser->roles()->attach($targetRole->id, ['server_id' => $server->id]);
+    $role->syncPermissions(['CAN_EDIT_MEMBER_ROLES']);
+    setPermissionsTeamId($server->id);
+    $user->assignRole($role);
+    setPermissionsTeamId($server->id);
+    $targetUser->assignRole($targetRole);
 
     $this->actingAs($user);
 

@@ -28,8 +28,7 @@ class Server extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'role_server_user')
-            ->withPivot('role_id')
+        return $this->belongsToMany(User::class, 'server_user')
             ->withTimestamps();
     }
 
@@ -43,11 +42,9 @@ class Server extends Model
         return $this->hasOne(Board::class);
     }
 
-    public function roles(): BelongsToMany
+    public function roles(): HasMany
     {
-        return $this->belongsToMany(Role::class, 'role_server_user')
-            ->withPivot('user_id')
-            ->withTimestamps();
+        return $this->hasMany(Role::class);
     }
 
     protected static function newFactory(): ServerFactory
@@ -55,7 +52,6 @@ class Server extends Model
         return ServerFactory::new()->hasRoles(1, [
             'name' => 'Owner',
             'color' => '#ffffff',
-            'perms' => PHP_INT_MAX,
             'importance' => 0,
         ]);
     }

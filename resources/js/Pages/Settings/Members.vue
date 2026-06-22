@@ -27,7 +27,7 @@ const {selectedServer} = defineProps<{
     selectedServer: customServer,
 }>();
 
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const perms = ref<Perms>(bigIntToPerms([]));
 
 const toggleRole = (roleId: number, userId: number, state: boolean) => {
     if (state) {
@@ -50,7 +50,7 @@ const kickMember = (userId: number) =>
 if (selectedServer && selectedServer.roles !== null) {
     perms.value = bigIntToPerms(selectedServer.roles
         .filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id))
-        .reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+        .reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
 }
 
 </script>

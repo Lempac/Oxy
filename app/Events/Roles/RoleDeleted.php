@@ -18,12 +18,9 @@ class RoleDeleted implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        $channels = [];
-        foreach ($this->role->server as $server) {
-            $channels[] = new PrivateChannel('roles.'.$server->id);
-        }
-
-        return $channels;
+        return [
+            new PrivateChannel('roles.'.$this->role->server_id),
+        ];
     }
 
     public function broadcastAs(): string

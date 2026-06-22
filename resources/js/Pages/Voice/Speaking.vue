@@ -23,7 +23,7 @@ const {selectedServer} = defineProps<{
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<Function>();
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const perms = ref<Perms>(bigIntToPerms([]));
 
 const form = useForm({
     type: ChannelType.Voice,
@@ -63,7 +63,7 @@ const editText = async (channelId: number) => {
 };
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
 }
 
 const isInVoice = ref(false);

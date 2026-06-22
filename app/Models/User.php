@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -55,20 +56,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function servers(): BelongsToMany
     {
-        return $this->belongsToMany(Server::class, 'role_server_user')
-            ->withPivot('role_id')
+        return $this->belongsToMany(Server::class, 'server_user')
             ->withTimestamps();
     }
 
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
-    }
-
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'role_server_user')
-            ->withPivot('server_id')
-            ->withTimestamps();
     }
 }

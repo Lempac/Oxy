@@ -15,13 +15,13 @@ import axios from "axios";
 addIcons(BiChatText, RiChatVoiceLine, BiEasel, BiGearFill, BiDoorOpen);
 
 const serverSettingsModal = ref<HTMLDialogElement>();
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const perms = ref<Perms>(bigIntToPerms([]));
 const {selectedServer} = defineProps<{
     selectedServer?: Server,
 }>();
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
 }
 
 function leaveServer() {

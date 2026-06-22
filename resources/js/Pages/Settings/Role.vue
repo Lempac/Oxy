@@ -27,7 +27,7 @@ const newRole = ref({
 
 const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const perms = ref<Perms>(bigIntToPerms([]));
 
 const fetchRoles = async () => {
     try {
@@ -37,7 +37,7 @@ const fetchRoles = async () => {
         roles.value.sort((a, b) => a.importance - b.importance);
 
         if (selectedServer && selectedServer.roles !== null) {
-            perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+            perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
         }
     } catch (error) {
         console.error('Error fetching roles:', error);
@@ -121,7 +121,7 @@ fetchRoles();
 
 const togglePerm = (perm: typeof PermType | number, state: boolean) => {
     if (editingRole.value?.perms === undefined) return;
-    const currentPerm = bigIntToPerms(BigInt(editingRole.value?.perms))
+    const currentPerm = bigIntToPerms(editingRole.value?.perms || [])
 
     if (state) currentPerm.add(perm)
     else currentPerm.remove(perm)
@@ -132,8 +132,8 @@ const togglePerm = (perm: typeof PermType | number, state: boolean) => {
 const roleArray = Object.entries(PermType);
 
 const formatRolePerms = (role: Role) => {
-    const rolePermsBigInt = BigInt(role.perms);
-    const filtered = roleArray.filter(roleObj => BigInt(roleObj[1]) & rolePermsBigInt);
+
+    const filtered = roleArray.filter(roleObj => role.perms.includes(roleObj[1]));
     const length = filtered.length;
     if (length === 0) return 'None';
     const firstThree = filtered.slice(0, 3).map(roleObj => roleObj[0]).join(', ');
@@ -236,16 +236,16 @@ const changeImportance = async (role: Role, direction: number) => {
                                 <ul
                                     class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1"
                                     tabindex="0">
-                                    <template v-for="rolePerms in [bigIntToPerms(BigInt(role.perms))]" :key="'perms-' + role.id">
+                                    <template v-for="rolePerms in [bigIntToPerms(role.perms)]" :key="'perms-' + role.id">
                                         <li v-for="(perm, index) in roleArray" :key="index">
                                             <button
-                                                :class="(rolePerms.has(BigInt(perm[1])) ? 'bg-base-300' : '')"
+                                                :class="(rolePerms.has(perm[1]) ? 'bg-base-300' : '')"
                                                 :disabled="editingRole !== role"
                                                 class="btn"
-                                                @click="() => togglePerm(perm[1], !rolePerms.has(BigInt(perm[1])))"
+                                                @click="() => togglePerm(perm[1], !rolePerms.has(perm[1]))"
                                             >
                                                 <v-icon
-                                                    v-if="rolePerms.has(BigInt(perm[1]))"
+                                                    v-if="rolePerms.has(perm[1])"
                                                     name="bi-check-lg"/>
                                                 {{ perm[0] }}
                                             </button>

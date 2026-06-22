@@ -17,7 +17,7 @@ const copyToClipboard = (text: string) => {
 }
 
 const toggle = ref(false);
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const perms = ref<Perms>(bigIntToPerms([]));
 
 const {selectedServer} = defineProps<{
     servers?: Server[];
@@ -26,7 +26,7 @@ const {selectedServer} = defineProps<{
 }>();
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
 }
 
 if (selectedServer) {

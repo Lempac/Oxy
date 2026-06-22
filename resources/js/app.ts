@@ -1,13 +1,13 @@
 import './bootstrap';
 import '../css/app.css';
 
-import {createApp, DefineComponent, h, watch} from 'vue';
+import {createApp, DefineComponent, h} from 'vue';
 import {createInertiaApp, router} from '@inertiajs/vue3';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import {OhVueIcon} from 'oh-vue-icons';
 import VueKonva from 'vue-konva';
 import {Themes, ThemeType} from "@/types";
-import { configureEcho } from '@laravel/echo-vue';
+import {configureEcho} from '@laravel/echo-vue';
 
 configureEcho({
     broadcaster: 'reverb',
@@ -31,7 +31,7 @@ createInertiaApp({
         };
 
         // Initial application
-        updateTheme((props.initialPage.props as any).user?.theme);
+        updateTheme((props.initialPage?.props as any)?.user?.theme);
 
         // Listen for updates (including theme changes via profile update)
         router.on('success', (event) => {

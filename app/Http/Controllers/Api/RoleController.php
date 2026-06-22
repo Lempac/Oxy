@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\PermsType;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Server;
@@ -28,7 +27,7 @@ class RoleController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'required|string|size:7',
-            'perms' => 'required|integer',
+            'perms' => 'required|array',
             'importance' => 'required|integer|min:0',
         ]);
 
@@ -38,23 +37,21 @@ class RoleController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_CREATE_ROLE->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_CREATE_ROLE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
         $role = Role::create([
             'name' => $request->name,
             'color' => $request->color,
-            'perms' => $request->perms,
             'importance' => $request->importance,
+            'server_id' => $serverId,
+            'guard_name' => 'web',
         ]);
 
-        // Attach the role to the server
-        $server->roles()->attach($role->id);
+        $role->syncPermissions($request->perms);
+
         //        broadcast(new RoleCreated($role));
 
         return response()->json(['message' => 'Role added to server successfully.', 'role' => $role], 201);
@@ -65,32 +62,25 @@ class RoleController extends Controller
         $request->validate([
             'name' => 'nullable|string|max:255',
             'color' => 'nullable|string|size:7',
-            'perms' => 'nullable|integer',
+            'perms' => 'nullable|array',
             'importance' => 'nullable|integer|min:0',
         ]);
 
-        $role = Role::find($roleId);
+        $role = Role::with('server')->find($roleId);
 
         if (! $role) {
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $hasPerms = false;
-        foreach ($role->server as $server) {
-            $userRoles = $server->roles->intersect(Auth::user()->roles);
-            if ($userRoles->contains(function (Role $r) {
-                return $r->hasPerms(PermsType::CAN_EDIT_ROLE->value);
-            })) {
-                $hasPerms = true;
-                break;
-            }
-        }
-
-        if (! $hasPerms) {
+        setPermissionsTeamId($role->server_id);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_ROLE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        $role->update($request->only(['name', 'color', 'perms', 'importance']));
+        $role->update($request->only(['name', 'color', 'importance']));
+        if ($request->has('perms')) {
+            $role->syncPermissions($request->perms);
+        }
 
         //        broadcast(new RoleEdited($role));
 
@@ -99,24 +89,14 @@ class RoleController extends Controller
 
     public function delete(int $roleId)
     {
-        $role = Role::find($roleId);
+        $role = Role::with('server')->find($roleId);
 
         if (! $role) {
             return response()->json(['message' => 'Role not found.'], 404);
         }
 
-        $hasPerms = false;
-        foreach ($role->server as $server) {
-            $userRoles = $server->roles->intersect(Auth::user()->roles);
-            if ($userRoles->contains(function (Role $r) {
-                return $r->hasPerms(PermsType::CAN_DELETE_ROLE->value);
-            })) {
-                $hasPerms = true;
-                break;
-            }
-        }
-
-        if (! $hasPerms) {
+        setPermissionsTeamId($role->server_id);
+        if (! Auth::user()->hasPermissionTo('CAN_DELETE_ROLE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -148,10 +128,12 @@ class RoleController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
+        setPermissionsTeamId($serverId);
+
         return Inertia::render('Settings/Members')->with([
             'selectedServer' => $server,
             'selectedServer.users' => $server->users->each(function (User $user) use ($server) {
-                $user['rolesWithServer'] = $user->roles->intersect($server->roles);
+                $user['rolesWithServer'] = $user->roles()->where('roles.server_id', $server->id)->get();
             }),
             'selectedServer.roles' => $server->roles,
         ]);
@@ -160,7 +142,7 @@ class RoleController extends Controller
     public function addUser(int $roleId, int $userId)
     {
         $user = User::find($userId);
-        $role = Role::find($roleId);
+        $role = Role::with('server')->find($roleId);
 
         if (! $role) {
             return response()->json(['message' => 'Role not found.'], 404);
@@ -170,26 +152,12 @@ class RoleController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        $hasPerms = false;
-        foreach ($role->server as $server) {
-            $userRoles = $server->roles->intersect(Auth::user()->roles);
-            if ($userRoles->contains(function (Role $r) {
-                return $r->hasPerms(PermsType::CAN_EDIT_MEMBER_ROLES->value) || $r->hasPerms(PermsType::CAN_MANAGE_ROLE->value);
-            })) {
-                $hasPerms = true;
-                break;
-            }
-        }
-
-        if (! $hasPerms) {
+        setPermissionsTeamId($role->server_id);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_MEMBER_ROLES') && ! Auth::user()->hasPermissionTo('CAN_MANAGE_ROLE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        // We need to attach the role to the user, with the server_id pivot
-        // If a role belongs to multiple servers, attach it for the first one for simplicity or we should pass the server_id
-        // Currently the schema has server_id on the role_server_user pivot. Let's attach using the first server id for now, as that's how it would have behaved.
-        $serverId = $role->server->first()->id ?? null;
-        $user->roles()->attach($role, ['server_id' => $serverId]);
+        $user->assignRole($role);
 
         return response()->json(['message' => 'Role added successfully.']);
     }
@@ -197,7 +165,7 @@ class RoleController extends Controller
     public function removeUser(int $roleId, int $userId)
     {
         $user = User::find($userId);
-        $role = Role::find($roleId);
+        $role = Role::with('server')->find($roleId);
 
         if (! $role) {
             return response()->json(['message' => 'Role not found.'], 404);
@@ -207,22 +175,12 @@ class RoleController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        $hasPerms = false;
-        foreach ($role->server as $server) {
-            $userRoles = $server->roles->intersect(Auth::user()->roles);
-            if ($userRoles->contains(function (Role $r) {
-                return $r->hasPerms(PermsType::CAN_EDIT_MEMBER_ROLES->value) || $r->hasPerms(PermsType::CAN_MANAGE_ROLE->value);
-            })) {
-                $hasPerms = true;
-                break;
-            }
-        }
-
-        if (! $hasPerms) {
+        setPermissionsTeamId($role->server_id);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_MEMBER_ROLES') && ! Auth::user()->hasPermissionTo('CAN_MANAGE_ROLE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        $user->roles()->detach($role);
+        $user->removeRole($role);
 
         return response()->json(['message' => 'Role deleted successfully.']);
     }

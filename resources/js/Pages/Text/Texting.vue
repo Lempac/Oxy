@@ -38,7 +38,7 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const messageContainer = ref<HTMLElement>();
 const messageModal = ref<HTMLDialogElement>();
 const messageIdToEdit = ref<number | null>(null);
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
+const perms = ref<Perms>(bigIntToPerms([]));
 const inputFile = ref<File | null>();
 const mdata = ref<string | null>(null);
 
@@ -155,7 +155,7 @@ const uploadFile = (val: File) => {
 }
 
 if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
+    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
 }
 
 </script>
