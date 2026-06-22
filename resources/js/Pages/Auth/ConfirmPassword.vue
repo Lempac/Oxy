@@ -1,12 +1,10 @@
 <script lang="ts" setup>
+import { MdKey } from "vue-icons-plus/md";
 import { confirm } from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {MdKey} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
 
-addIcons(MdKey);
 
 const form = useForm({
     password: '',
@@ -35,7 +33,7 @@ const submit = () => {
                     Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="password"
                         v-model="form.password"

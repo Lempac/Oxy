@@ -39,7 +39,7 @@
     "dependencies": {
         "@tailwindcss/vite": "^4.3.1",
         "bad-words": "^4.0.0",
-        "oh-vue-icons": "1.0.0-rc3",
-        "ts-node": "^10.9.2"
+        "ts-node": "^10.9.2",
+        "vue-icons-plus": "^0.1.9"
     }
 }

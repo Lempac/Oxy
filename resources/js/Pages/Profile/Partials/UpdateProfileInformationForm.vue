@@ -1,15 +1,14 @@
 <script lang="ts" setup>
+import { FaUser, FaEnvelope } from "vue-icons-plus/fa";
+import { IoAddOutline } from "vue-icons-plus/io";
 import { update } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
 import {ref} from "vue";
 import {baseUrl} from "@/bootstrap";
 import {Themes, ThemeType} from "@/types";
 
-addIcons(RiUser3Line, HiMail, IoAddOutline);
 
 defineProps<{
     mustVerifyEmail?: boolean;
@@ -53,7 +52,7 @@ const updateIcon = (val: File) => {
                     class="cursor-pointer rounded-full bg-base-200 transition-all duration-300 ease-in-out hover:bg-transparent group-hover:bg-transparent"
                     for="profilePicture">
                     <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
-                    <v-icon v-else name="io-add-outline" scale="3.333"/>
+                    <IoAddOutline v-else size="79"/>
                 </label>
                 <label class="cursor-pointer" for="profilePicture">Upload profile picture</label>
                 <input
@@ -70,7 +69,7 @@ const updateIcon = (val: File) => {
             <div class="form-control">
                 <label class="block font-medium text-sm text-base-content/90" for="name">Name</label>
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="ri-user-3-line"/>
+                    <FaUser class="h-4 w-4 opacity-70"/>
                     <input
                         id="name"
                         v-model="form.name"
@@ -88,7 +87,7 @@ const updateIcon = (val: File) => {
                 <label class="block font-medium text-sm text-base-content/90" for="email">Email</label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="hi-mail"/>
+                    <FaEnvelope class="h-4 w-4 opacity-70"/>
                     <input
                         id="email"
                         v-model="form.email"

@@ -1,19 +1,18 @@
 <script lang="ts" setup>
+import { BiCheck } from "vue-icons-plus/bi";
+import { FaShoePrints } from "vue-icons-plus/fa";
 import { server } from '@/routes/home';
 import { addUser, removeUser as roles_removeUser } from '@/routes/roles';
 import { removeUser as server_removeUser } from '@/routes/server';
 
 import {Link, router, usePage} from "@inertiajs/vue3";
 import {Perms, PermType, Role, Server, User} from "@/types";
-import {BiCheckLg, GiBootKick} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import axios from "axios";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {ref} from "vue";
 import {bigIntToPerms} from "@/bootstrap";
 
-addIcons(BiCheckLg, GiBootKick);
 
 interface customUser extends User {
     rolesWithServer: Role[]
@@ -103,9 +102,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                             :disabled="!perms.has(PermType.CAN_EDIT_MEMBER_ROLES)"
                                             class="btn"
                                             @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))">
-                                            <v-icon
-                                                v-if="user.rolesWithServer.find(objRole => objRole.id === role.id)"
-                                                name="bi-check-lg"/>
+                                            <BiCheck size="24" v-if="user.rolesWithServer.find(objRole => objRole.id === role.id)"/>
                                             {{ role.name }}
                                         </button>
                                     </li>
@@ -118,7 +115,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                 :confirm="() => kickMember(user.id)"
                                 description="Are you sure you want to kick this member?"
                                 title="Are you sure?">
-                                <v-icon name="gi-boot-kick"/>
+                                <FaShoePrints/>
                             </ConfirmDialog>
                         </td>
                     </tr>

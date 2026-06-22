@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { FaPlus } from "vue-icons-plus/fa";
+import { MdModeEditOutline, MdDeleteForever } from "vue-icons-plus/md";
 import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel } from '@/routes/home/voice';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
@@ -8,10 +10,7 @@ import axios from "axios";
 import {ref} from "vue";
 import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import {addIcons} from "oh-vue-icons";
-import {MdDeleteforeverOutlined, MdModeeditoutlineOutlined, OiPlus} from "oh-vue-icons/icons";
 
-addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const {selectedServer} = defineProps<{
     servers: Server[],
@@ -118,7 +117,7 @@ const leaveChannel = async () => {
                         class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
                         title="Delete Channel"
                     >
-                        <v-icon name="md-deleteforever-outlined"/>
+                        <MdDeleteForever/>
                     </ConfirmDialog>
                 </span>
 
@@ -129,7 +128,7 @@ const leaveChannel = async () => {
                         class="indicator-item badge badge-warning h-auto w-auto p-0.5"
                         @click.prevent="openModal(channel)"
                     >
-                        <v-icon name="md-modeeditoutline-outlined"/>
+                        <MdModeEditOutline/>
                     </button>
                 </span>
 
@@ -169,7 +168,7 @@ const leaveChannel = async () => {
                 v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
                 class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-base-100"
                 @click="openModal()">
-                <v-icon name="oi-plus" scale="3"/>
+                <FaPlus size="72"/>
             </button>
         </div>
     </AuthenticatedLayout>

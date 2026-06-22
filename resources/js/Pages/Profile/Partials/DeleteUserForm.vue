@@ -1,12 +1,10 @@
 <script lang="ts" setup>
+import { MdKey } from "vue-icons-plus/md";
 import { destroy } from '@/routes/profile';
 import {useForm} from '@inertiajs/vue3';
 import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {MdKey} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
 
-addIcons(MdKey);
 
 const passwordInput = ref<HTMLInputElement | null>(null);
 const form = useForm({
@@ -63,7 +61,7 @@ const deleteUser = () => {
                             <label class="block font-medium text-sm text-base-content/70" for="password">Password</label>
 
                             <label class="input input-bordered flex items-center gap-2">
-                                <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                                <MdKey class="h-4 w-4 opacity-70"/>
                                 <input
                                     id="password"
                                     ref="passwordInput"

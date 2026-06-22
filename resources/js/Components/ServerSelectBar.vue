@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { FaPlus } from "vue-icons-plus/fa";
 import { home, logout } from '@/routes';
 import { server as serverRoute } from '@/routes/home';
 import { edit } from '@/routes/profile';
@@ -8,12 +9,9 @@ import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
 import {baseUrl, defaultIcon, joinServer} from "@/bootstrap";
 import axios from "axios";
-import {addIcons} from "oh-vue-icons";
-import {HiSolidSun, OiPlus, RiMoonClearFill} from "oh-vue-icons/icons";
 import {Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 
-addIcons(OiPlus, HiSolidSun, RiMoonClearFill);
 
 const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
 
@@ -92,7 +90,7 @@ const updateIcon = (val: File) => {
             </div>
 
             <button v-if="isHomePage" class="btn btn-circle ml-2 mb-1" @click="serverModal?.showModal">
-                <v-icon name="oi-plus" scale="1.5"/>
+                <FaPlus size="36"/>
             </button>
         </div>
 
@@ -100,8 +98,8 @@ const updateIcon = (val: File) => {
         <div class="navbar-end gap-2">
             <!--            <label class="btn btn-circle swap swap-rotate">-->
             <!--                <input type="checkbox" />-->
-            <!--                <v-icon name="hi-solid-sun" scale="1.5" class="swap-on fill-current"></v-icon>-->
-            <!--                <v-icon name="ri-moon-clear-fill" scale="1.5" class="swap-off fill-current"></v-icon>-->
+            <!--                <FaPlus size="36" class="swap-on fill-current"></FaPlus>-->
+            <!--                <FaMoon size="36" class="swap-off fill-current"></FaMoon>-->
             <!--            </label>-->
 
             <div class="dropdown dropdown-end">
@@ -161,7 +159,7 @@ const updateIcon = (val: File) => {
                                 class="cursor-pointer rounded-full bg-base-200 transition-all duration-300 ease-in-out hover:bg-transparent"
                                 for="serverIcon">
                                 <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
-                                <v-icon v-else name="oi-plus" scale="3.333"/>
+                                <FaPlus v-else size="79"/>
                             </label>
                             <label class="cursor-pointer" for="serverIcon">Upload server icon</label>
                             <input

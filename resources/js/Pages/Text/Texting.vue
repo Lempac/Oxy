@@ -1,20 +1,14 @@
 <script lang="ts" setup>
+import { MdDeleteForever, MdModeEditOutline, MdFileUpload } from "vue-icons-plus/md";
+import { FaRegPaperPlane, FaRegFile } from "vue-icons-plus/fa";
 import { create, deleteMethod, edit } from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import TextSelectBar from "@/Components/TextSelectBar.vue";
-import {addIcons} from "oh-vue-icons";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
 import {Channel, Message, MessageType, Perms, PermType, Role, Server} from "@/types";
 import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
-import {
-    FaRegularFile,
-    FaRegularPaperPlane,
-    MdDeleteforeverOutlined,
-    MdFileuploadOutlined,
-    MdModeeditoutlineOutlined
-} from "oh-vue-icons/icons";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
@@ -22,7 +16,6 @@ import {Filter} from 'bad-words';
 const filter = new Filter({placeHolder: '#'})
 filter.addWords()
 
-addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
 
 const {selectedChannel, messages, selectedServer} = defineProps<{
     servers: Server[],
@@ -195,7 +188,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                     v-if="MessageType.Image === message.type" :src="message.mdata" alt="img"
                                     class="max-w-[40vw] h-auto"/>
                                 <div v-if="MessageType.File === message.type">
-                                    <v-icon name="fa-regular-file"/>
+                                    <FaRegFile/>
                                     <a :href="baseUrl + message.mdata.split('|*|')[1]" download>
                                         {{ message.mdata.split('|*|')[0] }}
                                     </a>
@@ -211,7 +204,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                         description="Are you sure you want to delete this message?"
                                         title="Delete Message"
                                     >
-                                        <v-icon name="md-deleteforever-outlined"/>
+                                        <MdDeleteForever/>
                                     </ConfirmDialog>
                                 </div>
 
@@ -222,7 +215,7 @@ if (selectedServer && selectedServer.roles !== null) {
                                     <button
                                         class="indicator-item badge badge-warning h-auto w-auto p-0.5"
                                         @click="openModal(message.id, message.mdata)">
-                                        <v-icon name="md-modeeditoutline-outlined"/>
+                                        <MdModeEditOutline/>
                                     </button>
                                 </div>
                             </div>
@@ -236,7 +229,7 @@ if (selectedServer && selectedServer.roles !== null) {
 
             <form class="flex items-center mt-1" @submit.prevent="createMessage">
                 <label class="btn join-item ml-5 mb-5" for="file-upload">
-                    <v-icon name="md-fileupload-outlined"/>
+                    <MdFileUpload/>
                 </label>
                 <div class="items-center hidden">
                     <input
@@ -265,7 +258,7 @@ if (selectedServer && selectedServer.roles !== null) {
                         :disabled="!perms.hasAny(PermType.CAN_CREATE_MESSAGE | PermType.CAM_CREATE_ATTACHMENTS)"
                         class="btn join-item mr-5 mb-5"
                     >
-                        <v-icon name="fa-regular-paper-plane"/>
+                        <FaRegPaperPlane/>
                     </button>
                 </div>
             </form>

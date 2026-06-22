@@ -4,7 +4,7 @@ import '../css/app.css';
 import {createApp, DefineComponent, h} from 'vue';
 import {createInertiaApp, router} from '@inertiajs/vue3';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
-import {OhVueIcon} from 'oh-vue-icons';
+
 import VueKonva from 'vue-konva';
 import {Themes, ThemeType} from "@/types";
 import {configureEcho} from '@laravel/echo-vue';
@@ -20,7 +20,7 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob<DefineComponent>('./Pages/**/*.vue')),
     setup({el, App, props, plugin}) {
         createApp({render: () => h(App, props)})
-            .component("v-icon", OhVueIcon)
+
             .use(VueKonva)
             .use(plugin)
             .mount(el);
