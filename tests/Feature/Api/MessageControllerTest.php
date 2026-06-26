@@ -48,10 +48,10 @@ test('user cannot edit another user\'s message', function () {
 
     // Act as user2 and try to edit user1's message
     $this->actingAs($user2);
-    
+
     // We add this to ensure the exception is converted to a response in the test
     $this->withExceptionHandling();
-    
+
     $response = $this->patch("/api/message/{$message->id}", [
         'mdata' => 'Hacked message',
     ]);
