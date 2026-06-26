@@ -8,10 +8,9 @@ import axios from "axios";
 import {ref} from "vue";
 import {Channel, ChannelType, PermType, Server} from "@/types";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import {addIcons} from "oh-vue-icons";
-import {MdDeleteforeverOutlined, MdModeeditoutlineOutlined, OiPlus} from "oh-vue-icons/icons";
+import { MdOutlineDeleteForever, MdOutlineModeEdit } from 'vue-icons-plus/md';
+import { GoPlus } from 'vue-icons-plus/go';
 
-addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const perms = usePerms();
 const {selectedServer} = defineProps<{
@@ -115,7 +114,7 @@ const leaveChannel = async () => {
                         class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
                         title="Delete Channel"
                     >
-                        <v-icon name="md-deleteforever-outlined"/>
+                        <MdOutlineDeleteForever/>
                     </ConfirmDialog>
                 </span>
 
@@ -126,7 +125,7 @@ const leaveChannel = async () => {
                         class="indicator-item badge badge-warning h-auto w-auto p-0.5"
                         @click.prevent="openModal(channel)"
                     >
-                        <v-icon name="md-modeeditoutline-outlined"/>
+                        <MdOutlineModeEdit/>
                     </button>
                 </span>
 
@@ -166,7 +165,7 @@ const leaveChannel = async () => {
                 v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
                 class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-base-100"
                 @click="openModal()">
-                <v-icon name="oi-plus" scale="3"/>
+                <GoPlus scale="3"/>
             </button>
         </div>
     </AuthenticatedLayout>

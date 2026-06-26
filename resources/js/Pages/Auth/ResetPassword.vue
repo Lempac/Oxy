@@ -2,11 +2,10 @@
 import { store } from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
-import {HiMail, MdKey} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
+import { MdKey } from 'vue-icons-plus/md';
+import { HiMail } from 'vue-icons-plus/hi';
 
-addIcons(HiMail, MdKey);
 
 const props = defineProps<{
     email: string;
@@ -38,7 +37,7 @@ const submit = () => {
                 <label class="block font-medium text-sm text-base-content" for="email"> Email </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="hi-mail"/>
+                    <HiMail class="h-4 w-4 opacity-70"/>
                     <input
                         id="email"
                         v-model="form.email"
@@ -58,7 +57,7 @@ const submit = () => {
                     Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="password"
                         v-model="form.password"
@@ -77,7 +76,7 @@ const submit = () => {
                     Confirm Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="password_confirmation"
                         v-model="form.password_confirmation"

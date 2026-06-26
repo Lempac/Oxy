@@ -9,11 +9,10 @@ import axios, {AxiosResponse} from 'axios';
 import {Perms, PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
-import {addIcons} from "oh-vue-icons";
-import {BiCheckLg, CoArrowBottom, CoArrowTop} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
+import { BiDownArrowAlt, BiUpArrowAlt } from 'vue-icons-plus/bi';
+import { BsCheckLg } from 'vue-icons-plus/bs';
 
-addIcons(BiCheckLg, CoArrowBottom, CoArrowTop);
 
 const perms = usePerms();
 const {selectedServer} = defineProps<{
@@ -218,10 +217,10 @@ const changeImportance = async (role: Role, direction: number) => {
                                 v-if="editingRole === role && role.importance !== 0"
                                 class="flex justify-center space-x-2">
                                 <button class="btn" @click="changeImportance(role, -1)">
-                                    <v-icon name="co-arrow-top"/>
+                                    <BiUpArrowAlt/>
                                 </button>
                                 <button class="btn" @click="changeImportance(role, 1)">
-                                    <v-icon name="co-arrow-bottom"/>
+                                    <BiDownArrowAlt/>
                                 </button>
                             </div>
                         </td>
@@ -243,9 +242,8 @@ const changeImportance = async (role: Role, direction: number) => {
                                                 class="btn"
                                                 @click="() => togglePerm(perm[1], !rolePerms.has(perm[1]))"
                                             >
-                                                <v-icon
-                                                    v-if="rolePerms.has(perm[1])"
-                                                    name="bi-check-lg"/>
+                                                <BsCheckLg
+                                                    v-if="rolePerms.has(perm[1])"/>
                                                 {{ perm[0] }}
                                             </button>
                                         </li>

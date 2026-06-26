@@ -3,10 +3,8 @@ import { email } from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {HiMail} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
+import { HiMail } from 'vue-icons-plus/hi';
 
-addIcons(HiMail);
 
 defineProps<{
     status?: string;
@@ -39,7 +37,7 @@ const submit = () => {
                 <label class="block font-medium text-sm text-base-content" for="email"> Email </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="hi-mail"/>
+                    <HiMail class="h-4 w-4 opacity-70"/>
                     <input
                         id="email"
                         v-model="form.email"

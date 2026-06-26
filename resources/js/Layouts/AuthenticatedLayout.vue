@@ -4,15 +4,13 @@ import { usePerms } from '@/bootstrap';
 import ServerSelectBar from "@/Components/ServerSelectBar.vue";
 import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
 import {router, usePage} from "@inertiajs/vue3";
-import {addIcons} from "oh-vue-icons";
-import {HiClipboardCopy} from "oh-vue-icons/icons";
 import {ref} from "vue";
 import MembersList from "@/Components/MembersList.vue";
 import {Perms, PermType, Role, Server} from "@/types";
 import {bigIntToPerms} from "@/bootstrap";
 import echo from "@/echo";
+import { HiClipboardCopy } from 'vue-icons-plus/hi';
 
-addIcons(HiClipboardCopy);
 
 const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -69,7 +67,7 @@ if (selectedServer) {
                     @mouseenter="toggle = true" @mouseleave="toggle = false">
                     <span :class="`font-bold p-2  ${toggle ? '' : 'hidden'}`">{{ inviteCode }}</span>
                     <button class="btn tooltip" data-tip="Copy" @click="copyToClipboard(inviteCode)">
-                        <v-icon name="hi-clipboard-copy"/>
+                        <HiClipboardCopy/>
                     </button>
                 </div>
             </div>

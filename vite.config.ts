@@ -31,9 +31,8 @@ export default defineConfig({
         }
     },
     optimizeDeps: {
-        exclude: ["oh-vue-icons/icons"]
+        exclude: []
     },
     ssr: {
-        noExternal: ["oh-vue-icons"]
     }
 });

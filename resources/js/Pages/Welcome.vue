@@ -4,11 +4,12 @@ import {Head, Link, useForm} from '@inertiajs/vue3';
 import {onMounted, onUnmounted, ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import backgroundImage from '../../../public/images/background.svg';
-import {CoChatBubble, FaBook, RiComputerFill} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import { BsEasel } from 'vue-icons-plus/bs';
+import { BiChat } from 'vue-icons-plus/bi';
+import { RiComputerFill } from 'vue-icons-plus/ri';
+import { FaBook } from 'vue-icons-plus/fa';
 
-addIcons(CoChatBubble, RiComputerFill, FaBook);
 
 const loginModel = ref<HTMLDialogElement>();
 const registerModel = ref<HTMLDialogElement>();
@@ -127,20 +128,20 @@ const submitRegister = () => {
             <!-- Info cards -->
             <div class="flex justify-center mt-8 space-x-8">
                 <div class="card bg-neutral text-neutral-content p-4 w-1/3 text-center">
-                    <v-icon class="w-16 h-16 mx-auto mb-4" name="co-chat-bubble" scale="1"/>
+                    <BiChat class="w-16 h-16 mx-auto mb-4" scale="1"/>
                     <h2 class="text-2xl font-bold">Messaging</h2>
                     <p class="mt-2">Oxy lets users easily communicate with others quickly with channels and servers.</p>
                 </div>
 
                 <div class="card bg-neutral text-neutral-content p-4 w-1/3 text-center">
-                    <v-icon class="w-16 h-16 mx-auto mb-4" name="ri-computer-fill" scale="1"/>
+                    <RiComputerFill class="w-16 h-16 mx-auto mb-4" scale="1"/>
                     <h2 class="text-2xl font-bold">Servers</h2>
                     <p class="mt-2">Create servers to communicate with multiple people and work on projects
                         simultaneously.</p>
                 </div>
 
                 <div class="card bg-neutral text-neutral-content p-4 w-1/3 text-center">
-                    <v-icon name="bi-easel" scale="4" class="mx-auto mb-4" />
+                    <BsEasel scale="4" class="mx-auto mb-4" />
                     <h3 class="text-xl font-bold">Whiteboard</h3>
                     <p class="mt-2">Collaborate in real-time with your team using our interactive whiteboard.</p>
                 </div>
@@ -258,7 +259,7 @@ const submitRegister = () => {
                 :href="manual.url()" class="left-2 mt-3 absolute btn btn-ghost tooltip tooltip-right"
                 data-tip="FAQ">
                 <button class="flex items-center justify-center h-10 w-5">
-                    <v-icon animation="pulse" name="fa-book" scale="2"/>
+                    <FaBook animation="pulse" scale="2"/>
                 </button>
             </Link>
         </footer>

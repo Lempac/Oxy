@@ -14,12 +14,12 @@ importers:
       bad-words:
         specifier: ^4.0.0
         version: 4.0.0
-      oh-vue-icons:
-        specifier: 1.0.0-rc3
-        version: 1.0.0-rc3(vue@3.5.39(typescript@6.0.3))
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.9.3)(typescript@6.0.3)
+      vue-icons-plus:
+        specifier: ^0.1.9
+        version: 0.1.9(vue@3.5.39(typescript@6.0.3))
     devDependencies:
       '@inertiajs/vue3':
         specifier: ^3.4.0
@@ -1288,15 +1288,6 @@ packages:
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
 
-  oh-vue-icons@1.0.0-rc3:
-    resolution: {integrity: sha512-+k2YC6piK7sEZnwbkQF3UokFPMmgqpiLP6f/H0ovQFLl20QA5V4U8EcI6EclD2Lt5NMQ3k6ilLGo8XyXqdVSvg==}
-    peerDependencies:
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: ^2.0.0 || >=3.0.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
@@ -1499,22 +1490,16 @@ packages:
   vscode-uri@3.1.0:
     resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
 
-  vue-demi@0.12.5:
-    resolution: {integrity: sha512-BREuTgTYlUr0zw0EZn3hnhC3I6gPWv+Kwh4MCih6QcAeaTlaIX0DwOVN0wHej7hSvDPecz4jygy/idsgKfW58Q==}
-    engines: {node: '>=12'}
-    hasBin: true
-    peerDependencies:
-      '@vue/composition-api': ^1.0.0-rc.1
-      vue: ^3.0.0-0 || ^2.6.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-
   vue-eslint-parser@10.4.1:
     resolution: {integrity: sha512-Gk6gRDj0n/fkRa3C3l0bBheoBckUq/Rs0F/TvMWIS6nzzx67amAViMe9CkNgsP2tXyQONvGiHQESHwFtZ3aYDA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+
+  vue-icons-plus@0.1.9:
+    resolution: {integrity: sha512-OGn0MXLqXCnDlpkxqQj2HDc6+XEQQ/8itS8hJCzehfqMBhX6EkRGKN0g6Hk1ObnotIOJLLihWKWqifYwvxyENA==}
+    peerDependencies:
+      vue: '>=2.7.0'
 
   vue-konva@3.4.0:
     resolution: {integrity: sha512-l7yqAPmc6gPbdXzxoukTiXzA6EdqTtPhzQp1pTdppwWLiimPCgFHcqp8nApXQN5dqF11p2OejwjKv150cf9ncA==}
@@ -2635,11 +2620,6 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
-  oh-vue-icons@1.0.0-rc3(vue@3.5.39(typescript@6.0.3)):
-    dependencies:
-      vue: 3.5.39(typescript@6.0.3)
-      vue-demi: 0.12.5(vue@3.5.39(typescript@6.0.3))
-
   optionator@0.9.4:
     dependencies:
       deep-is: 0.1.4
@@ -2812,10 +2792,6 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
-  vue-demi@0.12.5(vue@3.5.39(typescript@6.0.3)):
-    dependencies:
-      vue: 3.5.39(typescript@6.0.3)
-
   vue-eslint-parser@10.4.1(eslint@10.5.0(jiti@2.7.0)):
     dependencies:
       debug: 4.4.3
@@ -2827,6 +2803,10 @@ snapshots:
       semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
+
+  vue-icons-plus@0.1.9(vue@3.5.39(typescript@6.0.3)):
+    dependencies:
+      vue: 3.5.39(typescript@6.0.3)
 
   vue-konva@3.4.0(konva@10.3.0)(vue@3.5.39(typescript@6.0.3)):
     dependencies:

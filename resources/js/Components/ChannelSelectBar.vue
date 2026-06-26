@@ -5,16 +5,15 @@ import { text, voice } from '@/routes/home';
 import { whiteboard } from '@/routes/home';
 import { leave } from '@/routes/server';
 import { server } from '@/routes/settings';
-import {addIcons} from "oh-vue-icons";
-import {BiChatText, BiDoorOpen, BiGearFill, BiEasel, RiChatVoiceLine} from "oh-vue-icons/icons";
 import {Link, router, usePage} from "@inertiajs/vue3";
 import {ref} from "vue";
 import {Perms, PermType, Role, Server} from "@/types";
 import {bigIntToPerms} from "@/bootstrap";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import axios from "axios";
+import { BsChatText, BsDoorOpen, BsEasel, BsGearFill } from 'vue-icons-plus/bs';
+import { RiChatVoiceLine } from 'vue-icons-plus/ri';
 
-addIcons(BiChatText, RiChatVoiceLine, BiEasel, BiGearFill, BiDoorOpen);
 
 const serverSettingsModal = ref<HTMLDialogElement>();
 const perms = usePerms();
@@ -49,7 +48,7 @@ function leaveServer() {
                 title="Leave server"
             >
                 <div class="tooltip tooltip-right" data-tip="Leave server">
-                    <v-icon name="bi-door-open" scale="1.1"/>
+                    <BsDoorOpen scale="1.1"/>
                 </div>
             </ConfirmDialog>
 
@@ -59,7 +58,7 @@ function leaveServer() {
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
                 >
                     <svg class="h-5 w-5">
-                        <v-icon name="bi-chat-text"/>
+                        <BsChatText/>
                     </svg>
                     <span class="text-sm">Text Channels</span>
                 </button>
@@ -72,7 +71,7 @@ function leaveServer() {
                 <button
                     class="flex items-center justify-center h-10 w-auto my-auto"
                     @click="serverSettingsModal?.show()">
-                    <v-icon animation="ring" hover name="bi-gear-fill" scale="1.1"/>
+                    <BsGearFill animation="ring" hover scale="1.1"/>
                 </button>
             </Link>
 
@@ -82,7 +81,7 @@ function leaveServer() {
                     class="flex flex-col items-center justify-center gap-1 p-2 relative"
                 >
                     <svg class="h-5 w-5">
-                        <v-icon name="ri-chat-voice-line"/>
+                        <RiChatVoiceLine/>
                     </svg>
                     <span class="text-sm">Voice Channels</span>
                 </button>
@@ -93,7 +92,7 @@ function leaveServer() {
                     :class="{'border-b-2 border-base-content text-base-content': $page.url.includes('/whiteboard') }"
                     class="flex flex-col items-center justify-center gap-1 p-2 relative">
                     <svg class="h-5 w-5">
-                        <v-icon name="bi-easel"/>
+                        <BsEasel/>
                     </svg>
                     <span class="text-sm">Whiteboard</span>
                 </button>
