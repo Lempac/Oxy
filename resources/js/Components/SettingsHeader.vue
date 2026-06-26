@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { members, role, server } from '@/routes/settings';
 
 import {Link, usePage} from "@inertiajs/vue3";
@@ -6,15 +8,12 @@ import {Perms, PermType, Role, Server} from "@/types";
 import {bigIntToPerms} from "@/bootstrap";
 import {ref} from "vue";
 
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     selectedServer: Server
 }>();
 
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
-if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
-}
 
 </script>
 
@@ -27,18 +26,18 @@ if (selectedServer && selectedServer.roles !== null) {
         </div>
         <div class="flex space-x-6">
             <Link
-                v-if="perms.has(PermType.CAN_MANAGE_SERVER)"
+                v-if="perms.has([PermType.CAN_MANAGE_SERVER])"
                 :href="server.url(selectedServer?.id)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Server
             </Link>
             <Link
-                v-if="perms.has(PermType.CAN_MANAGE_ROLE)" :href="role.url(selectedServer?.id)"
+                v-if="perms.has([PermType.CAN_MANAGE_ROLE])" :href="role.url(selectedServer?.id)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Roles
             </Link>
             <Link
-                v-if="perms.has(PermType.CAN_MANAGE_MEMBERS)"
+                v-if="perms.has([PermType.CAN_MANAGE_MEMBERS])"
                 :href="members.url(selectedServer?.id)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Members

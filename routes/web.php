@@ -22,23 +22,25 @@ Route::post('language', function (Request $request) {
 
 // Server/home routes
 Route::middleware('auth')->group(function () {
-    Route::controller(HomeController::class)->prefix('home')->name('home')->group(function () {
-        Route::get('/', 'home')->middleware('verified');
-        Route::get('/{server}', 'server')->name('.server');
-        Route::get('/{server}/text', 'text')->name('.text');
-        Route::get('/{server}/text/{channel}', 'channel')->name('.text.channel');
-        Route::get('/{server}/text/{channel}/{message}', 'message')->name('.text.channel.message');
+    Route::controller(HomeController::class)->prefix('home')->name('home')
+        ->whereNumber(['server', 'channel', 'message', 'whiteboard'])
+        ->group(function () {
+            Route::get('/', 'home')->middleware('verified');
+            Route::get('/{server}', 'server')->name('.server');
+            Route::get('/{server}/text', 'text')->name('.text');
+            Route::get('/{server}/text/{channel}', 'channel')->name('.text.channel');
+            Route::get('/{server}/text/{channel}/{message}', 'message')->name('.text.channel.message');
 
-        Route::get('/{server}/voice', 'voice')->name('.voice');
-        Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
+            Route::get('/{server}/voice', 'voice')->name('.voice');
+            Route::get('/{server}/voice/{channel}', 'vchannel')->name('.voice.channel');
 
-        Route::get('/{server}/whiteboard', 'whiteboard')->name('.whiteboard');
-        Route::get('/{server}/whiteboard/{channel}', 'wchannel')->name('.whiteboard.channel');
-    }
-    );
+            Route::get('/{server}/whiteboard', 'whiteboard')->name('.whiteboard');
+            Route::get('/{server}/whiteboard/{channel}', 'wchannel')->name('.whiteboard.channel');
+        }
+        );
 
     // Setting routes
-    Route::prefix('settings')->group(function () {
+    Route::prefix('settings')->whereNumber('id')->group(function () {
         Route::controller(ServerController::class)->prefix('server')->group(function () {
             Route::get('/{id}', 'showSettings')->name('settings.server');
             Route::post('/{id}', 'update')->name('server.update');

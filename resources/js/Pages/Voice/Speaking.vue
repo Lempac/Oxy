@@ -1,18 +1,19 @@
 <script lang="ts" setup>
-import { create, deleteMethod, edit } from '@/routes/channel';
-import { channel } from '@/routes/home/voice';
+import {baseUrl, defaultIcon, usePerms} from '@/bootstrap';
+
+import {create, deleteMethod, edit} from '@/routes/channel';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import {router, useForm, usePage} from "@inertiajs/vue3";
-import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
+import {router, useForm} from "@inertiajs/vue3";
 import axios from "axios";
 import {ref} from "vue";
-import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
+import {Channel, ChannelType, PermType, Server} from "@/types";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {addIcons} from "oh-vue-icons";
 import {MdDeleteforeverOutlined, MdModeeditoutlineOutlined, OiPlus} from "oh-vue-icons/icons";
 
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     servers: Server[],
     selectedServer?: Server,
@@ -23,7 +24,6 @@ const {selectedServer} = defineProps<{
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<Function>();
-const perms = ref<Perms>(bigIntToPerms(BigInt(0)));
 
 const form = useForm({
     type: ChannelType.Voice,
@@ -62,9 +62,6 @@ const editText = async (channelId: number) => {
     });
 };
 
-if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: bigint, curr: Role) => acc | BigInt(curr.perms), BigInt(0)));
-}
 
 const isInVoice = ref(false);
 let mediaRecorder: MediaRecorder | undefined;
@@ -110,7 +107,7 @@ const leaveChannel = async () => {
                 :key="channel.id"
                 class="indicator relative group w-2/3 h-auto mx-auto flex items-center justify-center m-7">
                 <span
-                    v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_DELETE_CHANNEL)"
+                    v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
                     class="indicator-item indicator-top absolute hidden group-hover:block">
                     <ConfirmDialog
                         :confirm="() => deleteText(channel.id)"
@@ -123,7 +120,7 @@ const leaveChannel = async () => {
                 </span>
 
                 <span
-                    v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_EDIT_CHANNEL)"
+                    v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
                     class="indicator-item indicator-top indicator-start absolute hidden group-hover:block">
                     <button
                         class="indicator-item badge badge-warning h-auto w-auto p-0.5"
@@ -144,7 +141,7 @@ const leaveChannel = async () => {
                             class="avatar rounded-lg items-center justify-center h-16 bg-base-300"
                         >
                             <div class="flex w-10 h-auto rounded-full ml-5">
-                                <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon"/>
+                                <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" alt=""/>
                             </div>
                             <div class="flex items-center h-full w-full p-4">
                                 {{ user.name }}
@@ -166,7 +163,7 @@ const leaveChannel = async () => {
             </div>
 
             <button
-                v-if="perms.has(PermType.CAN_MANAGE_CHANNEL | PermType.CAN_CREATE_CHANNEL)"
+                v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
                 class="btn w-2/3 h-auto p-3 rounded-lg mx-auto flex items-center justify-center bg-base-100"
                 @click="openModal()">
                 <v-icon name="oi-plus" scale="3"/>

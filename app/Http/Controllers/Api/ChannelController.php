@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\ChannelType;
-use App\Enums\PermsType;
 use App\Events\Voices\Status;
 use App\Models\Channel;
-use App\Models\Role;
 use App\Models\Server;
 use Auth;
 use Illuminate\Http\Request;
@@ -23,11 +21,8 @@ class ChannelController
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_CREATE_CHANNEL->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_CREATE_CHANNEL')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -48,11 +43,8 @@ class ChannelController
             return response()->json(['message' => 'Channel not found.'], 404);
         }
 
-        $roles = $channel->server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_CHANNEL->value);
-        })) {
+        setPermissionsTeamId($channel->server_id);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_CHANNEL')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -71,11 +63,8 @@ class ChannelController
             return response()->json(['message' => 'Channel not found.'], 404);
         }
 
-        $roles = $channel->server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_CHANNEL->value);
-        })) {
+        setPermissionsTeamId($channel->server_id);
+        if (! Auth::user()->hasPermissionTo('CAN_DELETE_CHANNEL')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 

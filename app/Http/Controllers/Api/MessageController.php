@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\MessageType;
-use App\Enums\PermsType;
 use App\Models\Channel;
 use App\Models\Message;
-use App\Models\Role;
 use Auth;
 use Illuminate\Http\Request;
 use Storage;
@@ -29,12 +27,8 @@ class MessageController
             return response()->json(['message' => 'Channel not found'], 404);
         }
 
-        $roles = $channel->server->roles->intersect(Auth::user()->roles);
-
-        // TODO: Add checking for levels for message create
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_CREATE_MESSAGE->value);
-        })) {
+        setPermissionsTeamId($channel->server_id);
+        if (! Auth::user()->hasPermissionTo('CAN_CREATE_MESSAGE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -104,11 +98,8 @@ class MessageController
             return response()->json(['message' => 'Message not found'], 404);
         }
 
-        $roles = $message->channel->server->roles->intersect(Auth::user()->roles);
-
-        if ($message->user->id !== Auth::id() && $roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_MESSAGE->value);
-        })) {
+        setPermissionsTeamId($message->channel->server_id);
+        if ($message->user->id !== Auth::id() && ! Auth::user()->hasPermissionTo('CAN_DELETE_MESSAGE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 

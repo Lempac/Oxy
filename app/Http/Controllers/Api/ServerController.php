@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\PermsType;
 use App\Events\Servers\ServerJoined;
 use App\Events\Servers\ServerLeft;
 use App\Http\Controllers\Controller;
@@ -11,6 +10,7 @@ use App\Models\Server;
 use Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
 use Storage;
 
 class ServerController extends Controller
@@ -40,16 +40,21 @@ class ServerController extends Controller
             'icon' => empty($path) ? null : Storage::url($path),
         ]);
 
+        setPermissionsTeamId($server->id);
+
         $role = Role::create([
             'name' => 'Owner',
             'color' => '#ffffff',
-            'perms' => PHP_INT_MAX,
             'importance' => 0,
+            'server_id' => $server->id,
+            'guard_name' => 'web',
         ]);
 
-        $server->roles()->attach($role);
+        $permissions = Permission::pluck('name')->toArray();
+        $role->syncPermissions($permissions);
+
         $server->users()->attach(Auth::id());
-        Auth::user()->roles()->attach($role);
+        Auth::user()->assignRole($role);
 
         //        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
 
@@ -97,11 +102,8 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_KICK->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_KICK')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -126,11 +128,8 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_SERVER')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -161,11 +160,8 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value) || $role->hasPerms(PermsType::CAN_MANAGE_SERVER->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_SERVER') && ! Auth::user()->hasPermissionTo('CAN_MANAGE_SERVER')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -184,11 +180,8 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_DELETE_SERVER')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
@@ -205,15 +198,12 @@ class ServerController extends Controller
             return response()->json(['message' => 'Server not found.'], 404);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_DELETE_SERVER->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_DELETE_SERVER')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
-        Role::whereIn('id', $server->roles->pluck('id'))->delete();
+        Role::where('server_id', $server->id)->delete();
         $server->delete();
 
         return response()->json(['message' => 'Server deleted successfully.']);
@@ -232,11 +222,8 @@ class ServerController extends Controller
             return redirect()->back()->withErrors(['message' => 'Server not found.']);
         }
 
-        $roles = $server->roles->intersect(Auth::user()->roles);
-
-        if ($roles->doesntContain(function (Role $role) {
-            return $role->hasPerms(PermsType::CAN_EDIT_SERVER->value);
-        })) {
+        setPermissionsTeamId($serverId);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_SERVER')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 

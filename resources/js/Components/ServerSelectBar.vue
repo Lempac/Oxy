@@ -40,7 +40,7 @@ const createServer = async () => {
     axios.postForm(create.url(), form.data())
         .then(() => {
             serverModal.value?.close();
-            router.reload({only: ['servers']});
+            router.reload({only: ['servers', 'user']});
             form.reset();
         })
         .catch((err) => {
