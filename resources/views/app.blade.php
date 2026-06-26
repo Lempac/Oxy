@@ -4,8 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title data-inertia>{{ config('app.name', 'Oxy') }}</title>
-        @inertiaHead
+        <x-inertia::head>
+            <title data-inertia>{{ config('app.name', 'Oxy') }}</title>
+        </x-inertia::head>
 
     <!-- Reverb Config for Runtime -->
     <meta name="reverb-app-key" content="{{ config('broadcasting.connections.reverb.key') }}">
@@ -20,7 +21,7 @@
         @vite(['resources/js/app.ts'])
     </head>
     <body class="font-sans antialiased">
-        @inertia
+        <x-inertia::app />
         <div id="teleported"/>
     </body>
 </html>
