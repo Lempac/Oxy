@@ -61,9 +61,9 @@ class ChannelController
         //        broadcast(new ChannelDeleted($channelId));
 
         $previousUrl = url()->previous();
-        
+
         // If the user was viewing the channel that was just deleted, redirect them to the server's text/voice/whiteboard root.
-        if (str_contains($previousUrl, '/' . $channelSlug)) {
+        if (str_contains($previousUrl, '/'.$channelSlug)) {
             if ($type === ChannelType::Text->value || $type === ChannelType::Text) {
                 return redirect()->route('home.text', ['server' => $server->slug]);
             } elseif ($type === ChannelType::Voice->value || $type === ChannelType::Voice) {
@@ -71,6 +71,7 @@ class ChannelController
             } elseif ($type === ChannelType::Whiteboard->value || $type === ChannelType::Whiteboard) {
                 return redirect()->route('home.whiteboard', ['server' => $server->slug]);
             }
+
             return redirect()->route('home.server', ['server' => $server->slug]);
         }
 

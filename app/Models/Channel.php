@@ -49,12 +49,12 @@ class Channel extends Model
     public function resolveRouteBinding($value, $field = null)
     {
         $serverParam = request()->route('server');
-        
+
         $serverId = null;
-        if ($serverParam instanceof \App\Models\Server) {
+        if ($serverParam instanceof Server) {
             $serverId = $serverParam->id;
         } elseif (is_string($serverParam)) {
-            $server = \App\Models\Server::where('slug', $serverParam)->first();
+            $server = Server::where('slug', $serverParam)->first();
             if ($server) {
                 $serverId = $server->id;
             }
@@ -77,7 +77,7 @@ class Channel extends Model
                 $originalSlug = $slug;
                 $count = 1;
                 while (static::where('server_id', $channel->server_id)->where('slug', $slug)->exists()) {
-                    $slug = $originalSlug . '-' . $count;
+                    $slug = $originalSlug.'-'.$count;
                     $count++;
                 }
                 $channel->slug = $slug;

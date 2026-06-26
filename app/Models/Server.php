@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
 
 class Server extends Model
 {
@@ -61,7 +61,7 @@ class Server extends Model
                 $originalSlug = $slug;
                 $count = 1;
                 while (static::where('slug', $slug)->exists()) {
-                    $slug = $originalSlug . '-' . $count;
+                    $slug = $originalSlug.'-'.$count;
                     $count++;
                 }
                 $server->slug = $slug;
