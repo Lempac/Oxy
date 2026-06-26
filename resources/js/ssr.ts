@@ -10,10 +10,8 @@ createServer((page) =>
         page,
         render: renderToString,
         title: (title) => `${title} - ${appName}`,
-        resolve: (name) => {
-            const pages = import.meta.glob<DefineComponent>('./Pages/**/*.vue');
-            return resolvePageComponent(`./Pages/${name}.vue`, pages);
-        },
+        // @ts-expect-error - Vite Inertia Plugin automatically resolves components
+        resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob<DefineComponent>('./Pages/**/*.vue')),
         setup({ App, props, plugin }) {
             return createSSRApp({ render: () => h(App, props) })
                 .use(plugin);
