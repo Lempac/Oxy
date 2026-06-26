@@ -17,8 +17,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    // @ts-expect-error - Vite Inertia Plugin automatically resolves components
-    resolve: (name) => resolvePageComponent(name, import.meta.glob<DefineComponent>('./Pages/**/*.vue')),
+    resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob<DefineComponent>('./Pages/**/*.vue')),
     setup({el, App, props, plugin}) {
         createApp({render: () => h(App, props)})
             .component("v-icon", OhVueIcon)
