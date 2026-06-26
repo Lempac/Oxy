@@ -51,7 +51,7 @@ that lets you create, manage groups with roles in company or group of people wit
 
 ### Optional Dependencies
 - bad-words: ^4.0.0
-- oh-vue-icons: ^1.0.0-rc3
+- vue-icons-plus: ^0.1.9
 - fakerphp/faker: ^1.23
 - laravel/breeze: ^2.1
 - laravel/pint: ^1.13

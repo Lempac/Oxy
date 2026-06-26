@@ -3,13 +3,13 @@ import { update } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {HiMail, IoAddOutline, RiUser3Line} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
 import {ref} from "vue";
 import {baseUrl} from "@/bootstrap";
 import {Themes, ThemeType} from "@/types";
+import { Io5AddOutline } from 'vue-icons-plus/io5';
+import { HiMail } from 'vue-icons-plus/hi';
+import { RiUser3Line } from 'vue-icons-plus/ri';
 
-addIcons(RiUser3Line, HiMail, IoAddOutline);
 
 defineProps<{
     mustVerifyEmail?: boolean;
@@ -53,7 +53,7 @@ const updateIcon = (val: File) => {
                     class="cursor-pointer rounded-full bg-base-200 transition-all duration-300 ease-in-out hover:bg-transparent group-hover:bg-transparent"
                     for="profilePicture">
                     <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
-                    <v-icon v-else name="io-add-outline" scale="3.333"/>
+                    <Io5AddOutline v-else scale="3.333"/>
                 </label>
                 <label class="cursor-pointer" for="profilePicture">Upload profile picture</label>
                 <input
@@ -70,7 +70,7 @@ const updateIcon = (val: File) => {
             <div class="form-control">
                 <label class="block font-medium text-sm text-base-content/90" for="name">Name</label>
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="ri-user-3-line"/>
+                    <RiUser3Line class="h-4 w-4 opacity-70"/>
                     <input
                         id="name"
                         v-model="form.name"
@@ -88,7 +88,7 @@ const updateIcon = (val: File) => {
                 <label class="block font-medium text-sm text-base-content/90" for="email">Email</label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="hi-mail"/>
+                    <HiMail class="h-4 w-4 opacity-70"/>
                     <input
                         id="email"
                         v-model="form.email"

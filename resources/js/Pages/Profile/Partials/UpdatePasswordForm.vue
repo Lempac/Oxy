@@ -3,10 +3,8 @@ import { update } from '@/routes/password';
 import {useForm} from '@inertiajs/vue3';
 import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {MdKey} from "oh-vue-icons/icons";
-import {addIcons} from "oh-vue-icons";
+import { MdKey } from 'vue-icons-plus/md';
 
-addIcons(MdKey);
 
 const passwordInput = ref<HTMLInputElement | null>(null);
 const currentPasswordInput = ref<HTMLInputElement | null>(null);
@@ -52,7 +50,7 @@ const updatePassword = () => {
                     Current Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="current_password"
                         ref="currentPasswordInput"
@@ -71,7 +69,7 @@ const updatePassword = () => {
                     Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="password"
                         ref="passwordInput"
@@ -90,7 +88,7 @@ const updatePassword = () => {
                     Confirm Password </label>
 
                 <label class="input input-bordered flex items-center gap-2">
-                    <v-icon class="h-4 w-4 opacity-70" name="md-key"/>
+                    <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="password_confirmation"
                         v-model="form.password_confirmation"

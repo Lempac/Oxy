@@ -5,21 +5,10 @@ import {WebsocketProvider} from 'y-websocket';
 import {Whiteboard as WhiteboardType} from '@/types';
 import {save} from '@/routes/whiteboard';
 import axios from 'axios';
-import {addIcons} from "oh-vue-icons";
-import {
-    BiEraser,
-    HiSolidPencil,
-    MdAdsclick,
-    MdCircleOutlined,
-    MdDeleteoutline,
-    MdFormatcolorfillOutlined,
-    MdHorizontalrule,
-    MdRectangleOutlined,
-    MdRedo,
-    MdUndo
-} from "oh-vue-icons/icons";
+import { MdAdsClick, MdHorizontalRule, MdOutlineCircle, MdOutlineDelete, MdOutlineFormatColorFill, MdOutlineRectangle, MdRedo, MdUndo } from 'vue-icons-plus/md';
+import { BsEraser } from 'vue-icons-plus/bs';
+import { HiPencil } from 'vue-icons-plus/hi';
 
-addIcons(HiSolidPencil, BiEraser, MdRectangleOutlined, MdCircleOutlined, MdHorizontalrule, MdUndo, MdRedo, MdDeleteoutline, MdAdsclick, MdFormatcolorfillOutlined);
 
 const props = defineProps<{
     whiteboard: WhiteboardType;
@@ -422,42 +411,42 @@ const deleteSelected = () => {
                     <button
                         :class="{'btn-active': tool === 'select'}" class="btn btn-sm btn-ghost"
                         @click="tool = 'select'">
-                        <v-icon name="md-adsclick"/>
+                        <MdAdsClick/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Pencil Tool">
                     <button
                         :class="{'btn-active': tool === 'pencil'}" class="btn btn-sm btn-ghost"
                         @click="tool = 'pencil'">
-                        <v-icon name="hi-solid-pencil"/>
+                        <HiPencil/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Line Tool">
                     <button
                         :class="{'btn-active': tool === 'line'}" class="btn btn-sm btn-ghost"
                         @click="tool = 'line'">
-                        <v-icon name="md-horizontalrule"/>
+                        <MdHorizontalRule/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Rectangle Tool">
                     <button
                         :class="{'btn-active': tool === 'rect'}" class="btn btn-sm btn-ghost"
                         @click="tool = 'rect'">
-                        <v-icon name="md-rectangle-outlined"/>
+                        <MdOutlineRectangle/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Circle Tool">
                     <button
                         :class="{'btn-active': tool === 'circle'}" class="btn btn-sm btn-ghost"
                         @click="tool = 'circle'">
-                        <v-icon name="md-circle-outlined"/>
+                        <MdOutlineCircle/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Eraser (Shift+Drag for brush style)">
                     <button
                         :class="{'btn-active': tool === 'eraser'}" class="btn btn-sm btn-ghost"
                         @click="tool = 'eraser'">
-                        <v-icon name="bi-eraser"/>
+                        <BsEraser/>
                     </button>
                 </div>
             </div>
@@ -504,9 +493,8 @@ const deleteSelected = () => {
                                 :class="{'btn-active bg-base-300': fillColor === 'transparent'}"
                                 class="btn btn-xs btn-ghost p-0 min-h-0 h-5 w-5 ml-1 flex items-center justify-center"
                                 @click="fillColor = fillColor === 'transparent' ? '#ffffff' : 'transparent'">
-                                <v-icon
+                                <MdOutlineFormatColorFill
                                     :class="{'text-error': fillColor === 'transparent'}"
-                                    name="md-formatcolorfill-outlined"
                                     scale="0.6"/>
                             </button>
                         </div>
@@ -527,12 +515,12 @@ const deleteSelected = () => {
             <div class="flex items-center gap-1">
                 <div class="tooltip tooltip-bottom" data-tip="Undo (Ctrl+Z)">
                     <button class="btn btn-sm btn-ghost" @click="undo">
-                        <v-icon name="md-undo"/>
+                        <MdUndo/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Redo (Ctrl+Y)">
                     <button class="btn btn-sm btn-ghost" @click="redo">
-                        <v-icon name="md-redo"/>
+                        <MdRedo/>
                     </button>
                 </div>
             </div>
@@ -545,7 +533,7 @@ const deleteSelected = () => {
                         :disabled="selectedShapeIds.length === 0"
                         class="btn btn-sm btn-ghost text-error hover:bg-error/10"
                         @click="deleteSelected">
-                        <v-icon name="md-deleteoutline"/>
+                        <MdOutlineDelete/>
                     </button>
                 </div>
                 <div class="tooltip tooltip-bottom" data-tip="Clear All Canvas">

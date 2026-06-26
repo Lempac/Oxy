@@ -8,13 +8,12 @@ import {ref} from "vue";
 import axios from "axios";
 import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {addIcons} from "oh-vue-icons";
-import {MdDeleteforeverOutlined, MdModeeditoutlineOutlined, OiPlus} from "oh-vue-icons/icons";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {bigIntToPerms} from "@/bootstrap";
 import echo from "@/echo";
+import { MdOutlineDeleteForever, MdOutlineModeEdit } from 'vue-icons-plus/md';
+import { GoPlus } from 'vue-icons-plus/go';
 
-addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const loading = ref(false);
 const perms = usePerms();
@@ -116,7 +115,7 @@ if (selectedServer) {
                     class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
                     title="Delete Channel"
                 >
-                    <v-icon name="md-deleteforever-outlined"/>
+                    <MdOutlineDeleteForever/>
                 </ConfirmDialog>
             </div>
             <div
@@ -125,7 +124,7 @@ if (selectedServer) {
                 <button
                     class="indicator-item badge badge-warning h-auto w-auto p-0.5"
                     @click.prevent="openModal(channel)">
-                    <v-icon name="md-modeeditoutline-outlined"/>
+                    <MdOutlineModeEdit/>
                 </button>
             </div>
 
@@ -141,7 +140,7 @@ if (selectedServer) {
             v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
             class="btn btn-sm btn-square btn-outline mx-9"
             @click="openModal()">
-            <v-icon name="oi-plus"/>
+            <GoPlus/>
         </button>
     </div>
 
