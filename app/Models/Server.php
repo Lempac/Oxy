@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\Permission\Models\Permission;
 
 class Server extends Model
 {
@@ -49,10 +50,17 @@ class Server extends Model
 
     protected static function newFactory(): ServerFactory
     {
-        return ServerFactory::new()->hasRoles(1, [
-            'name' => 'Owner',
-            'color' => '#ffffff',
-            'importance' => 0,
-        ]);
+        return ServerFactory::new()->afterCreating(function ($server) {
+            $role = Role::create([
+                'name' => 'Owner',
+                'color' => '#ffffff',
+                'importance' => 0,
+                'server_id' => $server->id,
+                'guard_name' => 'web',
+            ]);
+
+            $permissions = Permission::pluck('name')->toArray();
+            $role->syncPermissions($permissions);
+        });
     }
 }

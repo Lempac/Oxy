@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {ref} from 'vue';
@@ -13,6 +15,7 @@ import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
 addIcons(BiCheckLg, CoArrowBottom, CoArrowTop);
 
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     selectedServer: Server,
 }>();
@@ -22,12 +25,11 @@ const newRole = ref({
     name: '',
     color: '#ffffff',
     importance: 0,
-    perms: "0",
-} as Role);
+    perms: [],
+} as unknown as Role);
 
 const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
-const perms = ref<Perms>(bigIntToPerms([]));
 
 const fetchRoles = async () => {
     try {
@@ -36,9 +38,6 @@ const fetchRoles = async () => {
         // Sort roles by importance
         roles.value.sort((a, b) => a.importance - b.importance);
 
-        if (selectedServer && selectedServer.roles !== null) {
-            perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-        }
     } catch (error) {
         console.error('Error fetching roles:', error);
     }
@@ -49,7 +48,7 @@ const closeModal = () => {
     newRole.value.name = '';
     newRole.value.color = '#ffffff'; // Reset color
     newRole.value.importance = 0; // Reset importance
-    newRole.value.perms = "0";
+    newRole.value.perms = [];
 };
 
 const editRole = (role: Role) => {
@@ -126,7 +125,7 @@ const togglePerm = (perm: typeof PermType | number, state: boolean) => {
     if (state) currentPerm.add(perm)
     else currentPerm.remove(perm)
 
-    editingRole.value.perms = currentPerm.perm.toString()
+    editingRole.value.perms = currentPerm.perms
 };
 
 const roleArray = Object.entries(PermType);
@@ -187,7 +186,7 @@ const changeImportance = async (role: Role, direction: number) => {
                 <h1 class="text-3xl text-base-content mb-6">Role Settings</h1>
 
                 <!-- Button to Open Modal -->
-                <button :disabled="!perms.has(PermType.CAN_CREATE_ROLE)" class="btn mb-6" @click="isModalOpen = true">
+                <button :disabled="!perms.has([PermType.CAN_CREATE_ROLE])" class="btn mb-6" @click="isModalOpen = true">
                     Add Role
                 </button>
 
@@ -257,7 +256,7 @@ const changeImportance = async (role: Role, direction: number) => {
                         <td class="py-2 px-4 text-end">
                             <div class="flex justify-end space-x-2">
                                 <button
-                                    v-if="editingRole !== role" :disabled="!perms.has(PermType.CAN_EDIT_ROLE)"
+                                    v-if="editingRole !== role" :disabled="!perms.has([PermType.CAN_EDIT_ROLE])"
                                     class="btn hover:btn-info px-4 py-2 "
                                     @click="editRole(role)">Edit
                                 </button>
@@ -266,7 +265,7 @@ const changeImportance = async (role: Role, direction: number) => {
                                     @click="updateRole">Save
                                 </button>
                                 <ConfirmDialog
-                                    :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has(PermType.CAN_DELETE_ROLE) ? 'btn-disabled' : ''}`"
+                                    :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has([PermType.CAN_DELETE_ROLE]) ? 'btn-disabled' : ''}`"
                                     :confirm="() => deleteRole(role)"
                                     description="Are you sure you want to delete this role?"
                                     text="Delete" title="Are you sure?"/>
