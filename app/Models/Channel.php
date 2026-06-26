@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Channel extends Model
 {
@@ -19,6 +20,7 @@ class Channel extends Model
         'name',
         'type',
         'server_id',
+        'slug',
     ];
 
     protected $dispatchesEvents = [
@@ -26,6 +28,62 @@ class Channel extends Model
         'updated' => ChannelEdited::class,
         'deleted' => ChannelDeleted::class,
     ];
+
+    protected $appends = ['route_key'];
+
+    public function getRouteKey()
+    {
+        return $this->slug;
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    public function getRouteKeyAttribute()
+    {
+        return $this->slug;
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $serverParam = request()->route('server');
+
+        $serverId = null;
+        if ($serverParam instanceof Server) {
+            $serverId = $serverParam->id;
+        } elseif (is_string($serverParam)) {
+            $server = Server::where('slug', $serverParam)->first();
+            if ($server) {
+                $serverId = $server->id;
+            }
+        }
+
+        return $this->where('slug', $value)
+            ->when($serverId, function ($query, $serverId) {
+                return $query->where('server_id', $serverId);
+            })
+            ->firstOrFail();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($channel) {
+            if (empty($channel->slug)) {
+                $slug = Str::slug($channel->name);
+                $originalSlug = $slug;
+                $count = 1;
+                while (static::where('server_id', $channel->server_id)->where('slug', $slug)->exists()) {
+                    $slug = $originalSlug.'-'.$count;
+                    $count++;
+                }
+                $channel->slug = $slug;
+            }
+        });
+    }
 
     public function messages(): HasMany
     {

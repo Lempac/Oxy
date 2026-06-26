@@ -12,17 +12,14 @@ use Inertia\Inertia;
 
 class RoleController extends Controller
 {
-    public function index($serverId)
+    public function index(Server $server)
     {
-        $server = Server::with('roles')->find($serverId);
-        if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
+        $server->load('roles');
 
         return response()->json($server->roles);
     }
 
-    public function create(Request $request, int $serverId)
+    public function create(Request $request, Server $server)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -31,11 +28,7 @@ class RoleController extends Controller
             'importance' => 'required|integer|min:0',
         ]);
 
-        $server = Server::find($serverId);
-
-        if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
+        $serverId = $server->id;
 
         setPermissionsTeamId($serverId);
         if (! Auth::user()->hasPermissionTo('CAN_CREATE_ROLE')) {
@@ -107,13 +100,8 @@ class RoleController extends Controller
         return response()->json(['message' => 'Role deleted successfully.']);
     }
 
-    public function showSettings($serverId)
+    public function showSettings(Server $server)
     {
-        $server = Server::find($serverId);
-        if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
-
         return Inertia::render('Settings/Role')->with([
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
@@ -121,13 +109,9 @@ class RoleController extends Controller
         ]);
     }
 
-    public function showMembers($serverId)
+    public function showMembers(Server $server)
     {
-        $server = Server::find($serverId);
-        if (! $server) {
-            return response()->json(['message' => 'Server not found.'], 404);
-        }
-
+        $serverId = $server->id;
         setPermissionsTeamId($serverId);
 
         return Inertia::render('Settings/Members')->with([
@@ -145,21 +129,21 @@ class RoleController extends Controller
         $role = Role::with('server')->find($roleId);
 
         if (! $role) {
-            return response()->json(['message' => 'Role not found.'], 404);
+            abort(404, 'Role not found.');
         }
 
         if (! $user) {
-            return response()->json(['message' => 'User not found.'], 404);
+            abort(404, 'User not found.');
         }
 
         setPermissionsTeamId($role->server_id);
         if (! Auth::user()->hasPermissionTo('CAN_EDIT_MEMBER_ROLES') && ! Auth::user()->hasPermissionTo('CAN_MANAGE_ROLE')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $user->assignRole($role);
 
-        return response()->json(['message' => 'Role added successfully.']);
+        return back()->with('message', 'Role added successfully.');
     }
 
     public function removeUser(int $roleId, int $userId)
@@ -168,20 +152,20 @@ class RoleController extends Controller
         $role = Role::with('server')->find($roleId);
 
         if (! $role) {
-            return response()->json(['message' => 'Role not found.'], 404);
+            abort(404, 'Role not found.');
         }
 
         if (! $user) {
-            return response()->json(['message' => 'User not found.'], 404);
+            abort(404, 'User not found.');
         }
 
         setPermissionsTeamId($role->server_id);
         if (! Auth::user()->hasPermissionTo('CAN_EDIT_MEMBER_ROLES') && ! Auth::user()->hasPermissionTo('CAN_MANAGE_ROLE')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         $user->removeRole($role);
 
-        return response()->json(['message' => 'Role deleted successfully.']);
+        return back()->with('message', 'Role deleted successfully.');
     }
 }

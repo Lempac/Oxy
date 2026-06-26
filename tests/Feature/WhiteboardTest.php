@@ -25,7 +25,7 @@ class WhiteboardTest extends TestCase
 
         $response = $this
             ->actingAs($user)
-            ->get("/home/{$server->id}/whiteboard/{$channel->id}");
+            ->get("/home/{$server->slug}/whiteboard/{$channel->slug}");
 
         $response->assertOk();
     }

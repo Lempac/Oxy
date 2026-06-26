@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
+import { usePerms, fetchJson } from '@/bootstrap';
 
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {ref} from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
-import axios, {AxiosResponse} from 'axios';
 import {Perms, PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
@@ -32,7 +31,7 @@ const isModalOpen = ref(false);
 
 const fetchRoles = async () => {
     try {
-        const response: AxiosResponse<Role[] | null> = await axios.get(index.url(selectedServer?.id));
+        const response = await fetchJson(index.url(selectedServer?.route_key));
         roles.value = response.data ?? []; // Default to an empty array if undefined
         // Sort roles by importance
         roles.value.sort((a, b) => a.importance - b.importance);
@@ -59,7 +58,11 @@ const updateRole = async () => {
     const currentEditingRole = editingRole.value;
 
     if (currentEditingRole) {
-        const response = await axios.patch(edit.url(currentEditingRole.id), newRole.value);
+        const response = await fetchJson(edit.url(currentEditingRole.id), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newRole.value)
+        });
 
         const index = roles.value.findIndex(r => r.id === currentEditingRole.id);
         roles.value[index] = response.data.role;
@@ -79,11 +82,15 @@ const addRole = async () => {
             newRole.value.importance = maxImportance + 1;
         }
 
-        await axios.post(create.url(selectedServer?.id), {
-            name: newRole.value.name,
-            color: newRole.value.color,
-            perms: newRole.value.perms,
-            importance: newRole.value.importance,
+        await fetchJson(create.url(selectedServer?.route_key), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: newRole.value.name,
+                color: newRole.value.color,
+                perms: newRole.value.perms,
+                importance: newRole.value.importance,
+            })
         });
 
         closeModal();
@@ -95,14 +102,18 @@ const addRole = async () => {
 
 const deleteRole = async (role: Role) => {
     try {
-        await axios.delete(deleteMethod.url(role.id));
+        await fetchJson(deleteMethod.url(role.id), { method: 'DELETE' });
 
         roles.value = roles.value.filter(r => r.id !== role.id);
 
         roles.value.forEach(r => {
             if (r.importance > role.importance) {
                 r.importance -= 1;
-                axios.patch(edit.url(r.id), {importance: r.importance});
+                fetchJson(edit.url(r.id), {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({importance: r.importance})
+                });
             }
         });
 
@@ -159,8 +170,16 @@ const changeImportance = async (role: Role, direction: number) => {
         role.importance = swapRole.importance;
         swapRole.importance = tempImportance;
 
-        await axios.patch(edit.url(role.id), {importance: role.importance});
-        await axios.patch(edit.url(swapRole.id), {importance: swapRole.importance});
+        await fetchJson(edit.url(role.id), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({importance: role.importance})
+        });
+        await fetchJson(edit.url(swapRole.id), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({importance: swapRole.importance})
+        });
     }
 
     roles.value.sort((a, b) => a.importance - b.importance);
@@ -175,7 +194,7 @@ const changeImportance = async (role: Role, direction: number) => {
             <!-- Navbar for Navigation -->
             <SettingsHeader :selected-server/>
             <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="server.url(selectedServer?.id)" class="btn btn-neutral">
+                <Link :href="server.url(selectedServer?.route_key)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>

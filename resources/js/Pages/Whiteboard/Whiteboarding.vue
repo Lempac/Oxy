@@ -19,7 +19,7 @@ const {selectedChannel, selectedServer} = defineProps<{
         <WhiteboardSelectBar :channels :selected-channel :selected-server/>
 
         <div
-            v-if="$page.url.match(/\/whiteboard\/\d+/)"
+            v-if="selectedChannel"
             class="flex-grow flex flex-col overflow-hidden h-[calc(100vh-64px-64px)]"
         >
             <WhiteboardBoard v-if="selectedChannel?.whiteboard" :whiteboard="selectedChannel.whiteboard" />

@@ -22,7 +22,7 @@ test('user without permissions cannot view server settings', function () {
 
     $this->actingAs($user);
 
-    $response = $this->get("/settings/server/{$server->id}");
+    $response = $this->get("/settings/server/{$server->slug}");
 
     $response->assertStatus(403);
 });
@@ -45,7 +45,7 @@ test('user with permissions can view server settings', function () {
 
     $this->actingAs($user);
 
-    $response = $this->get("/settings/server/{$server->id}");
+    $response = $this->get("/settings/server/{$server->slug}");
 
     $response->assertStatus(200);
 });

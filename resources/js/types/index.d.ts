@@ -92,6 +92,7 @@ export interface Channel extends Object {
     name: string;
     type: ChannelType;
     server_id: number;
+    route_key: string;
 }
 
 export interface Server extends Object {
@@ -100,6 +101,7 @@ export interface Server extends Object {
     icon: string | null;
     users: User[] | null;
     roles: Role[] | null;
+    route_key: string;
 }
 
 export interface Perms {
