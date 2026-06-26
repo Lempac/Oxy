@@ -5,13 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Enums\MessageType;
 use App\Models\Channel;
 use App\Models\Message;
+use App\Models\Server;
 use Auth;
 use Illuminate\Http\Request;
 use Storage;
 
 class MessageController
 {
-    public function create(Request $request, int $channelId)
+    public function create(Request $request, Server $server, Channel $channel)
     {
         $request->validate([
             'type' => 'required|in:'.implode(',', array_column(MessageType::cases(), 'value')),
@@ -21,15 +22,9 @@ class MessageController
             'mdata' => $request->type === MessageType::Text->value ? 'required|string|max:500' : 'required|file|max:200000000',
         ]);
 
-        $channel = Channel::find($channelId);
-
-        if (! $channel) {
-            return response()->json(['message' => 'Channel not found'], 404);
-        }
-
         setPermissionsTeamId($channel->server_id);
         if (! Auth::user()->hasPermissionTo('CAN_CREATE_MESSAGE')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($request->type !== MessageType::Text->value && $request->file('mdata')?->isValid()) {
@@ -40,7 +35,7 @@ class MessageController
                 [$width, $height] = getimagesize($file->getRealPath());
 
                 if ($width > 1920 || $height > 1080) {
-                    return response()->json(['errors' => ['icon' => ['The image must not exceed 1920x1080 pixels.']], 'message' => 'The image must not exceed 1920x1080 pixels.'], 422);
+                    return back()->withErrors(['mdata' => 'The image must not exceed 1920x1080 pixels.']);
                 }
             }
 
@@ -57,7 +52,7 @@ class MessageController
 
         //        broadcast(new MessageCreated($request->mdata, $request->user()->id, $channel->id));
 
-        return response()->json(['message' => 'Message created'], 201);
+        return back();
     }
 
     public function edit(Request $request, int $messageId)
@@ -69,15 +64,15 @@ class MessageController
         $message = Message::find($messageId);
 
         if (! $message) {
-            return response()->json(['message' => 'Message not found'], 404);
+            abort(404, 'Message not found');
         }
 
         if ($message->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($message->type != MessageType::Text->value) {
-            return response()->json(['message' => 'Message can not be edited'], 400);
+            abort(400, 'Message can not be edited');
         }
 
         $message->update([
@@ -87,7 +82,7 @@ class MessageController
 
         //        broadcast(new MessageEdited($message->id, $message->channel_id, $request->user()->id));
 
-        return response()->json(['message' => 'Message updated'], 201);
+        return back();
     }
 
     public function delete(int $messageId)
@@ -95,12 +90,12 @@ class MessageController
         $message = Message::find($messageId);
 
         if (! $message) {
-            return response()->json(['message' => 'Message not found'], 404);
+            abort(404, 'Message not found');
         }
 
         setPermissionsTeamId($message->channel->server_id);
         if ($message->user->id !== Auth::id() && ! Auth::user()->hasPermissionTo('CAN_DELETE_MESSAGE')) {
-            return response()->json(['message' => 'Forbidden.'], 403);
+            abort(403, 'Forbidden.');
         }
 
         if ($message->type != MessageType::Text->value) {
@@ -118,6 +113,6 @@ class MessageController
         //            $request->user()->id
         //        ));
 
-        return response()->json(['message' => 'Message deleted'], 201);
+        return back();
     }
 }

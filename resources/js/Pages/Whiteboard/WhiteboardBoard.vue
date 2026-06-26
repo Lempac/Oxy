@@ -4,7 +4,7 @@ import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
 import {Whiteboard as WhiteboardType} from '@/types';
 import {save} from '@/routes/whiteboard';
-import axios from 'axios';
+import { fetchJson } from '@/bootstrap';
 import { MdAdsClick, MdHorizontalRule, MdOutlineCircle, MdOutlineDelete, MdOutlineFormatColorFill, MdOutlineRectangle, MdRedo, MdUndo } from 'vue-icons-plus/md';
 import { BsEraser } from 'vue-icons-plus/bs';
 import { HiPencil } from 'vue-icons-plus/hi';
@@ -89,7 +89,7 @@ const startHeartbeat = () => {
         }
         const start = Date.now();
         try {
-            await axios.get('/up');
+            await fetchJson('/up');
             latency.value = Date.now() - start;
         } catch (e) {
             console.error("Heartbeat failed", e);
@@ -377,7 +377,11 @@ const updateTransformer = () => {
 const saveState = async () => {
     const state = JSON.stringify(Object.fromEntries(yshapes.entries()));
     try {
-        await axios.post(save.url(props.whiteboard.id), {state});
+        await fetchJson(save.url(props.whiteboard.id), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({state})
+        });
     } catch (e) {
         console.error("Failed to save whiteboard state", e);
     }

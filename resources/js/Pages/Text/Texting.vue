@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
+import { usePerms, fetchJson } from '@/bootstrap';
 
 import { create, deleteMethod, edit } from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
@@ -7,7 +7,6 @@ import TextSelectBar from "@/Components/TextSelectBar.vue";
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
 import {Channel, Message, MessageType, Perms, PermType, Role, Server} from "@/types";
-import axios from "axios";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
@@ -84,19 +83,24 @@ const createMessage = async () => {
         if (typeof (form.mdata) === "string") {
             form.type = MessageType.Text;
         }
-        if ((form.mdata as string).length > 500) {
+        if (typeof (form.mdata) === "string" && form.mdata.length > 500) {
             hasError.value = true;
             return;
         }
-        axios.postForm(create.url(selectedChannel!.id), form.data())
-            .then(() => {
+        
+        form.post(create.url({server: selectedServer!.route_key, channel: selectedChannel!.route_key}), {
+            preserveScroll: true,
+            onSuccess: () => {
                 clearFile();
                 hasError.value = false;
-            });
-        await new Promise((resolve) => setTimeout(resolve, 500))
+            },
+            onFinish: () => {
+                loading.value = false;
+            }
+        });
+        
     } catch (error) {
         console.error('Error sending message:', error);
-    } finally {
         loading.value = false;
     }
 };
@@ -119,15 +123,19 @@ watch(
 );
 
 const deleteMessage = async (messageId: number) => {
-    await axios.delete(deleteMethod.url(messageId));
+    router.delete(deleteMethod.url(messageId), { preserveScroll: true });
 };
 
 const editMessage = async () => {
     if (messageIdToEdit.value !== null) {
-        await axios.patch(edit.url(messageIdToEdit.value), {mdata: form.mdata});
-        messageModal.value?.close();
-        form.reset();
-        router.reload();
+        router.patch(edit.url(messageIdToEdit.value), {mdata: form.mdata}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                messageModal.value?.close();
+                form.reset();
+                router.reload();
+            }
+        });
     }
 };
 
@@ -156,7 +164,7 @@ const uploadFile = (val: File) => {
     <AuthenticatedLayout :invite-code :selected-server :servers>
         <TextSelectBar :channels :selected-channel :selected-server/>
         <div
-            v-if="$page.url.match(/\/text\/\d+/)"
+            v-if="selectedChannel"
             class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-base-100 m-5 rounded-lg mx-auto mt-3 flex flex-col"
         >
             <div ref="messageContainer" class="overflow-y-auto flex-grow p-3 mx-5 mt-5">

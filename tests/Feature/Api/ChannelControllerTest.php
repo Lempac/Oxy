@@ -17,7 +17,7 @@ test('channel upload allows valid audio files', function () {
 
     $file = UploadedFile::fake()->create('audio.mp3', 100, 'audio/mpeg');
 
-    $response = $this->postJson("/api/channel/{$channel->id}/upload", [
+    $response = $this->postJson("/api/channel/{$server->slug}/{$channel->slug}/upload", [
         'audio' => $file,
     ]);
 
@@ -36,7 +36,7 @@ test('channel upload rejects invalid files', function () {
 
     $file = UploadedFile::fake()->create('shell.php', 100, 'application/x-php');
 
-    $response = $this->postJson("/api/channel/{$channel->id}/upload", [
+    $response = $this->postJson("/api/channel/{$server->slug}/{$channel->slug}/upload", [
         'audio' => $file,
     ]);
 

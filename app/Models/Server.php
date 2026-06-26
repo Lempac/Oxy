@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Str;
 
 class Server extends Model
 {
@@ -20,12 +21,53 @@ class Server extends Model
         'name',
         'description',
         'icon',
+        'slug',
     ];
 
     protected $dispatchesEvents = [
         'created' => ServerCreated::class,
         'updated' => ServerEdited::class,
     ];
+
+    protected $appends = ['route_key'];
+
+    public function getRouteKey()
+    {
+        return $this->slug;
+    }
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    public function getRouteKeyAttribute()
+    {
+        return $this->slug;
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('slug', $value)->firstOrFail();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($server) {
+            if (empty($server->slug)) {
+                $slug = Str::slug($server->name);
+                $originalSlug = $slug;
+                $count = 1;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $originalSlug . '-' . $count;
+                    $count++;
+                }
+                $server->slug = $slug;
+            }
+        });
+    }
 
     public function users(): BelongsToMany
     {

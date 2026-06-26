@@ -25,21 +25,21 @@ Route::middleware(['web'])->group(function () {
         Route::post('/add-user', 'addUser')->name('.addUser');
         Route::patch('/{server}', 'edit')->name('.edit');
         Route::delete('/{server}/remove-user', 'removeUser')->name('.removeUser');
-        Route::delete('/', 'delete')->name('.delete');
-        Route::delete('/{id}/leave', [ServerController::class, 'leave'])->name('.leave');
+        Route::delete('/{server}', 'delete')->name('.delete');
+        Route::delete('/{server}/leave', [ServerController::class, 'leave'])->name('.leave');
     });
 
     Route::controller(MessageController::class)->prefix('message')->name('message')->group(function () {
-        Route::post('/{channel}', 'create')->name('.create');
+        Route::post('/{server}/{channel}', 'create')->name('.create');
         Route::patch('/{message}', 'edit')->name('.edit');
         Route::delete('/{message}', 'delete')->name('.delete');
     });
 
     Route::controller(ChannelController::class)->prefix('channel')->name('channel')->group(function () {
         Route::post('/{server}', 'create')->name('.create');
-        Route::patch('/{channel}', 'edit')->name('.edit');
-        Route::delete('/{channel}', 'delete')->name('.delete');
-        Route::post('/{channel}/upload', 'upload')->name('.upload');
+        Route::patch('/{server}/{channel}', 'edit')->name('.edit');
+        Route::delete('/{server}/{channel}', 'delete')->name('.delete');
+        Route::post('/{server}/{channel}/upload', 'upload')->name('.upload');
     });
 
     Route::controller(RoleController::class)->prefix('roles')->name('roles')->group(function () {

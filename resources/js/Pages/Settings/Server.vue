@@ -41,7 +41,7 @@ function handleSave() {
         return;
     }
     form.clearErrors(); // Clear any existing errors
-    form.post(update.url(selectedServer!.id), {
+    form.post(update.url(selectedServer!.route_key), {
         onSuccess: () => {
             router.reload(); // This will reload the current Inertia page without a full page reload
         },
@@ -49,7 +49,7 @@ function handleSave() {
 }
 
 function deleteServer() {
-    router.delete(destroy.url(selectedServer!.id), {
+    router.delete(destroy.url(selectedServer!.route_key), {
         onSuccess: () => {
             router.visit('/home');
         },
@@ -72,7 +72,7 @@ function deleteServer() {
                     @click="handleSave">
                     Save Changes
                 </button>
-                <Link :href="serverRoute.url(selectedServer!.id)" class="btn btn-neutral">
+                <Link :href="serverRoute.url(selectedServer!.route_key)" class="btn btn-neutral">
                     Cancel
                 </Link>
             </div>
