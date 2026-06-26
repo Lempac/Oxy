@@ -1,8 +1,9 @@
-import { addUser } from '@/routes/server';
+import {addUser} from '@/routes/server';
 import axios, {AxiosError} from 'axios';
-import './echo.ts';
-import {router} from "@inertiajs/vue3";
-import {Perms} from "@/types";
+import './echo';
+import {router, usePage} from "@inertiajs/vue3";
+import {Perms, Role, Server} from "@/types";
+import {computed} from 'vue';
 
 if (typeof window !== 'undefined') {
     window.axios = axios;
@@ -35,10 +36,6 @@ export const bigIntToPerms = (newPrem: string[]): Perms => ({
         this.perms = this.perms.filter(p => !permsToRemove.includes(p));
     }
 });
-
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { Server, Role } from '@/types';
 
 export const usePerms = () => {
     return computed(() => {
