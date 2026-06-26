@@ -12,6 +12,7 @@
         "@laravel/vite-plugin-wayfinder": "^0.1.7",
         "@vitejs/plugin-vue": "^6.0.7",
         "@vue/server-renderer": "^3.5.38",
+        "@y/websocket-server": "^0.1.5",
         "autoprefixer": "^10.5.0",
         "axios": "^1.18.0",
         "daisyui": "^5.5.23",
