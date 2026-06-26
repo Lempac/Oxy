@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { server } from '@/routes/home';
 import { addUser, removeUser as roles_removeUser } from '@/routes/roles';
 import { removeUser as server_removeUser } from '@/routes/server';
@@ -23,11 +25,11 @@ interface customServer extends Server {
     users: customUser[]
 }
 
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     selectedServer: customServer,
 }>();
 
-const perms = ref<Perms>(bigIntToPerms([]));
 
 const toggleRole = (roleId: number, userId: number, state: boolean) => {
     if (state) {
@@ -47,11 +49,6 @@ const kickMember = (userId: number) =>
     )
 
 
-if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles
-        .filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id))
-        .reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-}
 
 </script>
 

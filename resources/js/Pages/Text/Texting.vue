@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { create, deleteMethod, edit } from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import TextSelectBar from "@/Components/TextSelectBar.vue";
@@ -24,6 +26,7 @@ filter.addWords()
 
 addIcons(FaRegularPaperPlane, MdDeleteforeverOutlined, MdModeeditoutlineOutlined, MdFileuploadOutlined, FaRegularFile);
 
+const perms = usePerms();
 const {selectedChannel, messages, selectedServer} = defineProps<{
     servers: Server[],
     selectedServer?: Server,
@@ -38,7 +41,6 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const messageContainer = ref<HTMLElement>();
 const messageModal = ref<HTMLDialogElement>();
 const messageIdToEdit = ref<number | null>(null);
-const perms = ref<Perms>(bigIntToPerms([]));
 const inputFile = ref<File | null>();
 const mdata = ref<string | null>(null);
 
@@ -154,9 +156,6 @@ const uploadFile = (val: File) => {
     isDisabled = true;
 }
 
-if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-}
 
 </script>
 

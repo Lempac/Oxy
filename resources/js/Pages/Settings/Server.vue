@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { server as serverRoute } from '@/routes/home';
 import { destroy, update } from '@/routes/server';
 import { ref} from 'vue';
@@ -9,13 +11,13 @@ import {baseUrl, bigIntToPerms} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {Perms, PermType, Role, Server} from "@/types";
 
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     selectedServer?: Server,
 }>();
 
 const icon = ref<string | null>(selectedServer?.icon ? baseUrl + selectedServer?.icon : null);
 const inputFile = ref<File | null>(null);
-const perms = ref<Perms>(bigIntToPerms([]));
 
 const form = useForm({
     name: selectedServer?.name,
@@ -54,9 +56,6 @@ function deleteServer() {
     });
 }
 
-if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-}
 
 </script>
 

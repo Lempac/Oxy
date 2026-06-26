@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { members, role, server } from '@/routes/settings';
 
 import {Link, usePage} from "@inertiajs/vue3";
@@ -6,15 +8,12 @@ import {Perms, PermType, Role, Server} from "@/types";
 import {bigIntToPerms} from "@/bootstrap";
 import {ref} from "vue";
 
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     selectedServer: Server
 }>();
 
-const perms = ref<Perms>(bigIntToPerms([]));
 
-if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-}
 
 </script>
 

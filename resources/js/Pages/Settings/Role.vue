@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {ref} from 'vue';
@@ -13,6 +15,7 @@ import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 
 addIcons(BiCheckLg, CoArrowBottom, CoArrowTop);
 
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     selectedServer: Server,
 }>();
@@ -22,12 +25,11 @@ const newRole = ref({
     name: '',
     color: '#ffffff',
     importance: 0,
-    perms: "0",
-} as Role);
+    perms: [],
+} as unknown as Role);
 
 const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
-const perms = ref<Perms>(bigIntToPerms([]));
 
 const fetchRoles = async () => {
     try {
@@ -36,9 +38,6 @@ const fetchRoles = async () => {
         // Sort roles by importance
         roles.value.sort((a, b) => a.importance - b.importance);
 
-        if (selectedServer && selectedServer.roles !== null) {
-            perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-        }
     } catch (error) {
         console.error('Error fetching roles:', error);
     }
@@ -49,7 +48,7 @@ const closeModal = () => {
     newRole.value.name = '';
     newRole.value.color = '#ffffff'; // Reset color
     newRole.value.importance = 0; // Reset importance
-    newRole.value.perms = "0";
+    newRole.value.perms = [];
 };
 
 const editRole = (role: Role) => {
@@ -126,7 +125,7 @@ const togglePerm = (perm: typeof PermType | number, state: boolean) => {
     if (state) currentPerm.add(perm)
     else currentPerm.remove(perm)
 
-    editingRole.value.perms = currentPerm.perm.toString()
+    editingRole.value.perms = currentPerm.perms
 };
 
 const roleArray = Object.entries(PermType);

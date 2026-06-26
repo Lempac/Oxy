@@ -27,7 +27,7 @@ class RoleController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'color' => 'required|string|size:7',
-            'perms' => 'required|array',
+            'perms' => 'present|array',
             'importance' => 'required|integer|min:0',
         ]);
 

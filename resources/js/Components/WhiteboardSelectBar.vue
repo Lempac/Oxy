@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { usePerms } from '@/bootstrap';
+
 import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as channelRoute } from '@/routes/home/whiteboard';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
@@ -15,6 +17,7 @@ import echo from "@/echo";
 addIcons(OiPlus, MdDeleteforeverOutlined, MdModeeditoutlineOutlined);
 
 const loading = ref(false);
+const perms = usePerms();
 const {selectedServer} = defineProps<{
     channels?: Channel[],
     selectedServer?: Server,
@@ -24,7 +27,6 @@ const {selectedServer} = defineProps<{
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<() => void>();
-const perms = ref<Perms>(bigIntToPerms([]));
 
 const form = useForm({
     type: ChannelType.Whiteboard,
@@ -84,9 +86,6 @@ const editChannel = async (channelId: number) => {
         });
 };
 
-if (selectedServer && selectedServer.roles !== null) {
-    perms.value = bigIntToPerms(selectedServer.roles.filter(role => usePage().props.user?.roles?.some(roleobj => roleobj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-}
 if (selectedServer) {
     echo.private(`channels.${selectedServer.id}`)
         .listen('.ChannelCreated', () => {

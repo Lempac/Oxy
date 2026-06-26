@@ -36,10 +36,26 @@ export const bigIntToPerms = (newPrem: string[]): Perms => ({
     }
 });
 
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import { Server, Role } from '@/types';
+
+export const usePerms = () => {
+    return computed(() => {
+        const page = usePage();
+        const server = page.props.selectedServer as Server | undefined;
+        const user = page.props.user;
+        if (server && server.roles !== null && server.roles !== undefined) {
+            return bigIntToPerms(server.roles.filter((role: Role) => user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
+        }
+        return bigIntToPerms([]);
+    });
+};
+
 export const joinServer = async (code: string): Promise<[number, string?]> => {
     return Promise.resolve(await axios.post(addUser.url(), {code: code})
         .then(() => {
-            router.reload({only: ['servers']});
+            router.reload({only: ['servers', 'user']});
             return [200, 'Successfully joined to server.'] as [number, string];
         })
         .catch((err: AxiosError<{ message: string }>) => {
