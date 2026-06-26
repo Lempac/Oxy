@@ -44,6 +44,10 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'user' => $user,
+            'flash' => [
+                'message' => fn () => $request->session()->get('message'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
             'locale' => app()->getLocale(),
             'translations' => cache()->rememberForever('translations_'.app()->getLocale(), function () {
                 $locale = app()->getLocale();

@@ -58,7 +58,7 @@ class ServerController extends Controller
 
         //        broadcast(new ServerCreated($server->id, $server->name, $server->description, $server->icon));
 
-        return back();
+        return back()->with('message', 'Server created successfully.');
     }
 
     public function addUser(Request $request)
@@ -108,7 +108,7 @@ class ServerController extends Controller
 
         broadcast(new ServerLeft($request->user_id, $serverId));
 
-        return back();
+        return back()->with('message', 'User removed from server successfully.');
     }
 
     public function edit(Request $request, Server $server)
@@ -143,7 +143,7 @@ class ServerController extends Controller
 
         //        broadcast(new ServerEdited($serverId, $server->name, $server->description, $server->icon));
 
-        return back();
+        return back()->with('message', 'Server updated successfully.');
     }
 
     public function showSettings(Server $server)

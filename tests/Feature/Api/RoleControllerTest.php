@@ -29,6 +29,7 @@ test('user without permissions cannot add user to role', function () {
 
     $this->actingAs($user);
 
+    $this->withExceptionHandling();
     $response = $this->post("/api/roles/{$targetRole->id}/add-user/{$targetUser->id}");
 
     $response->assertStatus(403);
@@ -61,7 +62,7 @@ test('user with permissions can add user to role', function () {
 
     $response = $this->post("/api/roles/{$targetRole->id}/add-user/{$targetUser->id}");
 
-    $response->assertStatus(200);
+    $response->assertStatus(302);
 });
 
 test('user without permissions cannot remove user from role', function () {
@@ -91,6 +92,7 @@ test('user without permissions cannot remove user from role', function () {
 
     $this->actingAs($user);
 
+    $this->withExceptionHandling();
     $response = $this->delete("/api/roles/{$targetRole->id}/remove-user/{$targetUser->id}");
 
     $response->assertStatus(403);
@@ -125,5 +127,5 @@ test('user with permissions can remove user from role', function () {
 
     $response = $this->delete("/api/roles/{$targetRole->id}/remove-user/{$targetUser->id}");
 
-    $response->assertStatus(200);
+    $response->assertStatus(302);
 });

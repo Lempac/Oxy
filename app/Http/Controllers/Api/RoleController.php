@@ -143,7 +143,7 @@ class RoleController extends Controller
 
         $user->assignRole($role);
 
-        return back();
+        return back()->with('message', 'Role added successfully.');
     }
 
     public function removeUser(int $roleId, int $userId)
@@ -166,6 +166,6 @@ class RoleController extends Controller
 
         $user->removeRole($role);
 
-        return back();
+        return back()->with('message', 'Role deleted successfully.');
     }
 }

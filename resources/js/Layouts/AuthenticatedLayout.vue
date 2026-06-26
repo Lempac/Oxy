@@ -60,6 +60,17 @@ if (selectedServer) {
             <slot/>
         </main>
 
+        <div v-if="$page.props.flash?.message" class="toast toast-top toast-end z-50">
+            <div class="alert alert-success">
+                <span>{{ $page.props.flash.message }}</span>
+            </div>
+        </div>
+        <div v-if="$page.props.flash?.error" class="toast toast-top toast-end z-50">
+            <div class="alert alert-error">
+                <span>{{ $page.props.flash.error }}</span>
+            </div>
+        </div>
+
         <footer v-if="selectedServer">
             <div v-if="inviteCode !== undefined && perms.has([PermType.CAN_INVITE])" class="toast truncate mb-16">
                 <div

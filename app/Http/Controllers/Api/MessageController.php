@@ -52,7 +52,7 @@ class MessageController
 
         //        broadcast(new MessageCreated($request->mdata, $request->user()->id, $channel->id));
 
-        return back();
+        return back()->with('message', 'Message created');
     }
 
     public function edit(Request $request, int $messageId)
@@ -82,7 +82,7 @@ class MessageController
 
         //        broadcast(new MessageEdited($message->id, $message->channel_id, $request->user()->id));
 
-        return back();
+        return back()->with('message', 'Message updated');
     }
 
     public function delete(int $messageId)
@@ -113,6 +113,6 @@ class MessageController
         //            $request->user()->id
         //        ));
 
-        return back();
+        return back()->with('message', 'Message deleted');
     }
 }

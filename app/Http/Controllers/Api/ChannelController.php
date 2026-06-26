@@ -26,7 +26,7 @@ class ChannelController
 
         //        broadcast(new ChannelCreated($serverId));
 
-        return back();
+        return back()->with('message', 'Channel added to server successfully.');
     }
 
     public function edit(Request $request, Server $server, Channel $channel)
@@ -43,7 +43,7 @@ class ChannelController
 
         //        broadcast(new ChannelEdited($channel->id));
 
-        return back();
+        return back()->with('message', 'Channel updated successfully.');
     }
 
     public function delete(Server $server, Channel $channel)
@@ -65,17 +65,17 @@ class ChannelController
         // If the user was viewing the channel that was just deleted, redirect them to the server's text/voice/whiteboard root.
         if (str_contains($previousUrl, '/'.$channelSlug)) {
             if ($type === ChannelType::Text->value || $type === ChannelType::Text) {
-                return redirect()->route('home.text', ['server' => $server->slug]);
+                return redirect()->route('home.text', ['server' => $server->slug])->with('message', 'Channel deleted successfully.');
             } elseif ($type === ChannelType::Voice->value || $type === ChannelType::Voice) {
-                return redirect()->route('home.voice', ['server' => $server->slug]);
+                return redirect()->route('home.voice', ['server' => $server->slug])->with('message', 'Channel deleted successfully.');
             } elseif ($type === ChannelType::Whiteboard->value || $type === ChannelType::Whiteboard) {
-                return redirect()->route('home.whiteboard', ['server' => $server->slug]);
+                return redirect()->route('home.whiteboard', ['server' => $server->slug])->with('message', 'Channel deleted successfully.');
             }
 
-            return redirect()->route('home.server', ['server' => $server->slug]);
+            return redirect()->route('home.server', ['server' => $server->slug])->with('message', 'Channel deleted successfully.');
         }
 
-        return back();
+        return back()->with('message', 'Channel deleted successfully.');
     }
 
     public function upload(Request $request, Server $server, Channel $channel)
