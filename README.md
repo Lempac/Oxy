@@ -14,67 +14,94 @@ that lets you create, manage groups with roles in company or group of people wit
 ### Settings for managing groups and whiteboards.
 ![Settings](/assets/group_settings.png)
 
-## How to build our project
+## Technologies Used
 
-## Dependencies
+This project is built using the modern **VILT** stack alongside powerful real-time collaboration libraries:
 
-### PHP Dependencies
-- laravel/framework: ^11.9
-- barryvdh/laravel-dompdf: ^3.0
-- inertiajs/inertia-laravel: ^1.0
-- intervention/image: ^3.9
-- intervention/image-laravel: ^1.3
-- laravel/prompts: ^0.3.0
-- laravel/reverb: ^1.3
-- laravel/sanctum: ^4.0
-- laravel/tinker: ^2.9
-- pusher/pusher-php-server: *
-- tightenco/ziggy: ^2.0
+### Core Stack
+* **Laravel 11:** The robust PHP framework powering the backend, authentication, and background processing.
+* **Vue 3:** A progressive JavaScript framework used for building the reactive user interfaces.
+* **Inertia.js:** Glues Laravel and Vue together, allowing the creation of a modern single-page app without building complex APIs.
+* **Tailwind CSS & DaisyUI:** Utility-first CSS framework and component library for rapid and beautiful UI development.
 
-### JavaScript Dependencies
-- @inertiajs/vue3: ^1.2.0
-- @vitejs/plugin-vue: ^5.1.4
-- @vue/server-renderer: ^3.5.12
-- autoprefixer: ^10.4.20
-- axios: ^1.7.7
-- daisyui: ^4.12.14
-- laravel-echo: ^1.16.1
-- laravel-vite-plugin: ^1.0.5
-- mockery/mockery: ^1.6
-- postcss: ^8.4.47
-- pusher-js: ^8.4.0-rc2
-- tailwindcss: ^3.4.14
-- typescript: 5.6.2
-- vite: ^5.4.11
-- vue: ^3.5.12
-- vue-tsc: ^2.1.10
+### Real-Time & Collaboration
+* **Laravel Reverb & Echo:** First-party WebSocket server and client for real-time broadcasting (used for live chat, voice calls, and notifications).
+* **Yjs & @y/websocket-server:** A CRDT framework and WebSocket server used to handle conflict-free, real-time synchronization for the collaborative whiteboard.
+* **Konva (vue-konva):** 2D HTML5 Canvas framework used to draw and interact with elements on the whiteboard.
 
-### Optional Dependencies
-- bad-words: ^4.0.0
-- vue-icons-plus: ^0.1.9
-- fakerphp/faker: ^1.23
-- laravel/breeze: ^2.1
-- laravel/pint: ^1.13
-- laravel/sail: ^1.26
-- nunomaduro/collision: ^8.0
-- pestphp/pest: ^2.0
-- pestphp/pest-plugin-laravel: ^2.0
-To build the project just run theese commands:
+### Infrastructure
+* **Docker & FrankenPHP:** Containerized setup for easy deployments, utilizing the high-performance FrankenPHP server and Supervisor to manage workers.
 
-php artisan storage:link
+## Getting Started
+
+### Using Nix & devenv (Recommended for Nix users)
+This project comes with a built-in Nix developer environment powered by [devenv.sh](https://devenv.sh). It automatically provides the correct versions of PHP, Node.js, pnpm, and SQLite, and allows you to run all services at once.
+
+1. Ensure you have Nix and `devenv` installed.
+2. Enter the development shell (or rely on `direnv`):
+   ```bash
+   devenv shell
+   ```
+3. Install dependencies and set up the project:
+   ```bash
+   composer install
+   pnpm install
+   cp .env.example .env
+   php artisan key:generate
+   php artisan migrate
+   php artisan storage:link
+   ```
+4. Start all required background processes in one go:
+   ```bash
+   devenv up
+   ```
+
+### Using Docker (Recommended)
+The easiest way to get the application running is by using Docker Compose, which seamlessly sets up the web server, WebSockets, background queues, and the Yjs collaboration server.
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Build and start the containers:
+   ```bash
+   docker compose up --build
+   ```
+*(Note: If you are relying on SQLite, ensure `DB_CONNECTION=sqlite` is set in your `.env` and the SQLite file exists, or configure your database credentials accordingly).*
+
+### Manual Local Setup
+If you prefer running the application without Docker, ensure you have PHP, Composer, Node.js, and a database server (like MySQL/MariaDB or SQLite) installed.
+
+1. Install backend and frontend dependencies:
+   ```bash
+   composer install
+   npm install
+   ```
+2. Set up the environment file and generate the application key:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+3. Run the database migrations and create the storage symlink:
+   ```bash
+   php artisan migrate
+   php artisan storage:link
+   ```
+
+## Running the Application (Local)
+
+If you are running the project manually locally, you will need to start the following services to ensure all features (including the real-time chat, queues, and whiteboard) function correctly:
+
+```bash
+php artisan serve
+npm run dev
 php artisan reverb:start
-php artisan queue:work 
+php artisan queue:work
+npm run yjs
+```
 
-This will set up the project and ensure that it works.
-### If you don't have an email server, go to User.php and remove this line:
+### Note on Email Verification
+If you don't have an email server configured for local development and are having trouble registering, go to `app/Models/User.php` and remove this interface implementation:
 ```php
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 ```
- 
-## To run the site
-To run the site you will need XAMPP (Apache and MySQL)
-and run these 2 command in the terminal:
-
-npm run dev
-php artisan serve
-
