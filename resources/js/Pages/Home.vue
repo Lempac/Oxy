@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
 import {joinServer} from "@/bootstrap";
 import {ref} from "vue";
-import {Server} from "@/types";
+import {Server, Channel} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 
 const code = ref<HTMLInputElement>();
@@ -11,6 +11,7 @@ const code = ref<HTMLInputElement>();
 defineProps<{
     servers: Server[],
     selectedServer?: Server,
+    channels?: Channel[],
     inviteCode?: string
 }>();
 
@@ -20,7 +21,7 @@ const val = ref<[number, string?] | undefined>();
 
 <template>
     <Head title="Home"/>
-    <AuthenticatedLayout :invite-code :selected-server :servers>
+    <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div

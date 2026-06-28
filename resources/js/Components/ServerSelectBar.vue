@@ -1,23 +1,25 @@
 <script lang="ts" setup>
 import { home, logout } from '@/routes';
-import { server as serverRoute } from '@/routes/home';
+import { server as serverRoute, text } from '@/routes/home';
 import { edit } from '@/routes/profile';
-import { create } from '@/routes/server';
+import { create, leave } from '@/routes/server';
+import { server as settingsServer } from '@/routes/settings';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
-import {baseUrl, defaultIcon, joinServer} from "@/bootstrap";
-import {Server} from "@/types";
+import {baseUrl, defaultIcon, joinServer, usePerms} from "@/bootstrap";
+import {Server, PermType} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { RiMoonClearFill } from 'vue-icons-plus/ri';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { GoPlus } from 'vue-icons-plus/go';
-import { HiSolidSun } from 'vue-icons-plus/hi';
+import { BsGearFill, BsDoorOpen } from 'vue-icons-plus/bs';
 
-
+const perms = usePerms();
 const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
 
-defineProps<{
-    servers?: Server[]
+const { servers, selectedServer } = defineProps<{
+    servers?: Server[];
+    selectedServer?: Server;
 }>();
 
 
@@ -51,6 +53,13 @@ const createServer = async () => {
     });
 };
 
+function leaveServer() {
+    if (!selectedServer) return;
+    router.delete(leave.url(selectedServer.route_key), {
+        onSuccess: () => router.visit('/home')
+    });
+}
+
 const icon = ref<string | null>(null);
 const inputFile = ref<File | null>();
 
@@ -62,22 +71,23 @@ const updateIcon = (val: File) => {
 
 </script>
 
-
 <template>
-    <div class="navbar bg-base-100 border-b border-base-300">
-        <div class="navbar-start">
-            <Link :href="home.url()">
-                <ApplicationLogo class="block h-auto w-auto fill-current ml-5"/>
+    <div class="navbar bg-base-100">
+        <div class="navbar-start w-auto">
+            <Link href="/">
+                <ApplicationLogo class="block h-10 w-auto fill-current ml-5"/>
             </Link>
         </div>
-        <div
-            class="navbar-center w-3/5 overflow-x-auto overflow-y-hidden whitespace-nowrap flex justify-center items-center">
-            <div v-for="server in servers" :key="server.id">
-                <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                    <Link :href="serverRoute.url(server.route_key)">
+        <div class="navbar-center flex-1 overflow-x-auto overflow-y-hidden px-4 scrollbar-hide">
+            <div class="flex items-center gap-3 min-w-max h-full w-full">
+                <!-- Empty spacer to help center items if they don't overflow -->
+                <div class="flex-grow"></div>
+                
+                <div v-for="server in servers" :key="server.id" class="shrink-0">
+                    <Link :href="text.url(server.route_key)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
-                            <div class="btn btn-ghost btn-circle avatar">
-                                <div class="w-14 rounded-full">
+                            <div class="btn btn-ghost btn-circle avatar" :class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}">
+                                <div class="w-10 rounded-full">
                                     <img
                                         :src="server.icon ? `${baseUrl}${server.icon}` : defaultIcon"
                                         alt="Server"/>
@@ -86,24 +96,30 @@ const updateIcon = (val: File) => {
                         </div>
                     </Link>
                 </div>
-            </div>
 
-            <button v-if="isHomePage" class="btn btn-circle ml-2 mb-1" @click="serverModal?.showModal">
-                <GoPlus scale="1.5"/>
-            </button>
+                <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="serverModal?.showModal">
+                    <GoPlus scale="1.5"/>
+                </button>
+                
+                <!-- Empty spacer to help center items if they don't overflow -->
+                <div class="flex-grow"></div>
+            </div>
         </div>
 
-        <!-- User Profile -->
-        <div class="navbar-end gap-2">
-            <!--            <label class="btn btn-circle swap swap-rotate">-->
-            <!--                <input type="checkbox" />-->
-            <!--                <HiSolidSun scale="1.5" class="swap-on fill-current"/>-->
-            <!--                <RiMoonClearFill scale="1.5" class="swap-off fill-current"/>-->
-            <!--            </label>-->
+        <!-- Right Side -->
+        <div class="navbar-end gap-2 pr-4 w-auto">
+            <!-- Server Settings -->
+            <Link
+                v-if="selectedServer && perms.hasAny([PermType.CAN_MANAGE_SERVER, PermType.CAN_MANAGE_ROLE, PermType.CAN_MANAGE_MEMBERS])"
+                :href="settingsServer.url(selectedServer?.route_key)"
+                class="btn btn-ghost btn-circle tooltip tooltip-left" data-tip="Server settings">
+                <BsGearFill animation="spin-hover" scale="1.2"/>
+            </Link>
 
+            <!-- User Profile -->
             <div class="dropdown dropdown-end">
-                <div class="flex items-center btn btn-ghost" role="button" tabindex="0">
-                    <div class="mr-2">{{ $page.props.user?.name }}</div>
+                <div class="flex items-center btn btn-ghost px-2" role="button" tabindex="0">
+                    <div class="mr-2 hidden md:block">{{ $page.props.user?.name }}</div>
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img
@@ -116,6 +132,18 @@ const updateIcon = (val: File) => {
                     <li>
                         <Link :href="edit.url()">Profile</Link>
                     </li>
+                    <li v-if="selectedServer">
+                        <ConfirmDialog
+                            :confirm="leaveServer"
+                            class-name="text-error hover:bg-error hover:text-error-content flex items-center justify-between w-full"
+                            description="Are you sure you want to leave this server?"
+                            title="Leave server"
+                        >
+                            Leave Server
+                            <BsDoorOpen scale="1.1"/>
+                        </ConfirmDialog>
+                    </li>
+                    <div class="divider my-0"></div>
                     <li>
                         <Link :href="logout.url()" as="button" method="post">Log Out</Link>
                     </li>
@@ -124,103 +152,97 @@ const updateIcon = (val: File) => {
         </div>
     </div>
 
-    <!-- Modal with 2 tabs -->
-    <dialog ref="serverModal" class="modal">
-        <div class="modal-box">
-            <!-- Create Server-->
-            <div class="tabs flex justify-center">
-                <button
-                    :class="{
-                            'tab-active border-b-2 border-blue-500': activeTab === 'create',
-                            'tab-bordered': activeTab !== 'create'
-                        }"
-                    class="tab px-3 py-1 mr-9 text-lg"
-                    @click="activeTab = 'create'">Create Server
-                </button>
-                <button
-                    :class="{
-                            'tab-active border-b-2 border-blue-500': activeTab === 'join',
-                            'tab-bordered': activeTab !== 'join'
-                        }"
-                    class="tab px-3 py-1 ml-9 text-lg"
-                    @click="activeTab = 'join'">Join Server
-                </button>
-            </div>
-
-            <!-- Tab Contents -->
-            <div class="py-4">
-                <!-- Create Server Tab Content -->
-                <div v-if="activeTab === 'create'">
-                    <!-- Create Server Form -->
-                    <form @submit.prevent="createServer">
-                        <div class="form-control flex flex-row items-center gap-4">
-                            <label
-                                class="cursor-pointer rounded-full bg-base-200 transition-all duration-300 ease-in-out hover:bg-transparent"
-                                for="serverIcon">
-                                <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
-                                <GoPlus v-else scale="3.333"/>
-                            </label>
-                            <label class="cursor-pointer" for="serverIcon">Upload server icon</label>
-                            <input
-                                id="serverIcon"
-                                ref="inputFile"
-                                accept="image/png, image/jpeg"
-                                class="hidden"
-                                type="file"
-                                @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
-                            />
-                        </div>
-                        <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
-                        <div class="form-control mb-4">
-                            <label class="label">
-                                <span class="label-text">Server Name</span>
-                            </label>
-                            <input
-                                v-model="form.name" class="input input-bordered" placeholder="Enter server name"
-                                type="text"/>
-                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
-                        </div>
-                        <div class="form-control mb-4">
-                            <label class="label">
-                                <span class="label-text">Description (Optional)</span>
-                            </label>
-                            <input
-                                v-model="form.description" class="input input-bordered"
-                                placeholder="Enter server description"
-                                type="text"/>
-                        </div>
-                        <div class="modal-action">
-                            <button class="btn btn-primary w-full mt-2" type="submit">Create Server</button>
-                        </div>
-                    </form>
-
+    <Teleport to="body">
+        <dialog ref="serverModal" class="modal">
+            <div class="modal-box bg-base-200">
+                <!-- Create Server-->
+                <div role="tablist" class="tabs tabs-bordered flex justify-center mb-4">
+                    <button
+                        role="tab"
+                        :class="{'tab-active': activeTab === 'create'}"
+                        class="tab text-lg h-10 w-1/2"
+                        @click="activeTab = 'create'">Create Server
+                    </button>
+                    <button
+                        role="tab"
+                        :class="{'tab-active': activeTab === 'join'}"
+                        class="tab text-lg h-10 w-1/2"
+                        @click="activeTab = 'join'">Join Server
+                    </button>
                 </div>
 
-                <!-- Join Server Tab Content -->
-                <div v-if="activeTab === 'join'">
-                    <div class="form-control mb-4">
-                        <label class="label" for="code">
-                            <span class="label-text">Server Invite Code</span>
-                        </label>
-                        <input
-                            id="code" ref="code" class="input input-bordered" name="code"
-                            placeholder="Enter invite code" type="text"/>
+                <!-- Tab Contents -->
+                <div class="py-2">
+                    <!-- Create Server Tab Content -->
+                    <div v-if="activeTab === 'create'">
+                        <!-- Create Server Form -->
+                        <form @submit.prevent="createServer">
+                            <div class="form-control flex flex-row items-center gap-4 mb-4">
+                                <label
+                                    class="cursor-pointer rounded-full bg-base-300 transition-all duration-300 ease-in-out hover:bg-base-100 flex items-center justify-center size-16 shadow-inner"
+                                    for="serverIcon">
+                                    <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full object-cover"/>
+                                    <GoPlus v-else scale="2"/>
+                                </label>
+                                <label class="cursor-pointer font-medium" for="serverIcon">Upload server icon</label>
+                                <input
+                                    id="serverIcon"
+                                    ref="inputFile"
+                                    accept="image/png, image/jpeg"
+                                    class="hidden"
+                                    type="file"
+                                    @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
+                                />
+                            </div>
+                            <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
+                            
+                            <fieldset class="fieldset w-full">
+                                <legend class="fieldset-legend">Server Name</legend>
+                                <input
+                                    v-model="form.name" class="input input-bordered w-full bg-base-100" placeholder="Enter server name"
+                                    type="text"/>
+                                <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
+                            </fieldset>
+                            
+                            <fieldset class="fieldset w-full mt-4">
+                                <legend class="fieldset-legend">Description (Optional)</legend>
+                                <input
+                                    v-model="form.description" class="input input-bordered w-full bg-base-100"
+                                    placeholder="Enter server description"
+                                    type="text"/>
+                            </fieldset>
+                            
+                            <div class="modal-action mt-6">
+                                <button class="btn btn-primary w-full" type="submit">Create Server</button>
+                            </div>
+                        </form>
                     </div>
-                    <button
-                        class="btn btn-secondary w-full"
-                        @click="async () => {val = await joinServer(code!.value); val[0] === 200 ? serverModal?.close() : ''; form.reset();}">
-                        Join Server
-                    </button>
-                    <ErrorAlert v-if="val && val[0] !== 200" :message="val[1]" class="mt-3"/>
+
+                    <!-- Join Server Tab Content -->
+                    <div v-if="activeTab === 'join'">
+                        <fieldset class="fieldset w-full mb-6">
+                            <legend class="fieldset-legend">Server Invite Code</legend>
+                            <input
+                                id="code" ref="code" class="input input-bordered w-full bg-base-100" name="code"
+                                placeholder="Enter invite code" type="text"/>
+                        </fieldset>
+                        <button
+                            class="btn btn-primary w-full"
+                            @click="async () => {val = await joinServer(code!.value); val[0] === 200 ? serverModal?.close() : ''; form.reset();}">
+                            Join Server
+                        </button>
+                        <ErrorAlert v-if="val && val[0] !== 200" :message="val[1]" class="mt-3"/>
+                    </div>
                 </div>
                 <!-- Close Button -->
-                <div class="modal-action">
-                    <button
-                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                        @click="() => serverModal?.close()">✕
-                    </button>
-                </div>
+                <button
+                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    @click="() => serverModal?.close()">✕
+                </button>
             </div>
-        </div>
-    </dialog>
+            <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+            </form>
+        </dialog>
+    </Teleport>
 </template>

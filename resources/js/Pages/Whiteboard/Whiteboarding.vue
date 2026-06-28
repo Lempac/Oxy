@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import WhiteboardSelectBar from "@/Components/WhiteboardSelectBar.vue";
+
 import {Channel, Server, Whiteboard} from "@/types";
 import WhiteboardBoard from "./WhiteboardBoard.vue";
 
@@ -15,16 +15,16 @@ const {selectedChannel, selectedServer} = defineProps<{
 </script>
 
 <template>
-    <AuthenticatedLayout :invite-code :selected-server :servers>
-        <WhiteboardSelectBar :channels :selected-channel :selected-server/>
+    <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
+        
 
         <div
             v-if="selectedChannel"
-            class="flex-grow flex flex-col overflow-hidden h-[calc(100vh-64px-64px)]"
+            class="flex-grow flex flex-col overflow-hidden w-full h-full"
         >
-            <WhiteboardBoard v-if="selectedChannel?.whiteboard" :whiteboard="selectedChannel.whiteboard" />
+            <WhiteboardBoard :selected-channel :selected-server :whiteboard="selectedChannel.whiteboard"/>
         </div>
-        <div v-else class="flex-grow flex items-center justify-center text-base-content/50 h-[calc(100vh-64px-64px)]">
+        <div v-else class="flex-grow flex items-center justify-center text-base-content/50 w-full h-full">
             <p>Select a whiteboard channel to start drawing!</p>
         </div>
     </AuthenticatedLayout>

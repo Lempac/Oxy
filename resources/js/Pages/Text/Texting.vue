@@ -3,7 +3,7 @@ import { usePerms, fetchJson } from '@/bootstrap';
 
 import { create, deleteMethod, edit } from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import TextSelectBar from "@/Components/TextSelectBar.vue";
+
 import {router, useForm, usePage} from "@inertiajs/vue3";
 import echo from "@/echo";
 import {Channel, Message, MessageType, Perms, PermType, Role, Server} from "@/types";
@@ -161,11 +161,11 @@ const uploadFile = (val: File) => {
 </script>
 
 <template>
-    <AuthenticatedLayout :invite-code :selected-server :servers>
-        <TextSelectBar :channels :selected-channel :selected-server/>
+    <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
+        
         <div
             v-if="selectedChannel"
-            class="w-2/3 h-[calc(100vh-64px-80px-64px-80px-16px)] bg-base-100 m-5 rounded-lg mx-auto mt-3 flex flex-col"
+            class="w-full max-w-5xl flex-1 bg-base-100 m-5 rounded-lg mx-auto mt-0 mb-0 flex flex-col overflow-hidden"
         >
             <div ref="messageContainer" class="overflow-y-auto flex-grow p-3 mx-5 mt-5">
                 <div v-if="messages && messages.length > 0">
