@@ -63,6 +63,10 @@ const copyToClipboard = (text: string) => {
 }
 
 
+const goBack = () => {
+    window.history.back();
+}
+
 </script>
 
 <template>
@@ -78,7 +82,7 @@ const copyToClipboard = (text: string) => {
                     @click="handleSave">
                     Save Changes
                 </button>
-                <button @click="window.history.back()" class="btn btn-neutral">
+                <button @click="goBack" class="btn btn-neutral">
                     Cancel
                 </button>
             </div>

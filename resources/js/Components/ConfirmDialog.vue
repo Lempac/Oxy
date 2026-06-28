@@ -9,7 +9,8 @@ withDefaults(defineProps<{
     cancel?: (event: MouseEvent) => void,
     confirm?: (event: MouseEvent) => void,
     text?: string,
-    className: string,
+    className?: string,
+    id?: string,
 }>(), {
     cancel: () => {
     },
@@ -19,7 +20,7 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-    <button :class="className" @click="modal?.showModal">
+    <button :id="id" :class="className" @click="modal?.showModal">
         <span v-if="text">{{ text }}</span>
         <slot v-else/>
     </button>

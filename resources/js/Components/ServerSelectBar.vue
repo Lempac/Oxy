@@ -78,10 +78,13 @@ const updateIcon = (val: File) => {
                 <ApplicationLogo class="block h-10 w-auto fill-current ml-5"/>
             </Link>
         </div>
-        <div class="navbar-center flex-1 overflow-x-auto overflow-y-hidden whitespace-nowrap flex justify-center items-center px-4 scrollbar-hide">
-            <div v-for="server in servers" :key="server.id">
-                <div class="hidden space-x-5 sm:-my-px sm:m-3 sm:flex">
-                    <Link :href="serverRoute.url(server.route_key)">
+        <div class="navbar-center flex-1 overflow-x-auto overflow-y-hidden px-4 scrollbar-hide">
+            <div class="flex items-center gap-3 min-w-max h-full">
+                <!-- Empty spacer to help center items if they don't overflow -->
+                <div class="flex-grow"></div>
+                
+                <div v-for="server in servers" :key="server.id" class="shrink-0">
+                    <Link :href="text.url(server.route_key)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div class="btn btn-ghost btn-circle avatar" :class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}">
                                 <div class="w-10 rounded-full">
@@ -93,11 +96,14 @@ const updateIcon = (val: File) => {
                         </div>
                     </Link>
                 </div>
-            </div>
 
-            <button v-if="isHomePage" class="btn btn-circle btn-sm ml-2 mb-1" @click="serverModal?.showModal">
-                <GoPlus scale="1.5"/>
-            </button>
+                <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="serverModal?.showModal">
+                    <GoPlus scale="1.5"/>
+                </button>
+                
+                <!-- Empty spacer to help center items if they don't overflow -->
+                <div class="flex-grow"></div>
+            </div>
         </div>
 
         <!-- Right Side -->
@@ -128,7 +134,6 @@ const updateIcon = (val: File) => {
                     </li>
                     <li v-if="selectedServer">
                         <ConfirmDialog
-                            id="leave-server"
                             :confirm="leaveServer"
                             class-name="text-error hover:bg-error hover:text-error-content flex items-center justify-between w-full"
                             description="Are you sure you want to leave this server?"

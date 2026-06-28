@@ -69,7 +69,13 @@ if (selectedServer) {
             </button>
         </div>
 
-        <main class="pt-[8rem] pb-[6rem] h-screen flex flex-col overflow-y-auto">
+        <main 
+            class="h-screen flex flex-col overflow-y-auto transition-all duration-300 ease-in-out"
+            :class="[
+                isTopPinned ? 'pt-[8rem]' : 'pt-[2rem]',
+                isBottomPinned ? 'pb-[6rem]' : 'pb-[2rem]'
+            ]"
+        >
             <slot/>
         </main>
 
