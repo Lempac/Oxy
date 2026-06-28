@@ -159,7 +159,7 @@ if (selectedServer) {
                             </button>
                         </div>
                         <Link :href="textChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
-                            <button class="btn btn-outline btn-sm" :class="{'btn-active': $page.url.includes(`/text/${channel.id}`)}">
+                            <button class="btn btn-outline btn-sm" :class="{'btn-primary': $page.url.includes(`/text/${channel.route_key}`)}">
                                 # {{ channel.name }}
                             </button>
                         </Link>
@@ -226,7 +226,7 @@ if (selectedServer) {
                                 </button>
                             </div>
                             <Link :href="voiceChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
-                                <button class="btn btn-outline btn-sm" :class="{'btn-active': $page.url.includes(`/voice/${channel.id}`)}">
+                                <button class="btn btn-outline btn-sm" :class="{'btn-secondary': $page.url.includes(`/voice/${channel.route_key}`)}">
                                     🔊 {{ channel.name }}
                                 </button>
                             </Link>
@@ -258,7 +258,7 @@ if (selectedServer) {
                                 </button>
                             </div>
                             <Link :href="whiteboardChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
-                                <button class="btn btn-outline btn-sm" :class="{'btn-active': $page.url.includes(`/whiteboard/${channel.id}`)}">
+                                <button class="btn btn-outline btn-sm" :class="{'btn-accent': $page.url.includes(`/whiteboard/${channel.route_key}`)}">
                                     🎨 {{ channel.name }}
                                 </button>
                             </Link>
@@ -299,19 +299,17 @@ if (selectedServer) {
             leave-to-class="opacity-0"
         >
             <div v-if="isChannelModalOpen" class="modal modal-open">
-                <div class="modal-box relative z-10">
+                <div class="modal-box bg-base-200 relative z-10">
                     <form @submit.prevent="isEditing ? editCurrent!() : createChannel()">
-                        <div class="form-control mb-4">
-                            <label class="label">
-                                <span class="label-text">
-                                    {{ form.type === ChannelType.Text ? 'Text' : (form.type === ChannelType.Voice ? 'Voice' : 'Whiteboard') }} Channel Name
-                                </span>
-                            </label>
+                        <fieldset class="fieldset w-full mb-4">
+                            <legend class="fieldset-legend">
+                                {{ form.type === ChannelType.Text ? 'Text' : (form.type === ChannelType.Voice ? 'Voice' : 'Whiteboard') }} Channel Name
+                            </legend>
                             <input
-                                v-model="form.name" class="input input-bordered" placeholder="Enter channel name"
+                                v-model="form.name" class="input input-bordered w-full" placeholder="Enter channel name"
                                 type="text"/>
                             <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
-                        </div>
+                        </fieldset>
                         <div class="modal-action">
                             <button :disabled="loading" class="btn btn-primary w-full mt-2" type="submit">
                                 {{ isEditing ? 'Edit' : 'Create' }} Channel
