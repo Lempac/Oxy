@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ChannelType;
 use App\Models\Channel;
 use App\Models\Message;
 use App\Models\Server;
