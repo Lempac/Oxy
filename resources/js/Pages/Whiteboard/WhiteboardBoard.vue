@@ -76,7 +76,8 @@ const ydoc = new Y.Doc();
 const yshapes = ydoc.getMap<any>('shapes');
 const undoManager = new Y.UndoManager(yshapes);
 
-const wsUrl = import.meta.env.VITE_YJS_WS_URL || 'ws://localhost:1234';
+const metaUrl = document.querySelector('meta[name="yjs-ws-url"]')?.getAttribute('content');
+const wsUrl = metaUrl || import.meta.env.VITE_YJS_WS_URL || 'ws://localhost:1234';
 const provider = new WebsocketProvider(wsUrl, `whiteboard-${props.whiteboard.id}`, ydoc);
 
 let heartbeatInterval: any = null;
