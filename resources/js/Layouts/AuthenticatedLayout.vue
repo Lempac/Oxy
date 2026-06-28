@@ -72,23 +72,12 @@ if (selectedServer) {
         <main 
             class="h-screen flex flex-col overflow-y-auto transition-all duration-300 ease-in-out"
             :class="[
-                isTopPinned ? 'pt-[8rem]' : 'pt-[2rem]',
+                isTopPinned ? (($page.url.startsWith('/home') && selectedServer) ? 'pt-[8rem]' : 'pt-[4.5rem]') : 'pt-[2rem]',
                 isBottomPinned ? 'pb-[6rem]' : 'pb-[2rem]'
             ]"
         >
             <slot/>
         </main>
-
-        <div v-if="$page.props.flash?.message" class="toast toast-top toast-end z-50">
-            <div class="alert alert-success">
-                <span>{{ $page.props.flash.message }}</span>
-            </div>
-        </div>
-        <div v-if="$page.props.flash?.error" class="toast toast-top toast-end z-50">
-            <div class="alert alert-error">
-                <span>{{ $page.props.flash.error }}</span>
-            </div>
-        </div>
 
         <!-- Bottom Bar Container -->
         <footer 

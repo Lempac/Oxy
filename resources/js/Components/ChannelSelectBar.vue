@@ -34,7 +34,7 @@ const whiteboardChannels = computed(() => channels?.filter(c => c.type === Chann
 
 const isEditMode = ref(false);
 
-const channelModal = ref<HTMLDialogElement>();
+const isChannelModalOpen = ref(false);
 const isEditing = ref(false);
 const editCurrent = ref<() => void>();
 
@@ -53,7 +53,7 @@ const openModal = (type: string, channel?: Channel) => {
         isEditing.value = false;
         form.name = '';
     }
-    channelModal.value?.showModal();
+    isChannelModalOpen.value = true;
 };
 
 const loading = ref(false);
@@ -63,7 +63,7 @@ const createChannel = async () => {
     loading.value = true;
     form.post(create.url(selectedServer!.route_key), {
         onSuccess: () => {
-            channelModal.value?.close();
+            isChannelModalOpen.value = false;
             router.reload();
             form.reset();
         },
@@ -86,7 +86,7 @@ const editChannel = async (channelKey: string) => {
 
     form.patch(edit.url({server: selectedServer!.route_key, channel: channelKey}), {
         onSuccess: () => {
-            channelModal.value?.close();
+            isChannelModalOpen.value = false;
             router.reload();
             form.reset();
         },
@@ -130,8 +130,11 @@ if (selectedServer) {
             <!-- Left Side: Text Channels (Expands leftwards) -->
             <div class="flex-1 flex justify-end overflow-hidden h-full">
                 <div 
-                    class="flex flex-row-reverse items-center gap-2 overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
-                    :class="displayMode === 'text' ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0'"
+                    class="flex flex-row-reverse items-center overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
+                    :class="[
+                        displayMode === 'text' ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0',
+                        isEditMode ? 'gap-6' : 'gap-2'
+                    ]"
                 >
                     <button
                         v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
@@ -198,8 +201,11 @@ if (selectedServer) {
             <!-- Right Side: Voice/Whiteboard Channels (Expands rightwards) -->
             <div class="flex-1 flex justify-start overflow-hidden h-full">
                 <div 
-                    class="flex items-center gap-2 overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
-                    :class="(displayMode === 'voice' || displayMode === 'whiteboard') ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0'"
+                    class="flex items-center overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
+                    :class="[
+                        (displayMode === 'voice' || displayMode === 'whiteboard') ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0',
+                        isEditMode ? 'gap-6' : 'gap-2'
+                    ]"
                 >
                     <!-- Voice Channels -->
                     <template v-if="displayMode === 'voice'">
@@ -283,32 +289,44 @@ if (selectedServer) {
     </div>
 
     <!-- Create/Edit Channel Modal -->
-    <dialog ref="channelModal" class="modal">
-        <div class="modal-box">
-            <form @submit.prevent="isEditing ? editCurrent!() : createChannel()">
-                <div class="form-control mb-4">
-                    <label class="label">
-                        <span class="label-text">
-                            {{ form.type === ChannelType.Text ? 'Text' : (form.type === ChannelType.Voice ? 'Voice' : 'Whiteboard') }} Channel Name
-                        </span>
-                    </label>
-                    <input
-                        v-model="form.name" class="input input-bordered" placeholder="Enter channel name"
-                        type="text"/>
-                    <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
+    <Teleport to="body">
+        <Transition
+            enter-active-class="transition duration-200 ease-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition duration-200 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div v-if="isChannelModalOpen" class="modal modal-open">
+                <div class="modal-box relative z-10">
+                    <form @submit.prevent="isEditing ? editCurrent!() : createChannel()">
+                        <div class="form-control mb-4">
+                            <label class="label">
+                                <span class="label-text">
+                                    {{ form.type === ChannelType.Text ? 'Text' : (form.type === ChannelType.Voice ? 'Voice' : 'Whiteboard') }} Channel Name
+                                </span>
+                            </label>
+                            <input
+                                v-model="form.name" class="input input-bordered" placeholder="Enter channel name"
+                                type="text"/>
+                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
+                        </div>
+                        <div class="modal-action">
+                            <button :disabled="loading" class="btn btn-primary w-full mt-2" type="submit">
+                                {{ isEditing ? 'Edit' : 'Create' }} Channel
+                            </button>
+                        </div>
+                    </form>
+                    <div class="modal-action">
+                        <button
+                            class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                            @click="isChannelModalOpen = false">✕
+                        </button>
+                    </div>
                 </div>
-                <div class="modal-action">
-                    <button :disabled="loading" class="btn btn-primary w-full mt-2" type="submit">
-                        {{ isEditing ? 'Edit' : 'Create' }} Channel
-                    </button>
-                </div>
-            </form>
-            <div class="modal-action">
-                <button
-                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                    @click="() => channelModal?.close()">✕
-                </button>
+                <div class="modal-backdrop bg-neutral/30 fixed inset-0" @click="isChannelModalOpen = false"></div>
             </div>
-        </div>
-    </dialog>
+        </Transition>
+    </Teleport>
 </template>

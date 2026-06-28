@@ -73,13 +73,13 @@ const updateIcon = (val: File) => {
 
 <template>
     <div class="navbar bg-base-100">
-        <div class="navbar-start">
+        <div class="navbar-start w-auto">
             <Link href="/">
                 <ApplicationLogo class="block h-10 w-auto fill-current ml-5"/>
             </Link>
         </div>
         <div class="navbar-center flex-1 overflow-x-auto overflow-y-hidden px-4 scrollbar-hide">
-            <div class="flex items-center gap-3 min-w-max h-full">
+            <div class="flex items-center gap-3 min-w-max h-full w-full">
                 <!-- Empty spacer to help center items if they don't overflow -->
                 <div class="flex-grow"></div>
                 
@@ -107,7 +107,7 @@ const updateIcon = (val: File) => {
         </div>
 
         <!-- Right Side -->
-        <div class="navbar-end gap-2 pr-4">
+        <div class="navbar-end gap-2 pr-4 w-auto">
             <!-- Server Settings -->
             <Link
                 v-if="selectedServer && perms.hasAny([PermType.CAN_MANAGE_SERVER, PermType.CAN_MANAGE_ROLE, PermType.CAN_MANAGE_MEMBERS])"
