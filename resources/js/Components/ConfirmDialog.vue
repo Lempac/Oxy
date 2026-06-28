@@ -19,26 +19,24 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-    <div>
-        <button :class="className" @click="modal?.showModal">
-            <span v-if="text">{{ text }}</span>
-            <slot v-else/>
-        </button>
-        <Teleport to="#teleported">
-            <dialog ref="modal" class="modal">
-                <div class="modal-box">
-                    <h2 class="text-lg font-bold">{{ title }}</h2>
-                    <p class="py-4">{{ description }}</p>
-                    <div class="modal-action">
-                        <button class="btn btn-error" @click="(e: MouseEvent) => {cancel(e); modal?.close()}">
-                            Cancel
-                        </button>
-                        <button class="btn btn-success" @click="(e: MouseEvent) => {confirm(e); modal?.close()}">
-                            Yes
-                        </button>
-                    </div>
+    <button :class="className" @click="modal?.showModal">
+        <span v-if="text">{{ text }}</span>
+        <slot v-else/>
+    </button>
+    <Teleport to="#teleported">
+        <dialog ref="modal" class="modal">
+            <div class="modal-box">
+                <h2 class="text-lg font-bold">{{ title }}</h2>
+                <p class="py-4">{{ description }}</p>
+                <div class="modal-action">
+                    <button class="btn btn-error" @click="(e: MouseEvent) => {cancel(e); modal?.close()}">
+                        Cancel
+                    </button>
+                    <button class="btn btn-success" @click="(e: MouseEvent) => {confirm(e); modal?.close()}">
+                        Yes
+                    </button>
                 </div>
-            </dialog>
-        </Teleport>
-    </div>
+            </div>
+        </dialog>
+    </Teleport>
 </template>

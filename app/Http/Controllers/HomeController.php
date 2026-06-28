@@ -27,6 +27,7 @@ class HomeController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
+            'channels' => $server->channels,
             'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
         ]);
     }
@@ -38,7 +39,7 @@ class HomeController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
-            'channels' => $server->channels()->where('type', ChannelType::Text)->get(),
+            'channels' => $server->channels,
             'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
         ]);
     }
@@ -51,7 +52,7 @@ class HomeController extends Controller
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
-            'channels' => $server->channels()->where('type', ChannelType::Text)->get(),
+            'channels' => $server->channels,
             'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
@@ -66,7 +67,7 @@ class HomeController extends Controller
             'selectedServer' => $server,
             'selectedChannel' => $channel,
             'selectedMessage' => Message::find($message),
-            'channels' => $server->channels()->where('type', ChannelType::Text)->get(),
+            'channels' => $server->channels,
             'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
@@ -81,7 +82,7 @@ class HomeController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
-            'channels' => $server->channels()->where('type', ChannelType::Voice)->get(),
+            'channels' => $server->channels,
             'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
         ]);
     }
@@ -94,7 +95,7 @@ class HomeController extends Controller
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
-            'channels' => $server->channels()->where('type', ChannelType::Voice)->get(),
+            'channels' => $server->channels,
             'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
         ]);
     }
@@ -114,7 +115,7 @@ class HomeController extends Controller
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
-            'channels' => $server->channels()->where('type', ChannelType::Whiteboard)->get(),
+            'channels' => $server->channels,
             'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
         ]);
     }
@@ -126,7 +127,7 @@ class HomeController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
-            'channels' => $server->channels()->where('type', ChannelType::Whiteboard)->get(),
+            'channels' => $server->channels,
             'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
         ]);
     }

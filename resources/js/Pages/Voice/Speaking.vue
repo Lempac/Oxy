@@ -100,7 +100,7 @@ const leaveChannel = async () => {
 </script>
 
 <template>
-    <AuthenticatedLayout :invite-code :selected-server :servers>
+    <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
         <div class="mt-3 pb-20">
             <div
                 v-for="channel in channels"

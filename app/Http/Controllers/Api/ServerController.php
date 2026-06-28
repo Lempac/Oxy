@@ -158,6 +158,7 @@ class ServerController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
+            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
         ]);
     }
 

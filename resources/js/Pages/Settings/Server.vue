@@ -10,10 +10,12 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {baseUrl, bigIntToPerms} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {Perms, PermType, Role, Server} from "@/types";
+import { HiClipboardCopy } from 'vue-icons-plus/hi';
 
 const perms = usePerms();
-const {selectedServer} = defineProps<{
+const {selectedServer, inviteCode} = defineProps<{
     selectedServer?: Server,
+    inviteCode?: string,
 }>();
 
 const icon = ref<string | null>(selectedServer?.icon ? baseUrl + selectedServer?.icon : null);
@@ -56,6 +58,10 @@ function deleteServer() {
     });
 }
 
+const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+}
+
 
 </script>
 
@@ -72,9 +78,9 @@ function deleteServer() {
                     @click="handleSave">
                     Save Changes
                 </button>
-                <Link :href="serverRoute.url(selectedServer!.route_key)" class="btn btn-neutral">
+                <button @click="window.history.back()" class="btn btn-neutral">
                     Cancel
-                </Link>
+                </button>
             </div>
 
             <div class="bg-base-200 p-8 rounded-lg shadow-lg">
@@ -132,6 +138,19 @@ function deleteServer() {
                             <p class="text-sm text-base-content/70">Let's you send images and videos in chat.</p>
                         </div>
                         <input class="toggle toggle-primary" disabled type="checkbox"/>
+                    </div>
+                </div>
+
+                <div v-if="inviteCode && perms.has([PermType.CAN_INVITE])" class="bg-base-300 p-6 rounded-lg mt-8 flex justify-between items-center">
+                    <div>
+                        <span class="text-xl text-base-content">Server Invite Code</span>
+                        <p class="text-sm text-base-content/70">Share this code with others so they can join.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono bg-base-100 p-2 rounded">{{ inviteCode }}</span>
+                        <button class="btn btn-square btn-ghost" data-tip="Copy" @click="copyToClipboard(inviteCode)">
+                            <HiClipboardCopy scale="1.5" />
+                        </button>
                     </div>
                 </div>
                 <ConfirmDialog
