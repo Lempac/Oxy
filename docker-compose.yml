@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    image: oxy-app
     ports:
       - "8000:8000"
       - "9000:9000"
