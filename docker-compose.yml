@@ -5,11 +5,20 @@ services:
       - "8000:8000"
       - "9000:9000"
     env_file: .env
+    volumes:
+      - oxy_database:/var/www/database
+      - oxy_storage:/var/www/storage/app
     restart: unless-stopped
 
   y-web:
     image: node:24-alpine
     working_dir: /app
+    ports:
+      - "1234:1234"
     command: npx --yes @y/websocket-server
     env_file: .env
     restart: unless-stopped
+
+volumes:
+  oxy_database:
+  oxy_storage:
