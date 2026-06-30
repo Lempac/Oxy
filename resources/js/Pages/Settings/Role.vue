@@ -4,8 +4,8 @@ import { usePerms, fetchJson } from '@/bootstrap';
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
 import {ref} from 'vue';
-import {Link, usePage} from '@inertiajs/vue3';
-import {Perms, PermType, Role, Server} from "@/types";
+import {Link} from '@inertiajs/vue3';
+import {PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {bigIntToPerms} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
@@ -128,7 +128,7 @@ const deleteRole = async (role: Role) => {
 // Fetch roles when the component mounts
 fetchRoles();
 
-const togglePerm = (perm: typeof PermType | number, state: boolean) => {
+const togglePerm = (perm: string, state: boolean) => {
     if (editingRole.value?.perms === undefined) return;
     const currentPerm = bigIntToPerms(editingRole.value?.perms || [])
 
@@ -253,8 +253,8 @@ const changeImportance = async (role: Role, direction: number) => {
                                 <ul
                                     class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1"
                                     tabindex="0">
-                                    <template v-for="rolePerms in [bigIntToPerms(role.perms)]" :key="'perms-' + role.id">
-                                        <li v-for="(perm, index) in roleArray" :key="index">
+                                    <template v-for="(rolePerms, rolePermsIdx) in [bigIntToPerms(role.perms)]" :key="'perms-' + role.id + '-' + rolePermsIdx">
+                                        <li v-for="(perm, permIndex) in roleArray" :key="permIndex">
                                             <button
                                                 :class="(rolePerms.has(perm[1]) ? 'bg-base-300' : '')"
                                                 :disabled="editingRole !== role"

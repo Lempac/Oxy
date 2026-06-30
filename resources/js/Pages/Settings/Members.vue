@@ -6,11 +6,9 @@ import { addUser, removeUser as roles_removeUser } from '@/routes/roles';
 import { removeUser as server_removeUser } from '@/routes/server';
 
 import {Link, router, usePage} from "@inertiajs/vue3";
-import {Perms, PermType, Role, Server, User} from "@/types";
+import {PermType, Role, Server, User} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import {ref} from "vue";
-import {bigIntToPerms} from "@/bootstrap";
 import { GiBootKick } from 'vue-icons-plus/gi';
 import { BsCheckLg } from 'vue-icons-plus/bs';
 

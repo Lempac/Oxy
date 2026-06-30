@@ -1,15 +1,14 @@
 <script lang="ts" setup>
 import { usePerms } from '@/bootstrap';
 
-import { server as serverRoute } from '@/routes/home';
-import { destroy, update } from '@/routes/server';
-import { ref} from 'vue';
+import {destroy, update} from '@/routes/server';
+import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {Link, router, useForm, usePage} from '@inertiajs/vue3';
+import {router, useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import {baseUrl, bigIntToPerms} from "@/bootstrap";
+import {baseUrl} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
-import {Perms, PermType, Role, Server} from "@/types";
+import {PermType, Server} from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';
 
 const perms = usePerms();
@@ -82,7 +81,7 @@ const goBack = () => {
                     @click="handleSave">
                     Save Changes
                 </button>
-                <button @click="goBack" class="btn btn-neutral">
+                <button class="btn btn-neutral" @click="goBack">
                     Cancel
                 </button>
             </div>

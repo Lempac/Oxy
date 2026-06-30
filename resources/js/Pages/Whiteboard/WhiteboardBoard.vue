@@ -20,7 +20,23 @@ const stageConfig = ref({
 });
 
 const container = ref<HTMLDivElement | null>(null);
-const shapes = ref<any[]>([]);
+interface Shape {
+    id: string;
+    tool: string;
+    color: string;
+    fill: string | null;
+    strokeWidth: number;
+    points: number[];
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    scaleX?: number;
+    scaleY?: number;
+    rotation?: number;
+}
+
+const shapes = ref<Shape[]>([]);
 const isConnected = ref(false);
 const latency = ref<number | null>(null);
 const tool = ref<'pencil' | 'eraser' | 'rect' | 'circle' | 'line' | 'select'>('pencil');
@@ -39,7 +55,7 @@ const colorPresets = [
     {name: 'Error', value: 'oklch(var(--er))', class: 'bg-error'},
 ];
 
-const getColorValue = (preset: any) => {
+const getColorValue = (preset: { class: string }) => {
     const el = document.createElement('div');
     el.className = preset.class;
     document.body.appendChild(el);
@@ -48,7 +64,7 @@ const getColorValue = (preset: any) => {
     return color;
 };
 
-const setPresetColor = (preset: any, target: 'stroke' | 'fill') => {
+const setPresetColor = (preset: { class: string }, target: 'stroke' | 'fill') => {
     const val = getColorValue(preset);
     if (target === 'stroke') {
         color.value = rgbToHex(val);
@@ -68,19 +84,19 @@ const rgbToHex = (rgb: string) => {
 };
 const selectedShapeIds = ref<string[]>([]);
 
-const transformerRef = ref<any>(null);
-const stageRef = ref<any>(null);
+const transformerRef = ref<unknown>(null);
+const stageRef = ref<unknown>(null);
 
 // Yjs setup
 const ydoc = new Y.Doc();
-const yshapes = ydoc.getMap<any>('shapes');
+const yshapes = ydoc.getMap<Shape>('shapes');
 const undoManager = new Y.UndoManager(yshapes);
 
 const metaUrl = document.querySelector('meta[name="yjs-ws-url"]')?.getAttribute('content');
 const wsUrl = metaUrl || import.meta.env.VITE_YJS_WS_URL || 'ws://localhost:1234';
 const provider = new WebsocketProvider(wsUrl, `whiteboard-${props.whiteboard.id}`, ydoc);
 
-let heartbeatInterval: any = null;
+let heartbeatInterval: number | ReturnType<typeof setInterval> | null = null;
 
 const startHeartbeat = () => {
     heartbeatInterval = setInterval(async () => {
@@ -109,7 +125,7 @@ onMounted(() => {
         shapes.value = Array.from(yshapes.values());
     });
 
-    provider.on('status', (event: any) => {
+    provider.on('status', (event: { status: string }) => {
         isConnected.value = event.status === 'connected';
         if (isConnected.value && !heartbeatInterval) {
             startHeartbeat();
@@ -120,7 +136,7 @@ onMounted(() => {
         try {
             const initialState = JSON.parse(props.whiteboard.state);
             Object.entries(initialState).forEach(([id, shape]) => {
-                yshapes.set(id, shape);
+                yshapes.set(id, shape as Shape);
             });
         } catch (e) {
             console.error("Failed to parse initial state", e);
@@ -172,9 +188,10 @@ const selectionRect = ref({
     height: 0,
 });
 
-const handleMouseDown = (e: any) => {
-    const stage = e.target.getStage();
-    const clickedOnEmpty = e.target === stage;
+const handleMouseDown = (e: unknown) => {
+    const event = e as { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } }, getParent: () => unknown, id: () => string }, evt: { shiftKey: boolean } };
+    const stage = event.target.getStage();
+    const clickedOnEmpty = event.target === stage as unknown;
     const pos = stage.getPointerPosition();
 
     if (tool.value === 'select') {
@@ -194,15 +211,15 @@ const handleMouseDown = (e: any) => {
         return;
     }
 
-    if (tool.value === 'eraser' && !e.evt.shiftKey) {
+    if (tool.value === 'eraser' && !event.evt.shiftKey) {
         if (!clickedOnEmpty) {
             // Traverse up to find the group/node with an ID
-            let target = e.target;
-            while (target && target !== stage && !target.id()) {
-                target = target.getParent();
+            let target: { getParent?: () => unknown, id?: () => string } | null = event.target;
+            while (target && target !== stage as unknown && (!target.id || !target.id())) {
+                target = (target.getParent ? target.getParent() : null) as typeof target;
             }
 
-            const id = target?.id();
+            const id = target?.id ? target.id() : undefined;
             if (id) {
                 yshapes.delete(id);
                 saveState();
@@ -213,7 +230,7 @@ const handleMouseDown = (e: any) => {
 
     currentShapeId = Math.random().toString(36).substring(7);
 
-    const newShape: any = {
+    const newShape: Shape = {
         id: currentShapeId,
         tool: tool.value,
         color: tool.value === 'eraser' ? '#ffffff' : color.value,
@@ -222,6 +239,8 @@ const handleMouseDown = (e: any) => {
         points: [pos.x, pos.y],
         x: 0,
         y: 0,
+        width: 0,
+        height: 0,
     };
 
     if (['rect', 'circle'].includes(tool.value)) {
@@ -236,8 +255,9 @@ const handleMouseDown = (e: any) => {
     yshapes.set(currentShapeId, newShape);
 };
 
-const handleMouseMove = (e: any) => {
-    const pos = e.target.getStage().getPointerPosition();
+const handleMouseMove = (e: unknown) => {
+    const event = e as { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } } }, evt: { shiftKey: boolean } };
+    const pos = event.target.getStage().getPointerPosition();
 
     if (selectionRect.value.visible) {
         selectionRect.value.width = pos.x - selectionRect.value.x;
@@ -252,7 +272,7 @@ const handleMouseMove = (e: any) => {
 
     const updatedShape = {...shape};
 
-    if (tool.value === 'pencil' || (tool.value === 'eraser' && e.evt.shiftKey)) {
+    if (tool.value === 'pencil' || (tool.value === 'eraser' && event.evt.shiftKey)) {
         updatedShape.points = updatedShape.points.concat([pos.x, pos.y]);
     } else if (tool.value === 'rect' || tool.value === 'circle') {
         updatedShape.width = pos.x - updatedShape.x;
@@ -267,7 +287,7 @@ const handleMouseMove = (e: any) => {
 const handleMouseUp = () => {
     if (selectionRect.value.visible) {
         selectionRect.value.visible = false;
-        const stage = stageRef.value.getStage();
+        const stage = (stageRef.value as { getStage: () => { findOne: (s: string) => { getClientRect: () => { x: number, y: number, width: number, height: number } } | undefined } }).getStage();
         const box = {
             x1: Math.min(selectionRect.value.x, selectionRect.value.x + selectionRect.value.width),
             y1: Math.min(selectionRect.value.y, selectionRect.value.y + selectionRect.value.height),
@@ -293,8 +313,9 @@ const handleMouseUp = () => {
     saveState();
 };
 
-const handleTransformEnd = (e: any) => {
-    const node = e.target;
+const handleTransformEnd = (e: unknown) => {
+    const event = e as { target: { id: () => string, x: () => number, y: () => number, scaleX: () => number, scaleY: () => number, rotation: () => number } };
+    const node = event.target;
     const id = node.id();
     const shape = yshapes.get(id);
     if (!shape) return;
@@ -319,8 +340,9 @@ const handleTransformEnd = (e: any) => {
     saveState();
 };
 
-const handleDragEnd = (e: any) => {
-    const node = e.target;
+const handleDragEnd = (e: unknown) => {
+    const event = e as { target: { id: () => string, x: () => number, y: () => number } };
+    const node = event.target;
     const id = node.id();
     const shape = yshapes.get(id);
     if (!shape) return;
@@ -342,13 +364,14 @@ const handleDragEnd = (e: any) => {
     saveState();
 };
 
-const selectShape = (e: any, id: string) => {
+const selectShape = (e: unknown, id: string) => {
+    const event = e as { evt: { shiftKey: boolean, ctrlKey: boolean, metaKey: boolean } };
     if (tool.value !== 'select') return;
 
     const isSelectable = tool.value === 'select';
     if (!isSelectable) return;
 
-    const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
+    const metaPressed = event.evt.shiftKey || event.evt.ctrlKey || event.evt.metaKey;
     const isSelected = selectedShapeIds.value.includes(id);
 
     if (!metaPressed && !isSelected) {
@@ -363,10 +386,10 @@ const selectShape = (e: any, id: string) => {
 };
 
 const updateTransformer = () => {
-    const transformerNode = transformerRef.value?.getNode();
+    const transformerNode = (transformerRef.value as { getNode: () => { nodes: (n: unknown[]) => void, getLayer: () => { batchDraw: () => void } } | undefined })?.getNode();
     if (!transformerNode) return;
 
-    const stage = stageRef.value?.getStage();
+    const stage = (stageRef.value as { getStage: () => { findOne: (s: string) => unknown } })?.getStage();
     const nodes = selectedShapeIds.value
         .map(id => stage.findOne('#' + id))
         .filter(node => node !== undefined);

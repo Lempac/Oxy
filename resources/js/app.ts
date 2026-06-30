@@ -29,11 +29,11 @@ createInertiaApp({
         };
 
         // Initial application
-        updateTheme((props.initialPage?.props as any)?.user?.theme);
+        updateTheme((props.initialPage?.props as { user?: { theme?: ThemeType } })?.user?.theme || null);
 
         // Listen for updates (including theme changes via profile update)
         router.on('success', (event) => {
-            updateTheme((event.detail.page.props as any).user?.theme);
+            updateTheme((event.detail.page.props as { user?: { theme?: ThemeType } }).user?.theme || null);
         });
     },
     progress: {

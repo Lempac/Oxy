@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import { usePerms, fetchJson } from '@/bootstrap';
+import { usePerms } from '@/bootstrap';
 
 import { create, deleteMethod, edit } from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 
-import {router, useForm, usePage} from "@inertiajs/vue3";
+import {router, useForm} from "@inertiajs/vue3";
 import echo from "@/echo";
-import {Channel, Message, MessageType, Perms, PermType, Role, Server} from "@/types";
+import {Channel, Message, MessageType, PermType, Server} from "@/types";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
-import {baseUrl, bigIntToPerms, defaultIcon} from "@/bootstrap";
+import {baseUrl, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
 import { FaRegFile, FaRegPaperPlane } from 'vue-icons-plus/fa';
@@ -55,7 +55,7 @@ const form = useForm<{ type: typeof MessageType[keyof typeof MessageType], mdata
 
 
 if (selectedChannel) {
-    echo.private(`messages.${selectedChannel.id}`)
+    echo?.private(`messages.${selectedChannel.id}`)
         .listen('.MessageCreated', () => {
             router.reload({only: ['messages']});
         })
