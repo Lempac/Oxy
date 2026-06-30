@@ -16,7 +16,7 @@ services:
     working_dir: /app
     ports:
       - "1234:1234"
-    command: npx --yes @y/websocket-server
+    command: npx --yes y-websocket@2.1.0
     env_file: .env
     restart: unless-stopped
 
