@@ -26,7 +26,7 @@ This project is built using the modern **VILT** stack alongside powerful real-ti
 
 ### Real-Time & Collaboration
 * **Laravel Reverb & Echo:** First-party WebSocket server and client for real-time broadcasting (used for live chat, voice calls, and notifications).
-* **Yjs & @y/websocket-server:** A CRDT framework and WebSocket server used to handle conflict-free, real-time synchronization for the collaborative whiteboard.
+* **Yjs & y-websocket:** A CRDT framework and WebSocket server used to handle conflict-free, real-time synchronization for the collaborative whiteboard.
 * **Konva (vue-konva):** 2D HTML5 Canvas framework used to draw and interact with elements on the whiteboard.
 
 ### Infrastructure
