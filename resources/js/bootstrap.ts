@@ -67,7 +67,7 @@ export const fetchJson = async (url: string, options: RequestInit = {}) => {
     const data = isJson ? await response.json() : null;
 
     if (!response.ok) {
-        const error: any = new Error(response.statusText);
+        const error = new Error(response.statusText) as Error & { response: { status: number, data: unknown } };
         error.response = { status: response.status, data };
         throw error;
     }
@@ -85,8 +85,9 @@ export const joinServer = async (code: string): Promise<[number, string?]> => {
         
         router.reload({only: ['servers', 'user']});
         return [200, 'Successfully joined to server.'];
-    } catch (err: any) {
-        return [err.response?.status || 500, err.response?.data?.message || err.message];
+    } catch (err: unknown) {
+        const error = err as { response?: { status?: number, data?: { message?: string } }, message?: string };
+        return [error.response?.status || 500, error.response?.data?.message || error.message];
     }
 }
 

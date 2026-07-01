@@ -1,17 +1,13 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
-
 import ServerSelectBar from "@/Components/ServerSelectBar.vue";
 import ChannelSelectBar from "@/Components/ChannelSelectBar.vue";
-import {router, usePage} from "@inertiajs/vue3";
+import {router} from "@inertiajs/vue3";
 import {ref} from "vue";
 import MembersList from "@/Components/MembersList.vue";
-import {Perms, PermType, Role, Server, Channel} from "@/types";
-import {bigIntToPerms} from "@/bootstrap";
+import {Server, Channel} from "@/types";
 import echo from "@/echo";
 import { HiOutlineChevronDown, HiOutlineChevronUp } from 'vue-icons-plus/hi';
 
-const perms = usePerms();
 const {selectedServer} = defineProps<{
     servers?: Server[];
     selectedServer?: Server;
@@ -24,7 +20,7 @@ const isTopHovered = ref(false);
 const isBottomHovered = ref(false);
 
 if (selectedServer) {
-    echo.private(`servers.${selectedServer.id}`)
+    echo?.private(`servers.${selectedServer.id}`)
         .listen('.ServerJoined', () => {
             router.reload({only: ['selected_server']});
         })
@@ -35,7 +31,7 @@ if (selectedServer) {
             router.reload({only: ['servers', 'selected_server']});
         });
 
-    echo.private(`roles.${selectedServer.id}`)
+    echo?.private(`roles.${selectedServer.id}`)
         .listen('.RoleDeleted', () => {
             router.reload({only: ['selected_server']});
         })

@@ -21,7 +21,7 @@ const {selectedServer} = defineProps<{
 
 const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
-const editCurrent = ref<Function>();
+const editCurrent = ref<() => void>();
 
 const form = useForm({
     type: ChannelType.Voice,

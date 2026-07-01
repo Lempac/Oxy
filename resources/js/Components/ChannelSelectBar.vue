@@ -1,14 +1,12 @@
 <script lang="ts" setup>
 import { usePerms } from '@/bootstrap';
-import { text, voice, whiteboard } from '@/routes/home';
-import { create, deleteMethod, edit } from '@/routes/channel';
-import { channel as textChannelRoute } from '@/routes/home/text';
-import { channel as voiceChannelRoute } from '@/routes/home/voice';
-import { channel as whiteboardChannelRoute } from '@/routes/home/whiteboard';
-import {Link, router, useForm, usePage} from "@inertiajs/vue3";
-import {ref, computed} from "vue";
-import {Channel, ChannelType, Perms, PermType, Server} from "@/types";
-import {bigIntToPerms} from "@/bootstrap";
+import {create, deleteMethod, edit} from '@/routes/channel';
+import {channel as textChannelRoute} from '@/routes/home/text';
+import {channel as voiceChannelRoute} from '@/routes/home/voice';
+import {channel as whiteboardChannelRoute} from '@/routes/home/whiteboard';
+import {Link, router, useForm} from "@inertiajs/vue3";
+import {computed, ref} from "vue";
+import {Channel, ChannelType, PermType, Server} from "@/types";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { BsChatText, BsEasel } from 'vue-icons-plus/bs';
@@ -108,7 +106,7 @@ const togglePin = (type: 'text' | 'voice' | 'whiteboard') => {
 };
 
 if (selectedServer) {
-    echo.private(`channels.${selectedServer.id}`)
+    echo?.private(`channels.${selectedServer.id}`)
         .listen('.ChannelCreated', () => {
             router.reload({only: ['channels']});
         })
@@ -274,7 +272,7 @@ if (selectedServer) {
             </div>
 
             <!-- Pencil Mode Toggle -->
-            <div class="shrink-0 ml-2" v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL, PermType.CAN_DELETE_CHANNEL])">
+            <div v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL, PermType.CAN_DELETE_CHANNEL])" class="shrink-0 ml-2">
                 <button 
                     class="btn btn-circle btn-sm tooltip tooltip-left" 
                     :class="isEditMode ? 'btn-warning' : 'btn-ghost'"

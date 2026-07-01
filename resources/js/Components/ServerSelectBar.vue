@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { home, logout } from '@/routes';
-import { server as serverRoute, text } from '@/routes/home';
+import {logout} from '@/routes';
+import {text} from '@/routes/home';
 import { edit } from '@/routes/profile';
 import { create, leave } from '@/routes/server';
 import { server as settingsServer } from '@/routes/settings';

@@ -3,10 +3,8 @@ import { usePerms } from '@/bootstrap';
 
 import { members, role, server } from '@/routes/settings';
 
-import {Link, usePage} from "@inertiajs/vue3";
-import {Perms, PermType, Role, Server} from "@/types";
-import {bigIntToPerms} from "@/bootstrap";
-import {ref} from "vue";
+import {Link} from "@inertiajs/vue3";
+import {PermType, Server} from "@/types";
 
 const perms = usePerms();
 const {selectedServer} = defineProps<{
