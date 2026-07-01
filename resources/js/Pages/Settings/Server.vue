@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { usePerms } from '@/bootstrap';
-
 import {destroy, update} from '@/routes/server';
 import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -10,6 +9,8 @@ import {baseUrl} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import {PermType, Server} from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';
+import { server } from '@/routes/home';
+import { Link } from '@inertiajs/vue3';
 
 const perms = usePerms();
 const {selectedServer, inviteCode} = defineProps<{
@@ -57,112 +58,151 @@ function deleteServer() {
     });
 }
 
+const copyText = ref('Copy');
+
 const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    copyText.value = 'Copied!';
+    setTimeout(() => {
+        copyText.value = 'Copy';
+    }, 2000);
 }
-
-
-const goBack = () => {
-    window.history.back();
-}
-
 </script>
 
 <template>
-    <div class="flex flex-col items-center justify-center">
-        <div class="w-full max-w-6xl p-6">
-            <!-- navbar -->
-            <SettingsHeader :selected-server="selectedServer!"/>
-
-            <div class="flex justify-end mb-6 space-x-4">
-                <button
-                    :class="`btn ${form.isDirty ? 'btn-neutral' : ''} px-6`"
-                    :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
-                    @click="handleSave">
-                    Save Changes
-                </button>
-                <button class="btn btn-neutral" @click="goBack">
-                    Cancel
-                </button>
+    <div class="flex h-screen bg-base-100 overflow-hidden">
+        <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
+            <div class="px-6 pt-6 md:px-10 md:pt-10 max-w-6xl mx-auto w-full pb-0">
+                <SettingsHeader :selected-server="selectedServer!"/>
             </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 md:p-10 pt-0">
+                <div class="max-w-4xl mx-auto space-y-8 pb-20">
+                    <div class="flex items-center justify-between">
+                        <h1 class="text-3xl font-bold text-base-content">Server Settings</h1>
+                        <div class="flex space-x-3">
+                            <Link :href="server.url(selectedServer!.route_key)" class="btn btn-neutral px-6">
+                                ← Back to Server
+                            </Link>
+                            <button
+                                class="btn btn-success px-8"
+                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER]) || !form.isDirty"
+                                @click="handleSave">
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
 
-            <div class="bg-base-200 p-8 rounded-lg shadow-lg">
-                <h1 class="text-3xl text-base-content mb-6">Server Settings</h1>
-                <!-- Server info -->
-                <div class="bg-base-300 p-6 rounded-lg mb-8">
-                    <div class="flex items-center">
-                        <label class="relative cursor-pointer has-[:disabled]:cursor-not-allowed" for="serverIcon">
-                            <input
-                                id="serverIcon"
-                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
-                                accept="image/png, image/jpeg"
-                                class="hidden peer"
-                                type="file"
-                                @change="updateIcon((<HTMLInputElement>$event.target).files![0])"
-                            />
-                            <div
-                                class="w-24 h-24 rounded-full bg-base-300 flex justify-center items-center transition-all duration-300 ease-in-out peer-enabled:hover:bg-transparent peer-disabled:input-disabled">
-                                <img
-                                    v-if="icon" :src="icon" alt="Server Icon"
-                                    class="w-full h-full rounded-full object-cover"/>
-                                <span v-else class="text-4xl text-base-content/50">+</span>
+                    <!-- General Settings -->
+                    <div class="card bg-base-200 shadow-sm border border-base-300">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">General Overview</h2>
+                            <div class="flex flex-col md:flex-row gap-8">
+                                <div class="flex-shrink-0">
+                                    <label class="label"><span class="label-text font-medium">Server Icon</span></label>
+                                    <label class="relative cursor-pointer has-[:disabled]:cursor-not-allowed block mt-2" for="serverIcon">
+                                        <input
+                                            id="serverIcon"
+                                            :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
+                                            accept="image/png, image/jpeg"
+                                            class="hidden peer"
+                                            type="file"
+                                            @change="updateIcon((<HTMLInputElement>$event.target).files![0])"
+                                        />
+                                        <div
+                                            class="w-32 h-32 rounded-full bg-base-100 border border-base-300 flex justify-center items-center transition-all duration-300 ease-in-out peer-enabled:hover:border-primary peer-disabled:opacity-50 overflow-hidden">
+                                            <img
+                                                v-if="icon" :src="icon" alt="Server Icon"
+                                                class="w-full h-full object-cover"/>
+                                            <span v-else class="text-4xl text-base-content/30">+</span>
+                                        </div>
+                                    </label>
+                                    <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
+                                </div>
+                                <div class="flex-1 space-y-4">
+                                    <div class="form-control w-full">
+                                        <label class="label"><span class="label-text font-medium">Server Name</span></label>
+                                        <input
+                                            id="serverName"
+                                            v-model="form.name"
+                                            :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
+                                            class="input input-bordered w-full bg-base-100 text-base-content"
+                                            placeholder="Enter your server name"
+                                            type="text"
+                                        />
+                                        <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
+                                    </div>
+                                    <div class="form-control w-full">
+                                        <label class="label"><span class="label-text font-medium">Description</span></label>
+                                        <textarea
+                                            id="description"
+                                            v-model="form.description"
+                                            :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
+                                            class="textarea textarea-bordered w-full bg-base-100 text-base-content h-24 resize-none"
+                                            placeholder="Enter server description"
+                                        ></textarea>
+                                    </div>
+                                </div>
                             </div>
-                        </label>
-                        <div class="w-full ml-[15%]">
-                            <label class="text-base-content" for="serverName">Server Name</label>
-                            <input
-                                id="serverName"
-                                v-model="form.name"
-                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
-                                class="input input-bordered w-full mt-2 bg-base-100 text-base-content"
-                                placeholder="Enter your server name"
-                                type="text"
-                            />
-                            <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
-                            <label class="text-base-content mt-auto" for="description">Description</label>
-                            <input
-                                id="description"
-                                v-model="form.description"
-                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
-                                class="input input-bordered w-full mt-2 bg-base-100 text-base-content h-24"
-                                placeholder="Enter server description"
-                                type="text"
-                            />
                         </div>
                     </div>
-                    <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
-                </div>
 
-                <!-- Other Settings Section -->
-                <div class="bg-base-300 p-6 rounded-lg">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <span class="text-xl text-base-content">Allow Attachments</span>
-                            <p class="text-sm text-base-content/70">Let's you send images and videos in chat.</p>
+                    <!-- Features -->
+                    <div class="card bg-base-200 shadow-sm border border-base-300">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">Features</h2>
+                            <div class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
+                                <div>
+                                    <span class="font-semibold text-base-content">Allow Attachments</span>
+                                    <p class="text-sm text-base-content/70 mt-1">Let's you send images and videos in chat.</p>
+                                </div>
+                                <input class="toggle toggle-primary" disabled type="checkbox"/>
+                            </div>
                         </div>
-                        <input class="toggle toggle-primary" disabled type="checkbox"/>
                     </div>
-                </div>
 
-                <div v-if="inviteCode && perms.has([PermType.CAN_INVITE])" class="bg-base-300 p-6 rounded-lg mt-8 flex justify-between items-center">
-                    <div>
-                        <span class="text-xl text-base-content">Server Invite Code</span>
-                        <p class="text-sm text-base-content/70">Share this code with others so they can join.</p>
+                    <!-- Invite Code -->
+                    <div v-if="inviteCode && perms.has([PermType.CAN_INVITE])" class="card bg-base-200 shadow-sm border border-base-300">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">Invite Code</h2>
+                            <div class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
+                                <div>
+                                    <span class="font-semibold text-base-content">Server Invite Code</span>
+                                    <p class="text-sm text-base-content/70 mt-1">Share this code with others so they can join.</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider">{{ inviteCode }}</span>
+                                    <div class="tooltip tooltip-top" :data-tip="copyText">
+                                        <button class="btn btn-square btn-ghost" @click="copyToClipboard(inviteCode)">
+                                            <HiClipboardCopy class="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-mono bg-base-100 p-2 rounded">{{ inviteCode }}</span>
-                        <button class="btn btn-square btn-ghost" data-tip="Copy" @click="copyToClipboard(inviteCode)">
-                            <HiClipboardCopy scale="1.5" />
-                        </button>
+
+                    <!-- Danger Zone -->
+                    <div class="card bg-error/10 shadow-sm border border-error/20">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl border-b border-error/20 pb-2 mb-4 text-error">Danger Zone</h2>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span class="font-semibold text-base-content">Delete Server</span>
+                                    <p class="text-sm text-base-content/70 mt-1">Once you delete a server, there is no going back. Please be certain.</p>
+                                </div>
+                                <ConfirmDialog
+                                    :class-name="`btn btn-error px-6 ${!perms.has([PermType.CAN_DELETE_SERVER]) ? 'btn-disabled' : ''}`"
+                                    :confirm="deleteServer"
+                                    description="Are you sure you want to delete this server? This action cannot be undone."
+                                    text="Delete Server"
+                                    title="Delete server"
+                                />
+                            </div>
+                        </div>
                     </div>
+
                 </div>
-                <ConfirmDialog
-                    :class-name="`btn hover:btn-error mt-10 ${!perms.has([PermType.CAN_DELETE_SERVER]) ? 'btn-disabled' : ''}`"
-                    :confirm="deleteServer"
-                    description="Are you sure you want to delete this server?"
-                    text="Delete Server"
-                    title="Delete server"
-                />
             </div>
         </div>
     </div>
