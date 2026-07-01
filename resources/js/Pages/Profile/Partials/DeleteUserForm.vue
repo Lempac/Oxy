@@ -34,63 +34,57 @@ const deleteUser = () => {
 
 <template>
     <section class="space-y-6">
-        <header>
-            <h2 class="text-lg font-medium text-base-content">Delete Account</h2>
-            <p class="mt-1 text-sm text-base-content/70">
-                Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting
-                your account, please download any data or information that you wish to retain.
-            </p>
-        </header>
-
-        <button class="btn btn-error" @click="toggleModal('open')">Delete Account</button>
+        <div class="flex justify-between items-center">
+            <div>
+                <span class="font-semibold text-base-content">Delete Account</span>
+                <p class="text-sm text-base-content/70 mt-1">Once your account is deleted, all of its resources and data will be permanently deleted.</p>
+            </div>
+            <button class="btn btn-error px-6" @click="toggleModal('open')">Delete Account</button>
+        </div>
         <dialog id="my_modal_2" ref="modalRef" class="modal">
             <div class="modal-box">
-                <form class="modal-backdrop" method="dialog">
-                    <div class="p-6">
-                        <h2 class="text-lg font-medium text-base-content">
-                            Are you sure you want to delete your account?
-                        </h2>
+                <h3 class="text-lg font-bold text-base-content">
+                    Are you sure you want to delete your account?
+                </h3>
 
-                        <p class="mt-1 text-sm text-base-content/70">
-                            Once your account is deleted, all of its resources and data will be permanently deleted.
-                            Please
-                            enter your password to confirm you would like to permanently delete your account.
-                        </p>
+                <p class="mt-2 text-sm text-base-content/70">
+                    Once your account is deleted, all of its resources and data will be permanently deleted.
+                    Please enter your password to confirm you would like to permanently delete your account.
+                </p>
 
-                        <div class="mt-6">
-                            <label class="block font-medium text-sm text-base-content/70" for="password">Password</label>
+                <div class="mt-6">
+                    <label class="label"><span class="label-text font-medium text-base-content">Password</span></label>
+                    <label class="input input-bordered flex items-center gap-2 w-full">
+                        <MdKey class="h-4 w-4 opacity-70"/>
+                        <input
+                            id="password"
+                            ref="passwordInput"
+                            v-model="form.password"
+                            class="grow text-base-content"
+                            placeholder="Enter your password"
+                            type="password"
+                            @keyup.enter="deleteUser"
+                        />
+                    </label>
+                    <ErrorAlert v-if="form.errors.password" :message="form.errors.password" class="mt-2"/>
+                </div>
 
-                            <label class="input input-bordered flex items-center gap-2">
-                                <MdKey class="h-4 w-4 opacity-70"/>
-                                <input
-                                    id="password"
-                                    ref="passwordInput"
-                                    v-model="form.password"
-                                    class="mt-1 block w-3/4 text-base-content"
-                                    placeholder="Password"
-                                    type="password"
-                                    @keyup.enter="deleteUser"
-                                />
-                            </label>
+                <div class="modal-action mt-6">
+                    <button class="btn" type="button" @click="toggleModal('close')">Cancel</button>
 
-                            <ErrorAlert :message="form.errors.password" class="mt-2"/>
-                        </div>
-
-                        <div class="mt-6 flex justify-end">
-                            <button class="btn" type="button" @click="toggleModal('close')">Cancel</button>
-
-                            <button
-                                :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
-                                class="btn btn-error ms-3"
-                                type="button"
-                                @click="deleteUser"
-                            >
-                                Delete Account
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                    <button
+                        :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
+                        class="btn btn-error"
+                        type="button"
+                        @click="deleteUser"
+                    >
+                        Delete Account
+                    </button>
+                </div>
             </div>
+            <form method="dialog" class="modal-backdrop">
+                <button @click="toggleModal('close')">close</button>
+            </form>
         </dialog>
     </section>
 </template>
