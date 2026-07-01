@@ -37,12 +37,9 @@ const updatePassword = () => {
 
 <template>
     <section>
-        <header>
-            <h2 class="text-lg font-medium text-base-content">Update Password</h2>
-            <p class="mt-1 text-sm text-base-content/70">
-                Ensure your account is using a long, random password to stay secure.
-            </p>
-        </header>
+        <p class="mt-1 text-sm text-base-content/70">
+            Ensure your account is using a long, random password to stay secure.
+        </p>
 
         <form class="mt-6 space-y-6" @submit.prevent="updatePassword">
             <div>
