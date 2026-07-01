@@ -3,12 +3,11 @@ import { usePerms } from '@/bootstrap';
 
 import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as channelRoute } from '@/routes/home/whiteboard';
-import {Link, router, useForm, usePage} from "@inertiajs/vue3";
+import {Link, router, useForm} from "@inertiajs/vue3";
 import {ref} from "vue";
-import {Channel, ChannelType, Perms, PermType, Role, Server} from "@/types";
+import {Channel, ChannelType, PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import {bigIntToPerms} from "@/bootstrap";
 import echo from "@/echo";
 import { MdOutlineDeleteForever, MdOutlineModeEdit } from 'vue-icons-plus/md';
 import { GoPlus } from 'vue-icons-plus/go';
@@ -85,7 +84,7 @@ const editChannel = async (channelKey: string) => {
 };
 
 if (selectedServer) {
-    echo.private(`channels.${selectedServer.id}`)
+    echo?.private(`channels.${selectedServer.id}`)
         .listen('.ChannelCreated', () => {
             router.reload({only: ['channels', 'selected_channel']});
         })
