@@ -29,6 +29,7 @@ const isModalOpen = ref(false);
 
 const searchRoles = ref('');
 const searchPermissions = ref('');
+const openCategories = ref<Record<string, boolean>>({});
 
 const filteredRoles = computed(() => {
     if (!searchRoles.value) return roles.value;
@@ -307,7 +308,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                             </div>
                             
                             <div v-for="(permsList, category) in groupedPermissions" :key="category" class="collapse collapse-arrow bg-base-100 border border-base-300 mb-4 last:mb-0">
-                                <input type="checkbox" checked />
+                                <input type="checkbox" :checked="searchPermissions.length > 0 || openCategories[category]" @change="(e) => openCategories[category] = (e.target as HTMLInputElement).checked" />
                                 <div class="collapse-title text-base font-bold text-base-content/80 uppercase tracking-wider">
                                     {{ category }}
                                 </div>
