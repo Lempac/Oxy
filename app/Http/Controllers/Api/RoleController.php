@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
@@ -106,6 +107,7 @@ class RoleController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
+            'allPermissions' => Permission::all(['name', 'title', 'description', 'category']),
         ]);
     }
 

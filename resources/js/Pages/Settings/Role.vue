@@ -1,21 +1,19 @@
 <script lang="ts" setup>
 import { usePerms, fetchJson } from '@/bootstrap';
-
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
-import {ref} from 'vue';
-import {Link} from '@inertiajs/vue3';
-import {PermType, Role, Server} from "@/types";
+import { ref, computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { Perms, PermType, Role, Server } from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
-import {bigIntToPerms} from "@/bootstrap";
+import { bigIntToPerms } from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import { BiDownArrowAlt, BiUpArrowAlt } from 'vue-icons-plus/bi';
-import { BsCheckLg } from 'vue-icons-plus/bs';
-
 
 const perms = usePerms();
-const {selectedServer} = defineProps<{
+const { selectedServer, allPermissions } = defineProps<{
     selectedServer: Server,
+    allPermissions: { name: string, title: string, description: string }[]
 }>();
 
 const roles = ref<Role[]>([]);
@@ -29,13 +27,52 @@ const newRole = ref({
 const editingRole = ref<Role | null>(null);
 const isModalOpen = ref(false);
 
+const searchRoles = ref('');
+const searchPermissions = ref('');
+const openCategories = ref<Record<string, boolean>>({});
+
+const filteredRoles = computed(() => {
+    if (!searchRoles.value) return roles.value;
+    return roles.value.filter(role => role.name.toLowerCase().includes(searchRoles.value.toLowerCase()));
+});
+
+const filteredPermissions = computed(() => {
+    if (!searchPermissions.value) return allPermissions;
+    return allPermissions.filter(perm => 
+        (perm.title || perm.name).toLowerCase().includes(searchPermissions.value.toLowerCase()) || 
+        (perm.description || '').toLowerCase().includes(searchPermissions.value.toLowerCase())
+    );
+});
+
+const groupedPermissions = computed(() => {
+    const groups: Record<string, typeof allPermissions> = {};
+    for (const perm of filteredPermissions.value) {
+        const cat = perm.category || 'Other Permissions';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(perm);
+    }
+    return groups;
+});
+
 const fetchRoles = async () => {
     try {
         const response = await fetchJson(index.url(selectedServer?.route_key));
-        roles.value = response.data ?? []; // Default to an empty array if undefined
-        // Sort roles by importance
+        roles.value = response.data ?? [];
         roles.value.sort((a, b) => a.importance - b.importance);
-
+        
+        // Update editingRole if it was already selected
+        if (editingRole.value) {
+            const updated = roles.value.find(r => r.id === editingRole.value?.id);
+            if (updated) {
+                editingRole.value = updated;
+                // Avoid overwriting newRole if they have unsaved changes? 
+                // Actually it's fine, we should just update it if we fetched explicitly.
+            } else {
+                editingRole.value = null;
+            }
+        } else if (roles.value.length > 0) {
+            selectRole(roles.value[0]);
+        }
     } catch (error) {
         console.error('Error fetching roles:', error);
     }
@@ -43,69 +80,68 @@ const fetchRoles = async () => {
 
 const closeModal = () => {
     isModalOpen.value = false;
-    newRole.value.name = '';
-    newRole.value.color = '#ffffff'; // Reset color
-    newRole.value.importance = 0; // Reset importance
-    newRole.value.perms = [];
 };
 
-const editRole = (role: Role) => {
+const selectRole = (role: Role) => {
     editingRole.value = role;
-    newRole.value = role;
+    newRole.value = JSON.parse(JSON.stringify(role));
 };
 
 const updateRole = async () => {
-    const currentEditingRole = editingRole.value;
-
-    if (currentEditingRole) {
-        const response = await fetchJson(edit.url(currentEditingRole.id), {
+    if (editingRole.value) {
+        const response = await fetchJson(edit.url(editingRole.value.id), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newRole.value)
         });
 
-        const index = roles.value.findIndex(r => r.id === currentEditingRole.id);
+        const index = roles.value.findIndex(r => r.id === editingRole.value?.id);
         roles.value[index] = response.data.role;
 
-        editingRole.value = null;
-        closeModal(); // Reset modal state
+        // Keep it selected after save
+        selectRole(response.data.role); 
         await fetchRoles();
     }
 };
 
+const newRoleForm = ref({ name: '', color: '#ffffff' });
+
 const addRole = async () => {
     try {
-        newRole.value.importance = 1;
-
+        let importance = 1;
         if (roles.value.length > 0) {
             const maxImportance = Math.max(...roles.value.map(role => role.importance));
-            newRole.value.importance = maxImportance + 1;
+            importance = maxImportance + 1;
         }
 
         await fetchJson(create.url(selectedServer?.route_key), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                name: newRole.value.name,
-                color: newRole.value.color,
-                perms: newRole.value.perms,
-                importance: newRole.value.importance,
+                name: newRoleForm.value.name,
+                color: newRoleForm.value.color,
+                perms: [],
+                importance: importance,
             })
         });
 
         closeModal();
+        newRoleForm.value.name = '';
+        newRoleForm.value.color = '#ffffff';
         await fetchRoles();
     } catch (error) {
         console.error('Error adding role:', error);
     }
 };
 
-const deleteRole = async (role: Role) => {
+const deleteRole = async () => {
+    if (!editingRole.value) return;
+    const role = editingRole.value;
     try {
         await fetchJson(deleteMethod.url(role.id), { method: 'DELETE' });
 
         roles.value = roles.value.filter(r => r.id !== role.id);
-
+        
         roles.value.forEach(r => {
             if (r.importance > role.importance) {
                 r.importance -= 1;
@@ -118,41 +154,32 @@ const deleteRole = async (role: Role) => {
         });
 
         roles.value.sort((a, b) => a.importance - b.importance);
+        editingRole.value = null;
+        if (roles.value.length > 0) {
+            selectRole(roles.value[0]);
+        }
 
     } catch (error) {
         console.error('Error deleting role:', error);
     }
 };
 
-
-// Fetch roles when the component mounts
 fetchRoles();
 
 const togglePerm = (perm: string, state: boolean) => {
-    if (editingRole.value?.perms === undefined) return;
-    const currentPerm = bigIntToPerms(editingRole.value?.perms || [])
+    if (!newRole.value) return;
+    
+    // We should not modify the reactive `editingRole` directly, but `newRole`.
+    const currentPerm = bigIntToPerms(newRole.value.perms || []);
 
-    if (state) currentPerm.add(perm)
-    else currentPerm.remove(perm)
+    if (state) currentPerm.add(perm);
+    else currentPerm.remove(perm);
 
-    editingRole.value.perms = currentPerm.perms
+    newRole.value.perms = currentPerm.perms;
 };
 
-const roleArray = Object.entries(PermType);
-
-const formatRolePerms = (role: Role) => {
-
-    const filtered = roleArray.filter(roleObj => role.perms.includes(roleObj[1]));
-    const length = filtered.length;
-    if (length === 0) return 'None';
-    const firstThree = filtered.slice(0, 3).map(roleObj => roleObj[0]).join(', ');
-    if (length > 3) {
-        return `${firstThree} +${length - 3} others`;
-    }
-    return firstThree;
-};
-
-const changeImportance = async (role: Role, direction: number) => {
+const changeImportance = async (role: Role, direction: number, event: Event) => {
+    event.stopPropagation();
     const currentImportance = role.importance;
     const newImportance = currentImportance + direction;
 
@@ -184,151 +211,182 @@ const changeImportance = async (role: Role, direction: number) => {
 
     roles.value.sort((a, b) => a.importance - b.importance);
 };
-
-
 </script>
 
 <template>
-    <div class="flex flex-col items-center justify-center">
-        <div class="w-full max-w-6xl p-6">
-            <!-- Navbar for Navigation -->
-            <SettingsHeader :selected-server/>
-            <div class="flex justify-end mb-6 space-x-4">
-                <Link :href="server.url(selectedServer?.route_key)" class="btn btn-neutral">
-                    Cancel
+    <div class="flex h-screen bg-base-100 overflow-hidden">
+        <!-- Sidebar for Navigation -->
+        <div class="w-80 bg-base-200 border-r border-base-300 flex flex-col h-full shrink-0">
+            <div class="p-4 border-b border-base-300">
+                <Link :href="server.url(selectedServer?.route_key)" class="btn btn-neutral w-full mb-4">
+                    ← Back to Server
                 </Link>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-base-content">Roles</h2>
+                    <button :disabled="!perms.has([PermType.CAN_CREATE_ROLE])" class="btn btn-sm btn-primary" @click="isModalOpen = true">
+                        Add Role
+                    </button>
+                </div>
+                <input type="text" placeholder="Search Roles" class="input input-bordered input-sm w-full bg-base-100" v-model="searchRoles" />
             </div>
-
-            <!-- Role Settings Content Section -->
-            <div class="bg-base-200 p-8 rounded-lg shadow-lg">
-                <h1 class="text-3xl text-base-content mb-6">Role Settings</h1>
-
-                <!-- Button to Open Modal -->
-                <button :disabled="!perms.has([PermType.CAN_CREATE_ROLE])" class="btn mb-6" @click="isModalOpen = true">
-                    Add Role
-                </button>
-
-                <!-- Roles Table -->
-                <table class="min-w-full bg-base-300 rounded-lg">
-                    <thead class="bg-base-100">
-                    <tr>
-                        <th class="py-2 px-4 text-left text-base-content">Role Name</th>
-                        <th v-if="editingRole" class="py-2 px-4 text-left text-base-content">Color</th>
-                        <th class="py-2 px-4 text-left text-base-content">Importance</th>
-                        <th class="py-2 px-4 text-left text-base-content">Perms</th>
-                        <th class="py-2 px-4 text-end text-base-content">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="role in roles" :key="role.id">
-                        <td :style="{ color: editingRole === role ? newRole.color : role.color }" class="py-2 px-4">
-                            <span v-if="editingRole !== role">{{ role.name }}</span>
-                            <input
-                                v-if="editingRole === role" v-model="newRole.name" class="p-1 text-base-content bg-base-100"
-                                type="text"/>
-                        </td>
-                        <td v-if="editingRole === role" class="py-2 px-4">
-                            <input v-model="newRole.color" class="ml-2 bg-transparent" type="color"/>
-                        </td>
-                        <td class="py-2 px-4 text-base-content">
-                            <span v-if="editingRole !== role">{{ role.importance }}</span>
-                            <div
-                                v-if="editingRole === role && role.importance !== 0"
-                                class="flex justify-center space-x-2">
-                                <button class="btn" @click="changeImportance(role, -1)">
-                                    <BiUpArrowAlt/>
-                                </button>
-                                <button class="btn" @click="changeImportance(role, 1)">
-                                    <BiDownArrowAlt/>
-                                </button>
-                            </div>
-                        </td>
-                        <td class="py-2 px-4 text-base-content">
-                            <div class="dropdown">
-                                <button
-                                    class="btn m-1"
-                                    tabindex="0">
-                                    {{ formatRolePerms(role) }}
-                                </button>
-                                <ul
-                                    class="dropdown-content menu bg-base-100 rounded-box z-[1] p-2 shadow gap-y-1"
-                                    tabindex="0">
-                                    <template v-for="(rolePerms, rolePermsIdx) in [bigIntToPerms(role.perms)]" :key="'perms-' + role.id + '-' + rolePermsIdx">
-                                        <li v-for="(perm, permIndex) in roleArray" :key="permIndex">
-                                            <button
-                                                :class="(rolePerms.has(perm[1]) ? 'bg-base-300' : '')"
-                                                :disabled="editingRole !== role"
-                                                class="btn"
-                                                @click="() => togglePerm(perm[1], !rolePerms.has(perm[1]))"
-                                            >
-                                                <BsCheckLg
-                                                    v-if="rolePerms.has(perm[1])"/>
-                                                {{ perm[0] }}
-                                            </button>
-                                        </li>
-                                    </template>
-                                </ul>
-                            </div>
-                        </td>
-                        <td class="py-2 px-4 text-end">
-                            <div class="flex justify-end space-x-2">
-                                <button
-                                    v-if="editingRole !== role" :disabled="!perms.has([PermType.CAN_EDIT_ROLE])"
-                                    class="btn hover:btn-info px-4 py-2 "
-                                    @click="editRole(role)">Edit
-                                </button>
-                                <button
-                                    v-if="editingRole === role" class="btn hover:btn-success px-4 py-2"
-                                    @click="updateRole">Save
-                                </button>
-                                <ConfirmDialog
-                                    :class-name="`btn hover:btn-error px-4 py-2 ${!perms.has([PermType.CAN_DELETE_ROLE]) ? 'btn-disabled' : ''}`"
-                                    :confirm="() => deleteRole(role)"
-                                    description="Are you sure you want to delete this role?"
-                                    text="Delete" title="Are you sure?"/>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-
-                <!-- Modal for Adding Role -->
-                <dialog v-if="isModalOpen" class="modal modal-open">
-                    <div class="modal-box">
-                        <h2 class="text-lg font-bold">Add New Role</h2>
-                        <div class="form-control">
-                            <label class="label" for="newRoleName">Role Name</label>
-                            <input
-                                id="newRoleName"
-                                v-model="newRole.name"
-                                class="input input-bordered grow"
-                                required
-                                type="text"
-                            />
-                        </div>
-                        <div class="form-control">
-                            <label class="label justify-start" for="newRoleColor">
-                                Color
-                                <span
-                                    :style="{ backgroundColor: newRole.color }"
-                                    class="ml-3 size-12 rounded-full border border-gray-300 cursor-pointer"
-                                />
-                            </label>
-                            <input
-                                id="newRoleColor"
-                                v-model="newRole.color"
-                                class="hidden"
-                                type="color"
-                            />
-                        </div>
-                        <!-- Removed Importance Field from the Modal Form -->
-                        <div class="modal-action">
-                            <button class="btn btn-success" @click="addRole">Add Role</button>
-                            <button class="btn" @click="closeModal">Cancel</button>
-                        </div>
+            <div class="flex-1 overflow-y-auto p-3 space-y-1">
+                <div v-for="role in filteredRoles" :key="role.id" 
+                     class="p-3 rounded-lg cursor-pointer flex justify-between items-center transition-colors group"
+                     :class="editingRole?.id === role.id ? 'bg-primary text-primary-content' : 'hover:bg-base-300 text-base-content'"
+                     @click="selectRole(role)">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <div class="w-4 h-4 rounded-full shrink-0 shadow-sm border border-black/10" :style="{ backgroundColor: role.color }"></div>
+                        <span class="font-medium truncate">{{ role.name }}</span>
                     </div>
-                </dialog>
+                    <div class="flex items-center space-x-1 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity" v-if="role.importance !== 0">
+                        <button class="btn btn-xs btn-circle btn-ghost" 
+                                :class="editingRole?.id === role.id ? 'text-primary-content hover:bg-black/20' : ''"
+                                @click="(e) => changeImportance(role, -1, e)"
+                                :disabled="role.importance <= 1">
+                            <BiUpArrowAlt class="w-4 h-4" />
+                        </button>
+                        <button class="btn btn-xs btn-circle btn-ghost" 
+                                :class="editingRole?.id === role.id ? 'text-primary-content hover:bg-black/20' : ''"
+                                @click="(e) => changeImportance(role, 1, e)"
+                                :disabled="role.importance >= roles.length - 1">
+                            <BiDownArrowAlt class="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Role Settings Content Section -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
+            <SettingsHeader :selected-server="selectedServer"/>
+            
+            <div class="flex-1 overflow-y-auto p-6 md:p-10" v-if="editingRole">
+                <div class="max-w-4xl mx-auto space-y-8 pb-20">
+                    <div class="flex items-center justify-between">
+                        <h1 class="text-3xl font-bold text-base-content">Edit Role</h1>
+                        <div class="flex space-x-3">
+                             <ConfirmDialog
+                                 :class-name="`btn btn-error px-6 ${(!perms.has([PermType.CAN_DELETE_ROLE]) || editingRole.importance === 0) ? 'btn-disabled' : ''}`"
+                                 :confirm="deleteRole"
+                                 description="Are you sure you want to delete this role? This action cannot be undone."
+                                 text="Delete Role" title="Delete Role"/>
+                             <button
+                                 class="btn btn-success px-8"
+                                 :disabled="!perms.has([PermType.CAN_EDIT_ROLE])"
+                                 @click="updateRole">
+                                 Save Changes
+                             </button>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="card bg-base-200 shadow-sm border border-base-300">
+                        <div class="card-body">
+                            <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">General Settings</h2>
+                            <div class="flex flex-col md:flex-row gap-6">
+                                <div class="form-control w-full">
+                                    <label class="label"><span class="label-text font-medium">Role Name</span></label>
+                                    <input type="text" class="input input-bordered w-full bg-base-100" v-model="newRole.name" :disabled="editingRole.importance === 0" />
+                                </div>
+                                <div class="form-control">
+                                    <label class="label"><span class="label-text font-medium">Role Color</span></label>
+                                    <div class="flex items-center space-x-3">
+                                        <input type="color" class="h-12 w-20 rounded cursor-pointer bg-base-100 border border-base-300 p-1" v-model="newRole.color" />
+                                        <span class="text-base-content opacity-70 uppercase font-mono">{{ newRole.color }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permissions -->
+                    <div class="card bg-base-200 shadow-sm border border-base-300">
+                        <div class="card-body">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-base-300 pb-4 mb-6 gap-4">
+                                <h2 class="card-title text-xl text-base-content m-0">Permissions</h2>
+                                <input type="text" placeholder="Search Permissions" class="input input-bordered input-sm w-full md:w-64 bg-base-100" v-model="searchPermissions" />
+                            </div>
+                            
+                            <div v-for="(permsList, category) in groupedPermissions" :key="category" class="collapse collapse-arrow bg-base-100 border border-base-300 mb-4 last:mb-0">
+                                <input type="checkbox" :checked="searchPermissions.length > 0 || openCategories[category]" @change="(e) => openCategories[category] = (e.target as HTMLInputElement).checked" />
+                                <div class="collapse-title text-base font-bold text-base-content/80 uppercase tracking-wider">
+                                    {{ category }}
+                                </div>
+                                <div class="collapse-content">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                        <label v-for="perm in permsList" :key="perm.name" 
+                                             class="flex items-start gap-4 p-4 bg-base-200 rounded-xl border border-base-300 shadow-sm transition-colors hover:border-primary/30 cursor-pointer"
+                                             :class="!perms.has([PermType.CAN_EDIT_ROLE]) ? 'opacity-70 cursor-not-allowed' : ''">
+                                            <div class="flex-1">
+                                                <h4 class="font-semibold text-base-content select-none">{{ perm.title || perm.name }}</h4>
+                                                <p class="text-sm text-base-content/70 mt-1 leading-snug select-none">{{ perm.description }}</p>
+                                            </div>
+                                            <input type="checkbox" class="toggle toggle-primary mt-1" 
+                                                   :checked="bigIntToPerms(newRole.perms).has(perm.name)" 
+                                                   :disabled="!perms.has([PermType.CAN_EDIT_ROLE])"
+                                                   @change="(e) => togglePerm(perm.name, (e.target as HTMLInputElement).checked)" />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div v-if="Object.keys(groupedPermissions).length === 0" class="text-center py-8 text-base-content/50">
+                                No permissions found matching "{{ searchPermissions }}"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="flex-1 flex flex-col items-center justify-center text-base-content/50">
+                <div class="w-24 h-24 rounded-full bg-base-200 flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-medium">No Role Selected</h3>
+                <p>Select a role from the sidebar to view or edit its settings.</p>
+            </div>
+        </div>
+
+        <!-- Modal for Adding Role -->
+        <dialog class="modal" :class="{'modal-open': isModalOpen}">
+            <div class="modal-box bg-base-200">
+                <h3 class="font-bold text-lg mb-4 text-base-content">Create New Role</h3>
+                <div class="form-control mb-4">
+                    <label class="label" for="newRoleName">
+                        <span class="label-text">Role Name</span>
+                    </label>
+                    <input
+                        id="newRoleName"
+                        v-model="newRoleForm.name"
+                        class="input input-bordered w-full bg-base-100"
+                        required
+                        type="text"
+                        placeholder="e.g. Moderator"
+                    />
+                </div>
+                <div class="form-control mb-6">
+                    <label class="label">
+                        <span class="label-text">Role Color</span>
+                    </label>
+                    <div class="flex items-center space-x-4">
+                        <input
+                            id="newRoleColor"
+                            v-model="newRoleForm.color"
+                            class="h-10 w-20 cursor-pointer bg-base-100 rounded border border-base-300 p-1"
+                            type="color"
+                        />
+                        <span class="uppercase font-mono text-sm opacity-70">{{ newRoleForm.color }}</span>
+                    </div>
+                </div>
+                <div class="modal-action">
+                    <button class="btn btn-ghost" @click="closeModal">Cancel</button>
+                    <button class="btn btn-primary" @click="addRole" :disabled="!newRoleForm.name">Create Role</button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button @click="closeModal">close</button>
+            </form>
+        </dialog>
     </div>
 </template>
