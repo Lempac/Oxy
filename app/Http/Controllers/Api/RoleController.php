@@ -106,6 +106,7 @@ class RoleController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
+            'allPermissions' => \Spatie\Permission\Models\Permission::all(['name', 'title', 'description', 'category']),
         ]);
     }
 
