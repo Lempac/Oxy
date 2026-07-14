@@ -64,4 +64,6 @@ jobs:
           DB_DATABASE: database/database.sqlite
         run: php artisan test
       - name: Execute frontend tests via Vitest
+        env:
+          LARAVEL_BYPASS_ENV_CHECK: 1
         run: npm run test
