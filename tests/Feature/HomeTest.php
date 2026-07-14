@@ -6,6 +6,11 @@ use App\Models\Server;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
+test('unauthenticated user is redirected to welcome page', function () {
+    $response = $this->get(route('home'));
+    $response->assertRedirect(route('welcome'));
+});
+
 test('home page is displayed', function () {
     $user = User::factory()->create();
     $response = $this
