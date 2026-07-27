@@ -545,7 +545,9 @@ const deleteSelected = () => {
                         <div class="tooltip tooltip-bottom flex ml-1" data-tip="Custom Color">
                             <input
                                 v-model="color"
+                                autocomplete="off"
                                 class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden"
+                                data-bwignore="true"
                                 type="color"/>
                         </div>
                     </div>
@@ -563,7 +565,9 @@ const deleteSelected = () => {
                         <div class="tooltip tooltip-bottom flex ml-1" data-tip="Custom Fill">
                             <input
                                 v-model="fillColor" :disabled="fillColor === 'transparent'"
+                                autocomplete="off"
                                 class="w-5 h-5 cursor-pointer border-none p-0 bg-transparent rounded overflow-hidden disabled:opacity-30"
+                                data-bwignore="true"
                                 type="color"/>
                         </div>
                         <div class="tooltip tooltip-bottom flex" data-tip="No Fill">

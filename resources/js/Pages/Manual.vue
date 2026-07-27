@@ -46,10 +46,10 @@ function route(name: string) {
             </Link>
             <div class="join ml-auto">
                 <input
-                    :checked="page.props.locale === 'en'" aria-label="En" class="join-item btn btn-square" name="Language"
+                    :checked="page.props.locale === 'en'" aria-label="En" autocomplete="off" class="join-item btn btn-square" data-bwignore="true" name="Language"
                     type="radio" @click="setLanguage('En')"/>
                 <input
-                    :checked="page.props.locale === 'lv'" aria-label="Lv" class="join-item btn btn-square" name="Language"
+                    :checked="page.props.locale === 'lv'" aria-label="Lv" autocomplete="off" class="join-item btn btn-square" data-bwignore="true" name="Language"
                     type="radio" @click="setLanguage('Lv')"/>
             </div>
         </header>

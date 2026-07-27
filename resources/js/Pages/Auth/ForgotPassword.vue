@@ -43,6 +43,7 @@ const submit = () => {
                         autocomplete="username"
                         autofocus
                         class="mt-1 block w-full"
+                        name="email"
                         required
                         type="email"
                     />

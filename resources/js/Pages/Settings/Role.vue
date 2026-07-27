@@ -227,7 +227,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                         Add Role
                     </button>
                 </div>
-                <input v-model="searchRoles" type="text" placeholder="Search Roles" class="input input-bordered input-sm w-full bg-base-100" />
+                <input v-model="searchRoles" autocomplete="off" type="text" placeholder="Search Roles" data-bwignore="true" class="input input-bordered input-sm w-full bg-base-100" />
             </div>
             <div class="flex-1 overflow-y-auto p-3 space-y-1">
                 <div
@@ -289,12 +289,12 @@ class="btn btn-xs btn-circle btn-ghost"
                             <div class="flex flex-col md:flex-row gap-6">
                                 <div class="form-control w-full">
                                     <label class="label"><span class="label-text font-medium">Role Name</span></label>
-                                    <input v-model="newRole.name" type="text" class="input input-bordered w-full bg-base-100" :disabled="editingRole.importance === 0" />
+                                    <input v-model="newRole.name" autocomplete="off" type="text" data-bwignore="true" class="input input-bordered w-full bg-base-100" :disabled="editingRole.importance === 0" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium">Role Color</span></label>
                                     <div class="flex items-center space-x-3">
-                                        <input v-model="newRole.color" type="color" class="h-12 w-20 rounded cursor-pointer bg-base-100 border border-base-300 p-1" />
+                                        <input v-model="newRole.color" autocomplete="off" type="color" data-bwignore="true" class="h-12 w-20 rounded cursor-pointer bg-base-100 border border-base-300 p-1" />
                                         <span class="text-base-content opacity-70 uppercase font-mono">{{ newRole.color }}</span>
                                     </div>
                                 </div>
@@ -307,7 +307,7 @@ class="btn btn-xs btn-circle btn-ghost"
                         <div class="card-body">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-base-300 pb-4 mb-6 gap-4">
                                 <h2 class="card-title text-xl text-base-content m-0">Permissions</h2>
-                                <input v-model="searchPermissions" type="text" placeholder="Search Permissions" class="input input-bordered input-sm w-full md:w-64 bg-base-100" />
+                                <input v-model="searchPermissions" autocomplete="off" type="text" placeholder="Search Permissions" data-bwignore="true" class="input input-bordered input-sm w-full md:w-64 bg-base-100" />
                             </div>
                             
                             <div v-for="(permsList, category) in groupedPermissions" :key="category" class="collapse collapse-arrow bg-base-100 border border-base-300 mb-4 last:mb-0">
@@ -364,7 +364,9 @@ type="checkbox" class="toggle toggle-primary mt-1"
                     <input
                         id="newRoleName"
                         v-model="newRoleForm.name"
+                        autocomplete="off"
                         class="input input-bordered w-full bg-base-100"
+                        data-bwignore="true"
                         required
                         type="text"
                         placeholder="e.g. Moderator"
@@ -378,7 +380,9 @@ type="checkbox" class="toggle toggle-primary mt-1"
                         <input
                             id="newRoleColor"
                             v-model="newRoleForm.color"
+                            autocomplete="off"
                             class="h-10 w-20 cursor-pointer bg-base-100 rounded border border-base-300 p-1"
+                            data-bwignore="true"
                             type="color"
                         />
                         <span class="uppercase font-mono text-sm opacity-70">{{ newRoleForm.color }}</span>

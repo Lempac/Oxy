@@ -229,7 +229,9 @@ const uploadFile = (val: File) => {
                 <div class="items-center hidden">
                     <input
                         id="file-upload" ref="fileInput" :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
+                        autocomplete="off"
                         class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
+                        data-bwignore="true"
                         type="file"
                         @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
                     />
@@ -245,6 +247,8 @@ const uploadFile = (val: File) => {
                         v-model="form.mdata"
                         :class="`input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5 ${hasError ? 'input-error' : ''}`"
                         :disabled="loading || isDisabled || !perms.has([PermType.CAN_CREATE_MESSAGE])"
+                        autocomplete="off"
+                        data-bwignore="true"
                         placeholder="Type here"
                         type="text"
                         @keydown.enter="createMessage"
@@ -267,7 +271,7 @@ const uploadFile = (val: File) => {
                     <label class="label">
                         <span class="label-text">Editing Message</span>
                     </label>
-                    <input v-model="form.mdata" class="input input-bordered" type="text"/>
+                    <input v-model="form.mdata" autocomplete="off" class="input input-bordered" data-bwignore="true" type="text"/>
                 </div>
                 <div class="modal-action">
                     <button class="btn btn-primary w-full mt-2" type="submit">Edit Message</button>

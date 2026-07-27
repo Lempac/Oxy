@@ -187,7 +187,7 @@ const leaveChannel = async () => {
                         <span class="label-text">Voice Channel Name</span>
                     </label>
                     <input
-                        v-model="form.name" class="input input-bordered" placeholder="Enter channel name"
+                        v-model="form.name" autocomplete="off" class="input input-bordered" data-bwignore="true" placeholder="Enter channel name"
                         type="text"/>
                 </div>
                 <div class="modal-action">

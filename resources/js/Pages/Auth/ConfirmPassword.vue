@@ -39,6 +39,7 @@ const submit = () => {
                         autocomplete="current-password"
                         autofocus
                         class="mt-1 block w-full"
+                        name="password"
                         required
                         type="password"
                     />

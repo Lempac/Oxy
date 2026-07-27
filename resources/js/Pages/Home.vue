@@ -33,7 +33,7 @@ const val = ref<[number, string?] | undefined>();
                     <div class="flex items-center justify-between p-6 text-base-content">
                         <span>Join a server!</span>
                         <div class="join flex">
-                            <input ref="code" class="input input-bordered join-item" placeholder="Enter code"/>
+                            <input ref="code" autocomplete="off" class="input input-bordered join-item" data-bwignore="true" name="code" placeholder="Enter code"/>
                             <button class="btn join-item ml-2" @click="async () => val = await joinServer(code!.value)">
                                 Join
                             </button>

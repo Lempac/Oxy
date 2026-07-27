@@ -58,7 +58,9 @@ const updateIcon = (val: File) => {
                     id="profilePicture"
                     ref="inputFile"
                     accept="image/png, image/jpeg"
+                    autocomplete="off"
                     class="hidden"
+                    data-bwignore="true"
                     type="file"
                     @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
                 />
@@ -70,11 +72,12 @@ const updateIcon = (val: File) => {
                 <label class="input input-bordered flex items-center gap-2">
                     <RiUser3Line class="h-4 w-4 opacity-70"/>
                     <input
-                        id="name"
+                        id="profile-name"
                         v-model="form.name"
                         autocomplete="name"
                         autofocus
                         class="mt-1 block w-full"
+                        name="name"
                         required
                         type="text"
                     />
@@ -88,10 +91,11 @@ const updateIcon = (val: File) => {
                 <label class="input input-bordered flex items-center gap-2">
                     <HiMail class="h-4 w-4 opacity-70"/>
                     <input
-                        id="email"
+                        id="profile-email"
                         v-model="form.email"
                         autocomplete="username"
                         class="mt-1 block w-full"
+                        name="email"
                         required
                         type="email"
                     />

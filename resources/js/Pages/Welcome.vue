@@ -121,9 +121,11 @@ const submitRegister = () => {
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Email</legend>
                 <input
-                    id="email"
+                    id="login-email"
                     v-model="form.email"
+                    autocomplete="username"
                     class="input input-bordered w-full"
+                    name="email"
                     required
                     type="email"
                 />
@@ -132,9 +134,11 @@ const submitRegister = () => {
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Password</legend>
                 <input
-                    id="password"
+                    id="login-password"
                     v-model="form.password"
+                    autocomplete="current-password"
                     class="input input-bordered w-full"
+                    name="password"
                     required
                     type="password"
                 />
@@ -142,7 +146,7 @@ const submitRegister = () => {
             </fieldset>
             <fieldset class="fieldset p-0">
                 <label class="fieldset-label cursor-pointer flex-row gap-3">
-                    <input id="remember" v-model="form.remember" class="checkbox" type="checkbox"/>
+                    <input id="remember" v-model="form.remember" autocomplete="off" class="checkbox" data-bwignore="true" name="remember" type="checkbox"/>
                     Remember me
                 </label>
             </fieldset>
@@ -166,9 +170,11 @@ const submitRegister = () => {
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Name</legend>
                 <input
-                    id="name"
+                    id="register-name"
                     v-model="form.name"
+                    autocomplete="name"
                     class="input input-bordered w-full"
+                    name="name"
                     required
                     type="text"
                 />
@@ -177,9 +183,11 @@ const submitRegister = () => {
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Email</legend>
                 <input
-                    id="email"
+                    id="register-email"
                     v-model="form.email"
+                    autocomplete="username"
                     class="input input-bordered w-full"
+                    name="email"
                     required
                     type="email"
                 />
@@ -189,9 +197,11 @@ const submitRegister = () => {
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Password</legend>
                 <input
-                    id="password"
+                    id="register-password"
                     v-model="form.password"
+                    autocomplete="new-password"
                     class="input input-bordered w-full"
+                    name="password"
                     required
                     type="password"
                 />
@@ -201,9 +211,11 @@ const submitRegister = () => {
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Confirm Password</legend>
                 <input
-                    id="password_confirmation"
+                    id="register-password_confirmation"
                     v-model="form.password_confirmation"
+                    autocomplete="new-password"
                     class="input input-bordered w-full"
+                    name="password_confirmation"
                     required
                     type="password"
                 />

@@ -57,10 +57,12 @@ const deleteUser = () => {
                     <label class="input input-bordered flex items-center gap-2 w-full">
                         <MdKey class="h-4 w-4 opacity-70"/>
                         <input
-                            id="password"
+                            id="delete-password"
                             ref="passwordInput"
                             v-model="form.password"
+                            autocomplete="current-password"
                             class="grow text-base-content"
+                            name="password"
                             placeholder="Enter your password"
                             type="password"
                             @keyup.enter="deleteUser"

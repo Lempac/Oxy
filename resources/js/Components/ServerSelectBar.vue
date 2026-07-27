@@ -192,7 +192,9 @@ v-if="icon !== null" :src="icon" alt=""
                                     id="serverIcon"
                                     ref="inputFile"
                                     accept="image/png, image/jpeg"
+                                    autocomplete="off"
                                     class="hidden"
+                                    data-bwignore="true"
                                     type="file"
                                     @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
                                 />
@@ -202,7 +204,7 @@ v-if="icon !== null" :src="icon" alt=""
                             <fieldset class="fieldset w-full">
                                 <legend class="fieldset-legend">Server Name</legend>
                                 <input
-                                    v-model="form.name" class="input input-bordered w-full bg-base-100"
+                                    v-model="form.name" autocomplete="off" class="input input-bordered w-full bg-base-100" data-bwignore="true"
                                     placeholder="Enter server name"
                                     type="text"/>
                                 <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
@@ -211,7 +213,7 @@ v-if="icon !== null" :src="icon" alt=""
                             <fieldset class="fieldset w-full mt-4">
                                 <legend class="fieldset-legend">Description (Optional)</legend>
                                 <input
-                                    v-model="form.description" class="input input-bordered w-full bg-base-100"
+                                    v-model="form.description" autocomplete="off" class="input input-bordered w-full bg-base-100" data-bwignore="true"
                                     placeholder="Enter server description"
                                     type="text"/>
                             </fieldset>
@@ -227,7 +229,7 @@ v-if="icon !== null" :src="icon" alt=""
                         <fieldset class="fieldset w-full mb-6">
                             <legend class="fieldset-legend">Server Invite Code</legend>
                             <input
-                                id="code" ref="code" class="input input-bordered w-full bg-base-100" name="code"
+                                id="code" ref="code" autocomplete="off" class="input input-bordered w-full bg-base-100" data-bwignore="true" name="code"
                                 placeholder="Enter invite code" type="text"/>
                         </fieldset>
                         <button

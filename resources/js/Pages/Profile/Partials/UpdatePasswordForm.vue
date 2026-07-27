@@ -54,6 +54,7 @@ const updatePassword = () => {
                         v-model="form.current_password"
                         autocomplete="current-password"
                         class="mt-1 block w-full"
+                        name="current_password"
                         type="password"
                     />
                 </label>
@@ -68,11 +69,12 @@ const updatePassword = () => {
                 <label class="input input-bordered flex items-center gap-2">
                     <MdKey class="h-4 w-4 opacity-70"/>
                     <input
-                        id="password"
+                        id="update-password"
                         ref="passwordInput"
                         v-model="form.password"
                         autocomplete="new-password"
                         class="mt-1 block w-full"
+                        name="password"
                         type="password"
                     />
                 </label>
@@ -87,10 +89,11 @@ const updatePassword = () => {
                 <label class="input input-bordered flex items-center gap-2">
                     <MdKey class="h-4 w-4 opacity-70"/>
                     <input
-                        id="password_confirmation"
+                        id="update-password_confirmation"
                         v-model="form.password_confirmation"
                         autocomplete="new-password"
                         class="mt-1 block w-full"
+                        name="password_confirmation"
                         type="password"
                     />
                 </label>

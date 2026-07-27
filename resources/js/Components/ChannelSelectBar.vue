@@ -335,7 +335,7 @@ v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL, PermTyp
                                 }} Channel Name
                             </legend>
                             <input
-                                v-model="form.name" class="input input-bordered w-full" placeholder="Enter channel name"
+                                v-model="form.name" autocomplete="off" class="input input-bordered w-full" data-bwignore="true" placeholder="Enter channel name"
                                 type="text"/>
                             <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
                         </fieldset>

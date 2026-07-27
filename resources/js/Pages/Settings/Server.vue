@@ -105,7 +105,9 @@ const copyToClipboard = (text: string) => {
                                             id="serverIcon"
                                             :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
                                             accept="image/png, image/jpeg"
+                                            autocomplete="off"
                                             class="hidden peer"
+                                            data-bwignore="true"
                                             type="file"
                                             @change="updateIcon((<HTMLInputElement>$event.target).files![0])"
                                         />
@@ -126,7 +128,9 @@ const copyToClipboard = (text: string) => {
                                             id="serverName"
                                             v-model="form.name"
                                             :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
+                                            autocomplete="off"
                                             class="input input-bordered w-full bg-base-100 text-base-content"
+                                            data-bwignore="true"
                                             placeholder="Enter your server name"
                                             type="text"
                                         />
