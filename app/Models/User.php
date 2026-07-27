@@ -78,7 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        if (!$currentStatus->canTransitionTo($newStatus)) {
+        if (! $currentStatus->canTransitionTo($newStatus)) {
             throw new InvalidArgumentException(
                 "Invalid status transition from '{$currentStatus->value}' to '{$newStatus->value}'."
             );

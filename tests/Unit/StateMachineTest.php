@@ -42,7 +42,7 @@ test('UserStatus blocks invalid transitions', function () {
     ]);
 
     // Invalid transition: Offline -> Idle directly
-    expect(fn() => $user->transitionStatusTo(UserStatus::Idle))
+    expect(fn () => $user->transitionStatusTo(UserStatus::Idle))
         ->toThrow(InvalidArgumentException::class);
 });
 
