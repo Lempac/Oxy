@@ -23,17 +23,35 @@ createInertiaApp({
             .use(plugin)
             .mount(el);
 
-        // Apply theme globally and listen for updates
-        const updateTheme = (theme: ThemeType | null) => {
-            document.documentElement.setAttribute('data-theme', theme || Themes.OXY);
+        // Apply theme globally according to user preferences and browser dark/light mode
+        type UserThemeProps = { light_theme?: ThemeType; dark_theme?: ThemeType } | null;
+        let currentUserTheme: UserThemeProps = (props.initialPage?.props as { user?: UserThemeProps })?.user || null;
+
+        const applyTheme = () => {
+            const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = isDark
+                ? (currentUserTheme?.dark_theme || Themes.DARK)
+                : (currentUserTheme?.light_theme || Themes.OXY);
+            document.documentElement.setAttribute('data-theme', theme);
         };
 
-        // Initial application
-        updateTheme((props.initialPage?.props as { user?: { theme?: ThemeType } })?.user?.theme || null);
+        // Initial theme application
+        applyTheme();
+
+        // Listen for browser/system color scheme changes
+        if (window.matchMedia) {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            if (mediaQuery.addEventListener) {
+                mediaQuery.addEventListener('change', applyTheme);
+            } else if ('addListener' in mediaQuery) {
+                (mediaQuery as any).addListener(applyTheme);
+            }
+        }
 
         // Listen for updates (including theme changes via profile update)
         router.on('success', (event) => {
-            updateTheme((event.detail.page.props as { user?: { theme?: ThemeType } }).user?.theme || null);
+            currentUserTheme = (event.detail.page.props as { user?: UserThemeProps }).user || null;
+            applyTheme();
         });
     },
     progress: {

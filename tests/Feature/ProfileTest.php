@@ -20,7 +20,8 @@ test('profile information can be updated', function () {
         ->post('/profile', [
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'theme' => 'oxy',
+            'light_theme' => 'oxy',
+            'dark_theme' => 'dark',
         ]);
 
     $response
@@ -42,14 +43,17 @@ test('profile theme can be updated', function () {
         ->post('/profile', [
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'theme' => 'cyberpunk',
+            'light_theme' => 'cyberpunk',
+            'dark_theme' => 'synthwave',
         ]);
 
     $response
         ->assertSessionHasNoErrors()
         ->assertRedirect('/profile');
 
-    $this->assertSame('cyberpunk', $user->refresh()->theme->value);
+    $refreshed = $user->refresh();
+    $this->assertSame('cyberpunk', $refreshed->light_theme->value);
+    $this->assertSame('synthwave', $refreshed->dark_theme->value);
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
@@ -60,7 +64,8 @@ test('email verification status is unchanged when the email address is unchanged
         ->post('/profile', [
             'name' => 'Test User',
             'email' => $user->email,
-            'theme' => 'oxy',
+            'light_theme' => 'oxy',
+            'dark_theme' => 'dark',
         ]);
 
     $response

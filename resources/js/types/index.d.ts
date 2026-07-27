@@ -218,7 +218,8 @@ export interface User {
     email: string;
     readonly email_verified_at: string | null;
     status: UserStatusType;
-    theme: ThemeType;
+    light_theme: ThemeType;
+    dark_theme: ThemeType;
     roles: Role[] | null;
     servers: Server[] | null;
 }

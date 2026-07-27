@@ -42,7 +42,7 @@ test('UserStatus blocks invalid transitions', function () {
     ]);
 
     // Invalid transition: Offline -> Idle directly
-    expect(fn() => $user->transitionStatusTo(UserStatus::Idle))
+    expect(fn () => $user->transitionStatusTo(UserStatus::Idle))
         ->toThrow(InvalidArgumentException::class);
 });
 
@@ -87,7 +87,7 @@ test('WhiteboardSyncState transitions correctly', function () {
         ->and($whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Synced))->toBeTrue();
 
     // Test invalid direct jump: Synced -> Saving
-    expect(fn() => $whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Saving))
+    expect(fn () => $whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Saving))
         ->toThrow(InvalidArgumentException::class);
 });
 

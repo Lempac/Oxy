@@ -21,11 +21,12 @@ const user = usePage().props.user!;
 const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
 const inputFile = ref<File | null>();
 
-const form = useForm<{ name: string, email: string, icon: File | null, theme: ThemeType }>({
+const form = useForm<{ name: string, email: string, icon: File | null, light_theme: ThemeType, dark_theme: ThemeType }>({
     name: user.name,
     email: user.email,
     icon: inputFile.value!,
-    theme: user.theme || Themes.OXY,
+    light_theme: user.light_theme || Themes.OXY,
+    dark_theme: user.dark_theme || Themes.DARK,
 });
 
 
@@ -99,18 +100,34 @@ const updateIcon = (val: File) => {
                 <ErrorAlert :message="form.errors.email" class="mt-2"/>
             </div>
 
-            <div class="form-control">
-                <label class="block font-medium text-sm text-base-content/90" for="theme">Theme</label>
-                <select
-                    id="theme"
-                    v-model="form.theme"
-                    class="select select-bordered mt-1 block w-full"
-                >
-                    <option v-for="theme in Themes" :key="theme" :value="theme">
-                        {{ theme.charAt(0).toUpperCase() + theme.slice(1) }}
-                    </option>
-                </select>
-                <ErrorAlert :message="form.errors.theme" class="mt-2"/>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="block font-medium text-sm text-base-content/90" for="light_theme">Light Theme</label>
+                    <select
+                        id="light_theme"
+                        v-model="form.light_theme"
+                        class="select select-bordered mt-1 block w-full"
+                    >
+                        <option v-for="theme in Themes" :key="theme" :value="theme">
+                            {{ theme.charAt(0).toUpperCase() + theme.slice(1) }}
+                        </option>
+                    </select>
+                    <ErrorAlert :message="form.errors.light_theme" class="mt-2"/>
+                </div>
+
+                <div class="form-control">
+                    <label class="block font-medium text-sm text-base-content/90" for="dark_theme">Dark Theme</label>
+                    <select
+                        id="dark_theme"
+                        v-model="form.dark_theme"
+                        class="select select-bordered mt-1 block w-full"
+                    >
+                        <option v-for="theme in Themes" :key="theme" :value="theme">
+                            {{ theme.charAt(0).toUpperCase() + theme.slice(1) }}
+                        </option>
+                    </select>
+                    <ErrorAlert :message="form.errors.dark_theme" class="mt-2"/>
+                </div>
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">

@@ -32,7 +32,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'icon',
         'password',
         'status',
-        'theme',
+        'light_theme',
+        'dark_theme',
     ];
 
     /**
@@ -107,7 +108,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,
-            'theme' => Theme::class,
+            'light_theme' => Theme::class,
+            'dark_theme' => Theme::class,
         ];
     }
 }

@@ -20,7 +20,8 @@ class ProfileUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
             'icon' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'theme' => ['required', Rule::enum(Theme::class)],
+            'light_theme' => ['required', Rule::enum(Theme::class)],
+            'dark_theme' => ['required', Rule::enum(Theme::class)],
         ];
     }
 }
