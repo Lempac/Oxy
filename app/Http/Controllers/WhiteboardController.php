@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\WhiteboardSyncState;
+use App\Events\Whiteboards\WhiteboardStateUpdated;
 use App\Models\Whiteboard;
 use Illuminate\Http\Request;
 
@@ -23,6 +25,20 @@ class WhiteboardController extends Controller
             'state' => $request->input('state'),
         ]);
 
-        return response()->json(['success' => true]);
+        // Transition sync status state machine to Synced safely
+        $currentStatus = $whiteboard->sync_status ?? WhiteboardSyncState::Uninitialized;
+        if ($currentStatus === WhiteboardSyncState::Dirty || $currentStatus === WhiteboardSyncState::SaveFailed) {
+            $whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Saving);
+        }
+        if ($whiteboard->sync_status === WhiteboardSyncState::Saving || $whiteboard->sync_status === WhiteboardSyncState::Uninitialized) {
+            $whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Synced);
+        }
+
+        broadcast(new WhiteboardStateUpdated($whiteboard))->toOthers();
+
+        return response()->json([
+            'success' => true,
+            'sync_status' => $whiteboard->sync_status?->value ?? WhiteboardSyncState::Synced->value,
+        ]);
     }
 }

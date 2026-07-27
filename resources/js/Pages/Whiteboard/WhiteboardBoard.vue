@@ -2,17 +2,21 @@
 import {onMounted, onUnmounted, ref} from 'vue';
 import * as Y from 'yjs';
 import {WebsocketProvider} from 'y-websocket';
-import {Whiteboard as WhiteboardType} from '@/types';
+import {Whiteboard as WhiteboardType, WhiteboardSyncState, WhiteboardSyncStateType} from '@/types';
 import {save} from '@/routes/whiteboard';
 import { fetchJson } from '@/bootstrap';
-import { MdAdsClick, MdHorizontalRule, MdOutlineCircle, MdOutlineDelete, MdOutlineFormatColorFill, MdOutlineRectangle, MdRedo, MdUndo } from 'vue-icons-plus/md';
+import { useWhiteboardSyncStateMachine } from '@/composables/useWhiteboardSyncStateMachine';
+import { MdAdsClick, MdHorizontalRule, MdOutlineCircle, MdOutlineDelete, MdOutlineFormatColorFill, MdOutlineRectangle, MdRedo, MdUndo, MdCloudDone, MdCloudUpload, MdSyncProblem, MdOutlineCloudQueue } from 'vue-icons-plus/md';
 import { BsEraser } from 'vue-icons-plus/bs';
 import { HiPencil } from 'vue-icons-plus/hi';
-
 
 const props = defineProps<{
     whiteboard: WhiteboardType;
 }>();
+
+const syncSM = useWhiteboardSyncStateMachine(
+    (props.whiteboard.sync_status as WhiteboardSyncStateType) || WhiteboardSyncState.Synced
+);
 
 const stageConfig = ref({
     width: 0,
@@ -143,12 +147,17 @@ onMounted(() => {
         }
     }
 
+    if (syncSM.syncState.value === WhiteboardSyncState.Uninitialized) {
+        syncSM.transitionTo(WhiteboardSyncState.Synced);
+    }
+
     window.addEventListener('resize', handleResize);
     window.addEventListener('keydown', handleKeyDown);
 });
 
 onUnmounted(() => {
     if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
     provider.destroy();
     ydoc.destroy();
     window.removeEventListener('resize', handleResize);
@@ -222,7 +231,7 @@ const handleMouseDown = (e: unknown) => {
             const id = target?.id ? target.id() : undefined;
             if (id) {
                 yshapes.delete(id);
-                saveState();
+                markDirty();
             }
         }
         return;
@@ -310,7 +319,7 @@ const handleMouseUp = () => {
     }
 
     currentShapeId = null;
-    saveState();
+    markDirty();
 };
 
 const handleTransformEnd = (e: unknown) => {
@@ -337,7 +346,7 @@ const handleTransformEnd = (e: unknown) => {
         scaleY: node.scaleY(),
         rotation: node.rotation(),
     });
-    saveState();
+    markDirty();
 };
 
 const handleDragEnd = (e: unknown) => {
@@ -361,7 +370,7 @@ const handleDragEnd = (e: unknown) => {
         x: newX,
         y: newY,
     });
-    saveState();
+    markDirty();
 };
 
 const selectShape = (e: unknown, id: string) => {
@@ -398,7 +407,34 @@ const updateTransformer = () => {
     transformerNode.getLayer().batchDraw();
 };
 
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+const markDirty = () => {
+    if (syncSM.canTransitionTo(WhiteboardSyncState.Dirty)) {
+        syncSM.transitionTo(WhiteboardSyncState.Dirty);
+    }
+    scheduleAutoSave();
+};
+
+const scheduleAutoSave = () => {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        if (syncSM.isDirty.value) {
+            saveState();
+        }
+    }, 2000);
+};
+
 const saveState = async () => {
+    if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+    }
+
+    if (syncSM.canTransitionTo(WhiteboardSyncState.Saving)) {
+        syncSM.transitionTo(WhiteboardSyncState.Saving);
+    }
+
     const state = JSON.stringify(Object.fromEntries(yshapes.entries()));
     try {
         await fetchJson(save.url(props.whiteboard.id), {
@@ -406,15 +442,28 @@ const saveState = async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({state})
         });
+        if (syncSM.canTransitionTo(WhiteboardSyncState.Synced)) {
+            syncSM.transitionTo(WhiteboardSyncState.Synced);
+        }
     } catch (e) {
         console.error("Failed to save whiteboard state", e);
+        if (syncSM.canTransitionTo(WhiteboardSyncState.SaveFailed)) {
+            syncSM.transitionTo(WhiteboardSyncState.SaveFailed);
+        }
     }
 };
 
-const undo = () => undoManager.undo();
-const redo = () => undoManager.redo();
+const undo = () => {
+    undoManager.undo();
+    markDirty();
+};
+const redo = () => {
+    undoManager.redo();
+    markDirty();
+};
 const clear = () => {
     yshapes.clear();
+    markDirty();
     saveState();
 };
 const deleteSelected = () => {
@@ -424,6 +473,7 @@ const deleteSelected = () => {
         });
         selectedShapeIds.value = [];
         updateTransformer();
+        markDirty();
         saveState();
     }
 };
@@ -571,7 +621,23 @@ const deleteSelected = () => {
                 </div>
             </div>
 
-            <div class="ml-auto flex items-center gap-2 pr-2">
+            <div class="ml-auto flex items-center gap-3 pr-2">
+                <div
+                    :data-tip="`Sync State: ${syncSM.syncState.value}`"
+                    class="tooltip tooltip-left flex items-center gap-1 text-xs">
+                    <span v-if="syncSM.isSynced.value" class="badge badge-sm badge-success gap-1 text-[10px]">
+                        <MdCloudDone /> Synced
+                    </span>
+                    <span v-else-if="syncSM.isSaving.value" class="badge badge-sm badge-info gap-1 animate-pulse text-[10px]">
+                        <MdCloudUpload /> Saving...
+                    </span>
+                    <span v-else-if="syncSM.isDirty.value" class="badge badge-sm badge-warning gap-1 cursor-pointer text-[10px]" @click="saveState">
+                        <MdOutlineCloudQueue /> Unsaved
+                    </span>
+                    <span v-else-if="syncSM.isSaveFailed.value" class="badge badge-sm badge-error gap-1 cursor-pointer text-[10px]" @click="saveState">
+                        <MdSyncProblem /> Save Failed
+                    </span>
+                </div>
                 <div
                     :data-tip="isConnected ? (latency !== null ? `Latency: ${latency}ms` : 'Connected') : 'Disconnected'"
                     class="tooltip tooltip-left flex items-center gap-2">

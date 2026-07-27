@@ -25,9 +25,12 @@ WORKDIR /var/www/
 RUN apk add --no-cache sqlite libzip-dev supervisor && \
     docker-php-ext-install zip pcntl
 
+ENV PHP_UPLOAD_MAX_FILESIZE=200M \
+    PHP_POST_MAX_SIZE=200M
+
 RUN { \
-    echo 'upload_max_filesize = 200M'; \
-    echo 'post_max_size = 200M'; \
+    echo 'upload_max_filesize = ${PHP_UPLOAD_MAX_FILESIZE}'; \
+    echo 'post_max_size = ${PHP_POST_MAX_SIZE}'; \
 } > /usr/local/etc/php/conf.d/uploads.ini
 
 # Copy app code

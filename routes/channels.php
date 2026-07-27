@@ -27,3 +27,7 @@ Broadcast::channel('roles.{serverId}', function (User $user, int $serverId): boo
 Broadcast::channel('voices.{channelId}', function (User $user, int $channelId): ?array {
     return Channel::find($channelId)->server->users->contains($user) ? ['user' => $user] : null;
 });
+
+Broadcast::channel('whiteboards.{channelId}', function (User $user, int $channelId): bool {
+    return Channel::find($channelId)?->server->users->contains($user) ?? false;
+});

@@ -42,7 +42,7 @@ test('UserStatus blocks invalid transitions', function () {
     ]);
 
     // Invalid transition: Offline -> Idle directly
-    expect(fn () => $user->transitionStatusTo(UserStatus::Idle))
+    expect(fn() => $user->transitionStatusTo(UserStatus::Idle))
         ->toThrow(InvalidArgumentException::class);
 });
 
@@ -78,6 +78,17 @@ test('WhiteboardSyncState transitions correctly', function () {
         ->and($whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Synced))->toBeTrue()
         ->and($whiteboard->sync_status)->toBe(WhiteboardSyncState::Synced);
 
+    // Test failure and retry lifecycle: Synced -> Dirty -> Saving -> SaveFailed -> Saving -> Synced
+    expect($whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Dirty))->toBeTrue()
+        ->and($whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Saving))->toBeTrue()
+        ->and($whiteboard->transitionSyncStatusTo(WhiteboardSyncState::SaveFailed))->toBeTrue()
+        ->and($whiteboard->sync_status)->toBe(WhiteboardSyncState::SaveFailed)
+        ->and($whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Saving))->toBeTrue()
+        ->and($whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Synced))->toBeTrue();
+
+    // Test invalid direct jump: Synced -> Saving
+    expect(fn() => $whiteboard->transitionSyncStatusTo(WhiteboardSyncState::Saving))
+        ->toThrow(InvalidArgumentException::class);
 });
 
 test('Other state machine enums validate transitions', function () {
