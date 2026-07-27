@@ -8,9 +8,9 @@ import {ref} from "vue";
 import {Channel, ChannelType, PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import echo from "@/echo";
 import { MdOutlineDeleteForever, MdOutlineModeEdit } from 'vue-icons-plus/md';
 import { GoPlus } from 'vue-icons-plus/go';
+import { useChannelEvents } from "@/composables/useChannelEvents";
 
 
 const loading = ref(false);
@@ -83,18 +83,7 @@ const editChannel = async (channelKey: string) => {
     });
 };
 
-if (selectedServer) {
-    echo?.private(`channels.${selectedServer.id}`)
-        .listen('.ChannelCreated', () => {
-            router.reload({only: ['channels', 'selected_channel']});
-        })
-        .listen('.ChannelEdited', () => {
-            router.reload({only: ['channels', 'selected_channel']});
-        })
-        .listen('.ChannelDeleted', () => {
-            router.reload({only: ['channels', 'selected_channel']});
-        })
-}
+useChannelEvents(selectedServer?.id, ['channels', 'selected_channel']);
 
 </script>
 

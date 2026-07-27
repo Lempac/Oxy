@@ -42,20 +42,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'theme' => Theme::class,
-        ];
-    }
-
     public function servers(): BelongsToMany
     {
         return $this->belongsToMany(Server::class, 'server_user')
@@ -76,5 +62,19 @@ class User extends Authenticatable implements MustVerifyEmail
             config('permission.column_names.model_morph_key'),
             app(PermissionRegistrar::class)->pivotRole
         );
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'theme' => Theme::class,
+        ];
     }
 }

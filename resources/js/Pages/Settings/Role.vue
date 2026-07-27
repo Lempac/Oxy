@@ -3,8 +3,8 @@ import { usePerms, fetchJson } from '@/bootstrap';
 import { server } from '@/routes/home';
 import { create, deleteMethod, edit, index } from '@/routes/roles';
 import { ref, computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
-import { Perms, PermType, Role, Server } from "@/types";
+import { Link } from '@inertiajs/vue3';
+import { PermType, Role, Server } from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import { bigIntToPerms } from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
@@ -227,10 +227,11 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                         Add Role
                     </button>
                 </div>
-                <input type="text" placeholder="Search Roles" class="input input-bordered input-sm w-full bg-base-100" v-model="searchRoles" />
+                <input v-model="searchRoles" type="text" placeholder="Search Roles" class="input input-bordered input-sm w-full bg-base-100" />
             </div>
             <div class="flex-1 overflow-y-auto p-3 space-y-1">
-                <div v-for="role in filteredRoles" :key="role.id" 
+                <div
+v-for="role in filteredRoles" :key="role.id" 
                      class="p-3 rounded-lg cursor-pointer flex justify-between items-center transition-colors group"
                      :class="editingRole?.id === role.id ? 'bg-primary text-primary-content' : 'hover:bg-base-300 text-base-content'"
                      @click="selectRole(role)">
@@ -238,17 +239,19 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                         <div class="w-4 h-4 rounded-full shrink-0 shadow-sm border border-black/10" :style="{ backgroundColor: role.color }"></div>
                         <span class="font-medium truncate">{{ role.name }}</span>
                     </div>
-                    <div class="flex items-center space-x-1 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity" v-if="role.importance !== 0">
-                        <button class="btn btn-xs btn-circle btn-ghost" 
+                    <div v-if="role.importance !== 0" class="flex items-center space-x-1 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                        <button
+class="btn btn-xs btn-circle btn-ghost" 
                                 :class="editingRole?.id === role.id ? 'text-primary-content hover:bg-black/20' : ''"
-                                @click="(e) => changeImportance(role, -1, e)"
-                                :disabled="role.importance <= 1">
+                                :disabled="role.importance <= 1"
+                                @click="(e) => changeImportance(role, -1, e)">
                             <BiUpArrowAlt class="w-4 h-4" />
                         </button>
-                        <button class="btn btn-xs btn-circle btn-ghost" 
+                        <button
+class="btn btn-xs btn-circle btn-ghost" 
                                 :class="editingRole?.id === role.id ? 'text-primary-content hover:bg-black/20' : ''"
-                                @click="(e) => changeImportance(role, 1, e)"
-                                :disabled="role.importance >= roles.length - 1">
+                                :disabled="role.importance >= roles.length - 1"
+                                @click="(e) => changeImportance(role, 1, e)">
                             <BiDownArrowAlt class="w-4 h-4" />
                         </button>
                     </div>
@@ -260,7 +263,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
         <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
             <SettingsHeader :selected-server="selectedServer"/>
             
-            <div class="flex-1 overflow-y-auto p-6 md:p-10" v-if="editingRole">
+            <div v-if="editingRole" class="flex-1 overflow-y-auto p-6 md:p-10">
                 <div class="max-w-4xl mx-auto space-y-8 pb-20">
                     <div class="flex items-center justify-between">
                         <h1 class="text-3xl font-bold text-base-content">Edit Role</h1>
@@ -286,12 +289,12 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                             <div class="flex flex-col md:flex-row gap-6">
                                 <div class="form-control w-full">
                                     <label class="label"><span class="label-text font-medium">Role Name</span></label>
-                                    <input type="text" class="input input-bordered w-full bg-base-100" v-model="newRole.name" :disabled="editingRole.importance === 0" />
+                                    <input v-model="newRole.name" type="text" class="input input-bordered w-full bg-base-100" :disabled="editingRole.importance === 0" />
                                 </div>
                                 <div class="form-control">
                                     <label class="label"><span class="label-text font-medium">Role Color</span></label>
                                     <div class="flex items-center space-x-3">
-                                        <input type="color" class="h-12 w-20 rounded cursor-pointer bg-base-100 border border-base-300 p-1" v-model="newRole.color" />
+                                        <input v-model="newRole.color" type="color" class="h-12 w-20 rounded cursor-pointer bg-base-100 border border-base-300 p-1" />
                                         <span class="text-base-content opacity-70 uppercase font-mono">{{ newRole.color }}</span>
                                     </div>
                                 </div>
@@ -304,7 +307,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                         <div class="card-body">
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-base-300 pb-4 mb-6 gap-4">
                                 <h2 class="card-title text-xl text-base-content m-0">Permissions</h2>
-                                <input type="text" placeholder="Search Permissions" class="input input-bordered input-sm w-full md:w-64 bg-base-100" v-model="searchPermissions" />
+                                <input v-model="searchPermissions" type="text" placeholder="Search Permissions" class="input input-bordered input-sm w-full md:w-64 bg-base-100" />
                             </div>
                             
                             <div v-for="(permsList, category) in groupedPermissions" :key="category" class="collapse collapse-arrow bg-base-100 border border-base-300 mb-4 last:mb-0">
@@ -314,14 +317,16 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                                 </div>
                                 <div class="collapse-content">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                                        <label v-for="perm in permsList" :key="perm.name" 
+                                        <label
+v-for="perm in permsList" :key="perm.name" 
                                              class="flex items-start gap-4 p-4 bg-base-200 rounded-xl border border-base-300 shadow-sm transition-colors hover:border-primary/30 cursor-pointer"
                                              :class="!perms.has([PermType.CAN_EDIT_ROLE]) ? 'opacity-70 cursor-not-allowed' : ''">
                                             <div class="flex-1">
                                                 <h4 class="font-semibold text-base-content select-none">{{ perm.title || perm.name }}</h4>
                                                 <p class="text-sm text-base-content/70 mt-1 leading-snug select-none">{{ perm.description }}</p>
                                             </div>
-                                            <input type="checkbox" class="toggle toggle-primary mt-1" 
+                                            <input
+type="checkbox" class="toggle toggle-primary mt-1" 
                                                    :checked="bigIntToPerms(newRole.perms).has(perm.name)" 
                                                    :disabled="!perms.has([PermType.CAN_EDIT_ROLE])"
                                                    @change="(e) => togglePerm(perm.name, (e.target as HTMLInputElement).checked)" />
@@ -381,7 +386,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                 </div>
                 <div class="modal-action">
                     <button class="btn btn-ghost" @click="closeModal">Cancel</button>
-                    <button class="btn btn-primary" @click="addRole" :disabled="!newRoleForm.name">Create Role</button>
+                    <button class="btn btn-primary" :disabled="!newRoleForm.name" @click="addRole">Create Role</button>
                 </div>
             </div>
             <form method="dialog" class="modal-backdrop">

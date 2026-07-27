@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import {defineConfig} from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
@@ -6,7 +5,6 @@ import path from 'node:path';
 import {wayfinder} from "@laravel/vite-plugin-wayfinder";
 import tailwindcss from '@tailwindcss/vite';
 
-// /** @type {import('vite').UserConfig} */
 export default defineConfig({
     plugins: [
         tailwindcss(),
@@ -33,8 +31,7 @@ export default defineConfig({
     optimizeDeps: {
         exclude: []
     },
-    ssr: {
-    },
+    ssr: {},
     test: {
         environment: 'jsdom',
         include: ['resources/js/**/*.spec.ts', 'resources/js/**/*.test.ts'],

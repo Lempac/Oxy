@@ -1,22 +1,20 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
+import {baseUrl, defaultIcon, usePerms} from '@/bootstrap';
 
-import { create, deleteMethod, edit } from '@/routes/message';
+import {create, deleteMethod, edit} from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 
 import {router, useForm} from "@inertiajs/vue3";
-import echo from "@/echo";
 import {Channel, Message, MessageType, PermType, Server} from "@/types";
 import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
-import {baseUrl, defaultIcon} from "@/bootstrap";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
-import { FaRegFile, FaRegPaperPlane } from 'vue-icons-plus/fa';
-import { MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit } from 'vue-icons-plus/md';
+import {FaRegFile, FaRegPaperPlane} from 'vue-icons-plus/fa';
+import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit} from 'vue-icons-plus/md';
+import {useMessageEvents} from "@/composables/useMessageEvents";
 
 const filter = new Filter({placeHolder: '#'})
 filter.addWords()
-
 
 const perms = usePerms();
 const {selectedChannel, messages, selectedServer} = defineProps<{
@@ -53,19 +51,7 @@ const form = useForm<{ type: typeof MessageType[keyof typeof MessageType], mdata
     mdata: null
 });
 
-
-if (selectedChannel) {
-    echo?.private(`messages.${selectedChannel.id}`)
-        .listen('.MessageCreated', () => {
-            router.reload({only: ['messages']});
-        })
-        .listen('.MessageDeleted', () => {
-            router.reload({only: ['messages']});
-        })
-        .listen('.MessageEdited', () => {
-            router.reload({only: ['messages']});
-        });
-}
+useMessageEvents(selectedChannel?.id);
 
 const clearFile = () => {
     if (fileInput.value) fileInput.value.value = '';
@@ -87,7 +73,7 @@ const createMessage = async () => {
             hasError.value = true;
             return;
         }
-        
+
         form.post(create.url({server: selectedServer!.route_key, channel: selectedChannel!.route_key}), {
             preserveScroll: true,
             onSuccess: () => {
@@ -98,7 +84,7 @@ const createMessage = async () => {
                 loading.value = false;
             }
         });
-        
+
     } catch (error) {
         console.error('Error sending message:', error);
         loading.value = false;
@@ -123,7 +109,7 @@ watch(
 );
 
 const deleteMessage = async (messageId: number) => {
-    router.delete(deleteMethod.url(messageId), { preserveScroll: true });
+    router.delete(deleteMethod.url(messageId), {preserveScroll: true});
 };
 
 const editMessage = async () => {
@@ -161,13 +147,15 @@ const uploadFile = (val: File) => {
 </script>
 
 <template>
-    <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
-        
+    <AuthenticatedLayout
+        :channels="channels" :invite-code="inviteCode" :selected-server="selectedServer"
+        :servers="servers">
+
         <div
             v-if="selectedChannel"
             class="w-full max-w-5xl flex-1 bg-base-100 m-5 rounded-lg mx-auto mt-0 mb-0 flex flex-col overflow-hidden"
         >
-            <div ref="messageContainer" class="overflow-y-auto flex-grow p-3 mx-5 mt-5">
+            <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5">
                 <div v-if="messages && messages.length > 0">
                     <div
                         v-for="message in messages" :key="message.id"

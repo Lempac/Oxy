@@ -5,7 +5,7 @@ import globals from 'globals';
 import typescriptEslint from 'typescript-eslint';
 
 export default typescriptEslint.config(
-    {ignores: ['*.d.ts', '**/coverage', '**/dist']},
+    {ignores: ['*.d.ts', '**/coverage', '**/dist', '**/vendor/**']},
     {
         extends: [
             eslint.configs.recommended,
@@ -19,10 +19,10 @@ export default typescriptEslint.config(
             globals: globals.browser,
             parserOptions: {
                 parser: typescriptEslint.parser,
+                tsconfigRootDir: import.meta.dirname,
+                project: ['./tsconfig.json'],
+                extraFileExtensions: ['.vue'],
             },
-        },
-        rules: {
-            // your rules
         },
     },
     eslintConfigPrettier

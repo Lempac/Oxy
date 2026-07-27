@@ -9,8 +9,8 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex flex-row overflow-x-auto whitespace-nowrap h-[72px] items-center px-4 w-full">
-        <div v-for="(user, index) in selectedServer?.users" :key="user.id" class="flex flex-row items-center flex-shrink-0">
+    <div class="flex flex-row overflow-x-auto whitespace-nowrap h-18 items-center px-4 w-full">
+        <div v-for="(user, index) in selectedServer?.users" :key="user.id" class="flex flex-row items-center shrink-0">
             <div class="flex flex-col items-center mx-2">
                 <div class="avatar">
                     <div class="w-10 rounded-full">

@@ -1,8 +1,6 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
-
-import { members, role, server } from '@/routes/settings';
-
+import {usePerms} from '@/bootstrap';
+import {members, role, server} from '@/routes/settings';
 import {Link} from "@inertiajs/vue3";
 import {PermType, Server} from "@/types";
 
@@ -10,9 +8,6 @@ const perms = usePerms();
 const {selectedServer} = defineProps<{
     selectedServer: Server
 }>();
-
-
-
 </script>
 
 <template>

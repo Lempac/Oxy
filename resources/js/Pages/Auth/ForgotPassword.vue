@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { email } from '@/routes/password';
+import {email} from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { HiMail } from 'vue-icons-plus/hi';
-
+import {HiMail} from 'vue-icons-plus/hi';
 
 defineProps<{
     status?: string;

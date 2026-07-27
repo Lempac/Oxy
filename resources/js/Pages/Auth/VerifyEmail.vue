@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { logout } from '@/routes';
-import { send } from '@/routes/verification';
+import {logout} from '@/routes';
+import {send} from '@/routes/verification';
 import {computed} from 'vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';

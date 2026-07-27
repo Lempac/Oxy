@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { confirm } from '@/routes/password';
+import {confirm} from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { MdKey } from 'vue-icons-plus/md';
-
+import {MdKey} from 'vue-icons-plus/md';
 
 const form = useForm({
     password: '',

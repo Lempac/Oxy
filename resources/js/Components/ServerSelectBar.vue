@@ -1,23 +1,23 @@
 <script lang="ts" setup>
 import {logout} from '@/routes';
 import {text} from '@/routes/home';
-import { edit } from '@/routes/profile';
-import { create, leave } from '@/routes/server';
-import { server as settingsServer } from '@/routes/settings';
+import {edit} from '@/routes/profile';
+import {create, leave} from '@/routes/server';
+import {server as settingsServer} from '@/routes/settings';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
 import {baseUrl, defaultIcon, joinServer, usePerms} from "@/bootstrap";
-import {Server, PermType} from "@/types";
+import {PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import { GoPlus } from 'vue-icons-plus/go';
-import { BsGearFill, BsDoorOpen } from 'vue-icons-plus/bs';
+import {GoPlus} from 'vue-icons-plus/go';
+import {BsDoorOpen, BsGearFill} from 'vue-icons-plus/bs';
 
 const perms = usePerms();
 const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
 
-const { servers, selectedServer } = defineProps<{
+const {servers, selectedServer} = defineProps<{
     servers?: Server[];
     selectedServer?: Server;
 }>();
@@ -68,7 +68,6 @@ const updateIcon = (val: File) => {
     form.icon = inputFile.value;
     icon.value = URL.createObjectURL(inputFile.value);
 }
-
 </script>
 
 <template>
@@ -81,12 +80,14 @@ const updateIcon = (val: File) => {
         <div class="navbar-center flex-1 overflow-x-auto overflow-y-hidden px-4 scrollbar-hide">
             <div class="flex items-center gap-3 min-w-max h-full w-full">
                 <!-- Empty spacer to help center items if they don't overflow -->
-                <div class="flex-grow"></div>
-                
+                <div class="grow"></div>
+
                 <div v-for="server in servers" :key="server.id" class="shrink-0">
                     <Link :href="text.url(server.route_key)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
-                            <div class="btn btn-ghost btn-circle avatar" :class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}">
+                            <div
+:class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}"
+                                 class="btn btn-ghost btn-circle avatar">
                                 <div class="w-10 rounded-full">
                                     <img
                                         :src="server.icon ? `${baseUrl}${server.icon}` : defaultIcon"
@@ -100,9 +101,9 @@ const updateIcon = (val: File) => {
                 <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="serverModal?.showModal">
                     <GoPlus scale="1.5"/>
                 </button>
-                
+
                 <!-- Empty spacer to help center items if they don't overflow -->
-                <div class="flex-grow"></div>
+                <div class="grow"></div>
             </div>
         </div>
 
@@ -128,7 +129,7 @@ const updateIcon = (val: File) => {
                         </div>
                     </div>
                 </div>
-                <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow" tabindex="0">
+                <ul class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow" tabindex="0">
                     <li>
                         <Link :href="edit.url()">Profile</Link>
                     </li>
@@ -156,17 +157,17 @@ const updateIcon = (val: File) => {
         <dialog ref="serverModal" class="modal">
             <div class="modal-box bg-base-200">
                 <!-- Create Server-->
-                <div role="tablist" class="tabs tabs-bordered flex justify-center mb-4">
+                <div class="tabs tabs-bordered flex justify-center mb-4" role="tablist">
                     <button
-                        role="tab"
                         :class="{'tab-active': activeTab === 'create'}"
                         class="tab text-lg h-10 w-1/2"
+                        role="tab"
                         @click="activeTab = 'create'">Create Server
                     </button>
                     <button
-                        role="tab"
                         :class="{'tab-active': activeTab === 'join'}"
                         class="tab text-lg h-10 w-1/2"
+                        role="tab"
                         @click="activeTab = 'join'">Join Server
                     </button>
                 </div>
@@ -181,7 +182,9 @@ const updateIcon = (val: File) => {
                                 <label
                                     class="cursor-pointer rounded-full bg-base-300 transition-all duration-300 ease-in-out hover:bg-base-100 flex items-center justify-center size-16 shadow-inner"
                                     for="serverIcon">
-                                    <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full object-cover"/>
+                                    <img
+v-if="icon !== null" :src="icon" alt=""
+                                         class="size-16 rounded-full object-cover"/>
                                     <GoPlus v-else scale="2"/>
                                 </label>
                                 <label class="cursor-pointer font-medium" for="serverIcon">Upload server icon</label>
@@ -195,15 +198,16 @@ const updateIcon = (val: File) => {
                                 />
                             </div>
                             <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
-                            
+
                             <fieldset class="fieldset w-full">
                                 <legend class="fieldset-legend">Server Name</legend>
                                 <input
-                                    v-model="form.name" class="input input-bordered w-full bg-base-100" placeholder="Enter server name"
+                                    v-model="form.name" class="input input-bordered w-full bg-base-100"
+                                    placeholder="Enter server name"
                                     type="text"/>
                                 <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
                             </fieldset>
-                            
+
                             <fieldset class="fieldset w-full mt-4">
                                 <legend class="fieldset-legend">Description (Optional)</legend>
                                 <input
@@ -211,7 +215,7 @@ const updateIcon = (val: File) => {
                                     placeholder="Enter server description"
                                     type="text"/>
                             </fieldset>
-                            
+
                             <div class="modal-action mt-6">
                                 <button class="btn btn-primary w-full" type="submit">Create Server</button>
                             </div>
@@ -240,7 +244,7 @@ const updateIcon = (val: File) => {
                     @click="() => serverModal?.close()">✕
                 </button>
             </div>
-            <form method="dialog" class="modal-backdrop">
+            <form class="modal-backdrop" method="dialog">
                 <button>close</button>
             </form>
         </dialog>

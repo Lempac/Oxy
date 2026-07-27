@@ -1,17 +1,15 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
-
-import { create, deleteMethod, edit } from '@/routes/channel';
-import { channel as channelRoute } from '@/routes/home/whiteboard';
+import {usePerms} from '@/bootstrap';
+import {create, deleteMethod, edit} from '@/routes/channel';
+import {channel as channelRoute} from '@/routes/home/whiteboard';
 import {Link, router, useForm} from "@inertiajs/vue3";
 import {ref} from "vue";
 import {Channel, ChannelType, PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import echo from "@/echo";
-import { MdOutlineDeleteForever, MdOutlineModeEdit } from 'vue-icons-plus/md';
-import { GoPlus } from 'vue-icons-plus/go';
-
+import {MdOutlineDeleteForever, MdOutlineModeEdit} from 'vue-icons-plus/md';
+import {GoPlus} from 'vue-icons-plus/go';
+import {useChannelEvents} from "@/composables/useChannelEvents";
 
 const loading = ref(false);
 const perms = usePerms();
@@ -83,18 +81,7 @@ const editChannel = async (channelKey: string) => {
     });
 };
 
-if (selectedServer) {
-    echo?.private(`channels.${selectedServer.id}`)
-        .listen('.ChannelCreated', () => {
-            router.reload({only: ['channels', 'selected_channel']});
-        })
-        .listen('.ChannelEdited', () => {
-            router.reload({only: ['channels', 'selected_channel']});
-        })
-        .listen('.ChannelDeleted', () => {
-            router.reload({only: ['channels', 'selected_channel']});
-        })
-}
+useChannelEvents(selectedServer?.id, ['channels', 'selected_channel']);
 
 </script>
 

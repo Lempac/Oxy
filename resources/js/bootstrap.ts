@@ -68,21 +68,21 @@ export const fetchJson = async (url: string, options: RequestInit = {}) => {
 
     if (!response.ok) {
         const error = new Error(response.statusText) as Error & { response: { status: number, data: unknown } };
-        error.response = { status: response.status, data };
+        error.response = {status: response.status, data};
         throw error;
     }
 
-    return { status: response.status, data };
+    return {status: response.status, data};
 };
 
 export const joinServer = async (code: string): Promise<[number, string?]> => {
     try {
         await fetchJson(addUser.url(), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({code})
         });
-        
+
         router.reload({only: ['servers', 'user']});
         return [200, 'Successfully joined to server.'];
     } catch (err: unknown) {

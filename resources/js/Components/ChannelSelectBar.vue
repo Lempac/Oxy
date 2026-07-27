@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
+import {usePerms} from '@/bootstrap';
 import {create, deleteMethod, edit} from '@/routes/channel';
 import {channel as textChannelRoute} from '@/routes/home/text';
 import {channel as voiceChannelRoute} from '@/routes/home/voice';
@@ -9,11 +9,11 @@ import {computed, ref} from "vue";
 import {Channel, ChannelType, PermType, Server} from "@/types";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { BsChatText, BsEasel } from 'vue-icons-plus/bs';
-import { RiChatVoiceLine, RiPencilFill } from 'vue-icons-plus/ri';
-import { MdOutlineDeleteForever, MdOutlineModeEdit } from 'vue-icons-plus/md';
-import { GoPlus } from 'vue-icons-plus/go';
-import echo from "@/echo";
+import {BsChatText, BsEasel} from 'vue-icons-plus/bs';
+import {RiChatVoiceLine, RiPencilFill} from 'vue-icons-plus/ri';
+import {MdOutlineDeleteForever, MdOutlineModeEdit} from 'vue-icons-plus/md';
+import {GoPlus} from 'vue-icons-plus/go';
+import {useChannelEvents} from "@/composables/useChannelEvents";
 
 const perms = usePerms();
 const {selectedServer, channels} = defineProps<{
@@ -105,34 +105,25 @@ const togglePin = (type: 'text' | 'voice' | 'whiteboard') => {
     }
 };
 
-if (selectedServer) {
-    echo?.private(`channels.${selectedServer.id}`)
-        .listen('.ChannelCreated', () => {
-            router.reload({only: ['channels']});
-        })
-        .listen('.ChannelEdited', () => {
-            router.reload({only: ['channels']});
-        })
-        .listen('.ChannelDeleted', () => {
-            router.reload({only: ['channels']});
-        })
-}
+useChannelEvents(selectedServer?.id, ['channels']);
 
 </script>
 
 <template>
-    <div v-if="selectedServer?.id" class="navbar bg-base-100 flex flex-col justify-center items-center py-2 relative min-h-[4rem]">
-        
+    <div
+v-if="selectedServer?.id"
+         class="navbar bg-base-100 flex flex-col justify-center items-center py-2 relative min-h-16">
+
         <div class="flex items-center justify-between w-full h-14 px-4 gap-2">
-            
+
             <!-- Left Side: Text Channels (Expands leftwards) -->
             <div class="flex-1 flex justify-end overflow-hidden h-full">
-                <div 
-                    class="flex flex-row-reverse items-center overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
+                <div
                     :class="[
                         displayMode === 'text' ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0',
                         isEditMode ? 'gap-6' : 'gap-2'
                     ]"
+                    class="flex flex-row-reverse items-center overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
                 >
                     <button
                         v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
@@ -140,8 +131,12 @@ if (selectedServer) {
                         @click="openModal(ChannelType.Text)">
                         <GoPlus/>
                     </button>
-                    <div v-for="channel in textChannels" :key="channel.id" class="indicator relative group whitespace-nowrap shrink-0">
-                        <div v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])" class="indicator-item indicator-top">
+                    <div
+v-for="channel in textChannels" :key="channel.id"
+                         class="indicator relative group whitespace-nowrap shrink-0">
+                        <div
+v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
+                             class="indicator-item indicator-top">
                             <ConfirmDialog
                                 :confirm="() => deleteChannel(channel)"
                                 :description="`Are you sure you want to delete ${channel.name}?`"
@@ -151,13 +146,20 @@ if (selectedServer) {
                                 <MdOutlineDeleteForever/>
                             </ConfirmDialog>
                         </div>
-                        <div v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])" class="indicator-item indicator-top indicator-start">
-                            <button class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer" @click.prevent="openModal(ChannelType.Text, channel)">
+                        <div
+v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
+                             class="indicator-item indicator-top indicator-start">
+                            <button
+class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
+                                    @click.prevent="openModal(ChannelType.Text, channel)">
                                 <MdOutlineModeEdit/>
                             </button>
                         </div>
-                        <Link :href="textChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
-                            <button class="btn btn-outline btn-sm" :class="{'btn-primary': $page.url.includes(`/text/${channel.route_key}`)}">
+                        <Link
+                            :href="textChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
+                            <button
+:class="{'btn-primary': $page.url.includes(`/text/${channel.route_key}`)}"
+                                    class="btn btn-outline btn-sm">
                                 # {{ channel.name }}
                             </button>
                         </Link>
@@ -167,48 +169,55 @@ if (selectedServer) {
 
             <!-- Central Split Button -->
             <div class="join bg-base-200 z-10 shadow-sm border border-base-300 shrink-0">
-                <button 
-                    class="btn join-item hover:btn-primary" 
+                <button
                     :class="{'btn-primary': displayMode === 'text'}"
-                    @mouseenter="activeExpanded = 'text'" 
-                    @mouseleave="activeExpanded = null"
+                    class="btn join-item hover:btn-primary"
                     @click="togglePin('text')"
+                    @mouseenter="activeExpanded = 'text'"
+                    @mouseleave="activeExpanded = null"
                 >
-                    <BsChatText class="mr-1"/> TEXT
+                    <BsChatText class="mr-1"/>
+                    TEXT
                 </button>
-                <button 
-                    class="btn join-item hover:btn-secondary" 
+                <button
                     :class="{'btn-secondary': displayMode === 'voice'}"
-                    @mouseenter="activeExpanded = 'voice'" 
-                    @mouseleave="activeExpanded = null"
+                    class="btn join-item hover:btn-secondary"
                     @click="togglePin('voice')"
-                >
-                    <RiChatVoiceLine class="mr-1"/> VOICE
-                </button>
-                <button 
-                    class="btn join-item hover:btn-accent" 
-                    :class="{'btn-accent': displayMode === 'whiteboard'}"
-                    @mouseenter="activeExpanded = 'whiteboard'" 
+                    @mouseenter="activeExpanded = 'voice'"
                     @mouseleave="activeExpanded = null"
-                    @click="togglePin('whiteboard')"
                 >
-                    <BsEasel class="mr-1"/> WHITEBOARD
+                    <RiChatVoiceLine class="mr-1"/>
+                    VOICE
+                </button>
+                <button
+                    :class="{'btn-accent': displayMode === 'whiteboard'}"
+                    class="btn join-item hover:btn-accent"
+                    @click="togglePin('whiteboard')"
+                    @mouseenter="activeExpanded = 'whiteboard'"
+                    @mouseleave="activeExpanded = null"
+                >
+                    <BsEasel class="mr-1"/>
+                    WHITEBOARD
                 </button>
             </div>
 
             <!-- Right Side: Voice/Whiteboard Channels (Expands rightwards) -->
             <div class="flex-1 flex justify-start overflow-hidden h-full">
-                <div 
-                    class="flex items-center overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
+                <div
                     :class="[
                         (displayMode === 'voice' || displayMode === 'whiteboard') ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0',
                         isEditMode ? 'gap-6' : 'gap-2'
                     ]"
+                    class="flex items-center overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
                 >
                     <!-- Voice Channels -->
                     <template v-if="displayMode === 'voice'">
-                        <div v-for="channel in voiceChannels" :key="channel.id" class="indicator relative group whitespace-nowrap shrink-0">
-                            <div v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])" class="indicator-item indicator-top">
+                        <div
+v-for="channel in voiceChannels" :key="channel.id"
+                             class="indicator relative group whitespace-nowrap shrink-0">
+                            <div
+                                v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
+                                class="indicator-item indicator-top">
                                 <ConfirmDialog
                                     :confirm="() => deleteChannel(channel)"
                                     :description="`Are you sure you want to delete ${channel.name}?`"
@@ -218,13 +227,20 @@ if (selectedServer) {
                                     <MdOutlineDeleteForever/>
                                 </ConfirmDialog>
                             </div>
-                            <div v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])" class="indicator-item indicator-top indicator-start">
-                                <button class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer" @click.prevent="openModal(ChannelType.Voice, channel)">
+                            <div
+                                v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
+                                class="indicator-item indicator-top indicator-start">
+                                <button
+class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
+                                        @click.prevent="openModal(ChannelType.Voice, channel)">
                                     <MdOutlineModeEdit/>
                                 </button>
                             </div>
-                            <Link :href="voiceChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
-                                <button class="btn btn-outline btn-sm" :class="{'btn-secondary': $page.url.includes(`/voice/${channel.route_key}`)}">
+                            <Link
+                                :href="voiceChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
+                                <button
+:class="{'btn-secondary': $page.url.includes(`/voice/${channel.route_key}`)}"
+                                        class="btn btn-outline btn-sm">
                                     🔊 {{ channel.name }}
                                 </button>
                             </Link>
@@ -239,8 +255,12 @@ if (selectedServer) {
 
                     <!-- Whiteboard Channels -->
                     <template v-if="displayMode === 'whiteboard'">
-                        <div v-for="channel in whiteboardChannels" :key="channel.id" class="indicator relative group whitespace-nowrap shrink-0">
-                            <div v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])" class="indicator-item indicator-top">
+                        <div
+v-for="channel in whiteboardChannels" :key="channel.id"
+                             class="indicator relative group whitespace-nowrap shrink-0">
+                            <div
+                                v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
+                                class="indicator-item indicator-top">
                                 <ConfirmDialog
                                     :confirm="() => deleteChannel(channel)"
                                     :description="`Are you sure you want to delete ${channel.name}?`"
@@ -250,13 +270,20 @@ if (selectedServer) {
                                     <MdOutlineDeleteForever/>
                                 </ConfirmDialog>
                             </div>
-                            <div v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])" class="indicator-item indicator-top indicator-start">
-                                <button class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer" @click.prevent="openModal(ChannelType.Whiteboard, channel)">
+                            <div
+                                v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
+                                class="indicator-item indicator-top indicator-start">
+                                <button
+class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
+                                        @click.prevent="openModal(ChannelType.Whiteboard, channel)">
                                     <MdOutlineModeEdit/>
                                 </button>
                             </div>
-                            <Link :href="whiteboardChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
-                                <button class="btn btn-outline btn-sm" :class="{'btn-accent': $page.url.includes(`/whiteboard/${channel.route_key}`)}">
+                            <Link
+                                :href="whiteboardChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
+                                <button
+:class="{'btn-accent': $page.url.includes(`/whiteboard/${channel.route_key}`)}"
+                                        class="btn btn-outline btn-sm">
                                     🎨 {{ channel.name }}
                                 </button>
                             </Link>
@@ -272,14 +299,16 @@ if (selectedServer) {
             </div>
 
             <!-- Pencil Mode Toggle -->
-            <div v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL, PermType.CAN_DELETE_CHANNEL])" class="shrink-0 ml-2">
-                <button 
-                    class="btn btn-circle btn-sm tooltip tooltip-left" 
+            <div
+v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
+                 class="shrink-0 ml-2">
+                <button
                     :class="isEditMode ? 'btn-warning' : 'btn-ghost'"
                     :data-tip="isEditMode ? 'Edit Mode ON' : 'Edit Mode OFF'"
+                    class="btn btn-circle btn-sm tooltip tooltip-left"
                     @click="isEditMode = !isEditMode"
                 >
-                    <RiPencilFill />
+                    <RiPencilFill/>
                 </button>
             </div>
 
@@ -301,7 +330,9 @@ if (selectedServer) {
                     <form @submit.prevent="isEditing ? editCurrent!() : createChannel()">
                         <fieldset class="fieldset w-full mb-4">
                             <legend class="fieldset-legend">
-                                {{ form.type === ChannelType.Text ? 'Text' : (form.type === ChannelType.Voice ? 'Voice' : 'Whiteboard') }} Channel Name
+                                {{
+                                    form.type === ChannelType.Text ? 'Text' : (form.type === ChannelType.Voice ? 'Voice' : 'Whiteboard')
+                                }} Channel Name
                             </legend>
                             <input
                                 v-model="form.name" class="input input-bordered w-full" placeholder="Enter channel name"

@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { store } from '@/routes/password';
+import {store} from '@/routes/password';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import {Head, useForm} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import { MdKey } from 'vue-icons-plus/md';
-import { HiMail } from 'vue-icons-plus/hi';
-
+import {MdKey} from 'vue-icons-plus/md';
+import {HiMail} from 'vue-icons-plus/hi';
 
 const props = defineProps<{
     email: string;
