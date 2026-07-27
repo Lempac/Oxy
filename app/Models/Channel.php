@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ChannelType;
 use App\Events\Channels\ChannelCreated;
 use App\Events\Channels\ChannelDeleted;
 use App\Events\Channels\ChannelEdited;
@@ -27,6 +28,10 @@ class Channel extends Model
         'created' => ChannelCreated::class,
         'updated' => ChannelEdited::class,
         'deleted' => ChannelDeleted::class,
+    ];
+
+    protected $casts = [
+        'type' => ChannelType::class,
     ];
 
     protected $appends = ['route_key'];

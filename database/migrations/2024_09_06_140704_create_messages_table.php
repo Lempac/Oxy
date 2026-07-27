@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\MessageStatus;
 use App\Enums\MessageType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,6 +16,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->enum('type', array_column(MessageType::cases(), 'value'));
+            $table->enum('status', array_column(MessageStatus::cases(), 'value'))->default(MessageStatus::Sent->value);
             $table->string('mdata', 500)->nullable();
             $table->timestamps();
             $table->unsignedBigInteger('user_id');

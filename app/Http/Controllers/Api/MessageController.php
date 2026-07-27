@@ -71,7 +71,7 @@ class MessageController
             abort(403, 'Forbidden.');
         }
 
-        if ($message->type != MessageType::Text->value) {
+        if ($message->type !== MessageType::Text) {
             abort(400, 'Message can not be edited');
         }
 
@@ -98,7 +98,7 @@ class MessageController
             abort(403, 'Forbidden.');
         }
 
-        if ($message->type != MessageType::Text->value) {
+        if ($message->type !== MessageType::Text) {
             Storage::disk('public')->delete($message->mdata);
         }
 

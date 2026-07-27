@@ -5,7 +5,8 @@ import {create, deleteMethod, edit} from '@/routes/channel';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import {router, useForm} from "@inertiajs/vue3";
 import {ref} from "vue";
-import {Channel, ChannelType, PermType, Server} from "@/types";
+import {Channel, ChannelType, PermType, Server, VoiceParticipantState} from "@/types";
+import {useVoiceCallStateMachine} from "@/composables/useVoiceCallStateMachine";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import { MdOutlineDeleteForever, MdOutlineModeEdit } from 'vue-icons-plus/md';
 import { GoPlus } from 'vue-icons-plus/go';
@@ -27,6 +28,8 @@ const form = useForm({
     type: ChannelType.Voice,
     name: ''
 });
+
+const voiceState = useVoiceCallStateMachine();
 
 const openModal = (channel?: Channel) => {
     if (channel) {
@@ -63,39 +66,43 @@ const editText = async (channelId: number, channelKey: string) => {
 };
 
 
-const isInVoice = ref(false);
 let mediaRecorder: MediaRecorder | undefined;
 const chunks: Blob[] = [];
 
 const joinChannel = async () => {
-    isInVoice.value = true;
-    if (isInVoice.value) {
-        try {
-            const stream: MediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
-            mediaRecorder = new MediaRecorder(stream);
+    if (!voiceState.transitionTo(VoiceParticipantState.Joining)) {
+        return;
+    }
 
-            mediaRecorder.start(100);
-            console.log("Recording started");
+    try {
+        const stream: MediaStream = await navigator.mediaDevices.getUserMedia({audio: true});
+        mediaRecorder = new MediaRecorder(stream);
 
-            mediaRecorder.ondataavailable = (event: BlobEvent) => {
-                chunks.push(event.data);
-                console.log(chunks)
-            };
+        mediaRecorder.start(100);
+        console.log("Recording started");
 
-        } catch (error) {
-            console.error("Error accessing microphone:", error);
-        }
+        mediaRecorder.ondataavailable = (event: BlobEvent) => {
+            chunks.push(event.data);
+            console.log(chunks);
+        };
+
+        voiceState.transitionTo(VoiceParticipantState.Connected);
+    } catch (error) {
+        console.error("Error accessing microphone:", error);
+        voiceState.transitionTo(VoiceParticipantState.Disconnected);
     }
 };
 
 const leaveChannel = async () => {
-    isInVoice.value = false;
-    if (!isInVoice.value) {
-        mediaRecorder?.stop();
-        console.log("Recording stopped");
-        console.log(chunks)
+    if (!voiceState.transitionTo(VoiceParticipantState.Leaving)) {
+        return;
     }
-}
+
+    mediaRecorder?.stop();
+    console.log("Recording stopped");
+    console.log(chunks);
+    voiceState.transitionTo(VoiceParticipantState.Disconnected);
+};
 
 </script>
 
@@ -150,14 +157,15 @@ const leaveChannel = async () => {
                     </div>
 
                     <div class="flex justify-end">
-                        <!--                        <Link :href="channel.url({server : selected_server?.id, channel : channel.id})">-->
-                        <button v-if="!isInVoice" class="btn btn-success btn-wide mr-3 mb-3" @click="joinChannel">
+                        <button v-if="voiceState.isDisconnected.value" class="btn btn-success btn-wide mr-3 mb-3" @click="joinChannel">
                             Join
+                        </button>
+                        <button v-else-if="voiceState.isJoining.value" class="btn btn-warning btn-wide mr-3 mb-3" disabled>
+                            Connecting...
                         </button>
                         <button v-else class="btn btn-error btn-wide mr-3 mb-3" @click="leaveChannel">
                             Leave
                         </button>
-                        <!--                        </Link>-->
                     </div>
                 </div>
             </div>

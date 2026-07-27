@@ -1,0 +1,67 @@
+# Uncloud-compatible Compose file for Oxy
+# ─────────────────────────────────────────────────────────────────────
+# Deploy with:
+#   uc deploy -f compose.uncloud.yaml
+#
+# Required env vars (set in .env or export before deploying):
+#   OXY_DOMAIN          – main app domain       (e.g. oxy.example.com)
+#   OXY_WS_DOMAIN       – Reverb WS domain      (e.g. ws.oxy.example.com)
+#   OXY_YJS_DOMAIN      – Yjs whiteboard domain  (e.g. yjs.oxy.example.com)
+#
+# After deploying, create DNS A records for all three domains pointing
+# to your Uncloud machine's public IP. Caddy handles TLS automatically.
+#
+# If you omit the domain vars, Uncloud's managed DNS will assign
+# <service>.<cluster-id>.uncld.dev names automatically — just drop
+# the hostname prefix from x-ports (e.g. "8000/https").
+# ─────────────────────────────────────────────────────────────────────
+
+services:
+  oxy-app:
+    build: .
+    env_file: .production.env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://${OXY_DOMAIN:-oxy.example.com}
+      # Reverb server-side config (still listens on :9000 inside the container)
+      REVERB_HOST: "0.0.0.0"
+      REVERB_PORT: "9000"
+      REVERB_SCHEME: https
+      # Frontend connects to Reverb via Caddy HTTPS reverse proxy
+      VITE_REVERB_APP_KEY: "${REVERB_APP_KEY}"
+      VITE_REVERB_HOST: ${OXY_WS_DOMAIN:-ws.oxy.example.com}
+      VITE_REVERB_PORT: "443"
+      VITE_REVERB_SCHEME: https
+      # Frontend connects to Yjs via Caddy HTTPS reverse proxy
+      VITE_YJS_WS_URL: wss://${OXY_YJS_DOMAIN:-yjs.oxy.example.com}
+    volumes:
+      - oxy-database:/var/www/database
+      - oxy-storage:/var/www/storage/app
+    # Publish HTTP app and Reverb WebSocket through Caddy with auto HTTPS
+    x-ports:
+      - ${OXY_DOMAIN:-oxy.example.com}:8000/https
+      - ${OXY_WS_DOMAIN:-ws.oxy.example.com}:9000/https
+    # Run migrations before rolling out new containers
+    x-pre_deploy:
+      command: php artisan migrate --force
+      timeout: 2m
+    x-machine: 
+      - rpi-2
+
+  oxy-yjs:
+    image: node:24-alpine
+    working_dir: /app
+    command: npx --yes y-websocket@2.1.0
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "1234"
+    # Publish Yjs WebSocket through Caddy with auto HTTPS
+    x-ports:
+      - ${OXY_YJS_DOMAIN:-yjs.oxy.example.com}:1234/https
+    x-machine: 
+      - rpi-2
+
+volumes:
+  oxy-database:
+  oxy-storage:

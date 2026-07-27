@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\Theme;
+use App\Enums\UserStatus;
+use App\Events\Users\UserStatusUpdated;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use InvalidArgumentException;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
@@ -65,6 +68,35 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Transition the user to a new status using the UserStatus state machine.
+     */
+    public function transitionStatusTo(UserStatus $newStatus): bool
+    {
+        $currentStatus = $this->status ?? UserStatus::Offline;
+
+        if ($currentStatus === $newStatus) {
+            return false;
+        }
+
+        if (!$currentStatus->canTransitionTo($newStatus)) {
+            throw new InvalidArgumentException(
+                "Invalid status transition from '{$currentStatus->value}' to '{$newStatus->value}'."
+            );
+        }
+
+        $oldStatus = $currentStatus;
+        $this->status = $newStatus;
+
+        if ($this->exists) {
+            $this->save();
+        }
+
+        UserStatusUpdated::dispatch($this, $oldStatus, $newStatus);
+
+        return true;
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -74,6 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => UserStatus::class,
             'theme' => Theme::class,
         ];
     }
