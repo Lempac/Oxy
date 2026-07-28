@@ -103,9 +103,9 @@ To complement 128-bit code entropy, all invite verification and redemption endpo
 ### Joining a Server (Logged-in User)
 - **Route**: `POST /api/server/add-user` or `POST /invites/join`
 - **Controllers**: `ServerController@addUser`, `ServerInviteController@join`
-- **Behavior**: Validates code & expiration/use limits, attaches user to server `server_user` pivot, increments `uses` counter, and broadcasts `ServerJoined` event.
+- **Behavior**: Validates code & expiration/use limits, attaches user to server `server_user` pivot, assigns optional server default role (`$server->assignDefaultRole($user)`), increments `uses` counter, and broadcasts `ServerJoined` event.
 
 ### Registration with Invite Code
 - **Route**: `POST /register`
 - **Controller**: `RegisteredUserController@store`
-- **Behavior**: Validates `server_code`, creates user account, attaches user to server, and increments invite usage.
+- **Behavior**: Validates `server_code`, creates user account, attaches user to server, assigns optional server default role (`$server->assignDefaultRole($user)`), and increments invite usage.

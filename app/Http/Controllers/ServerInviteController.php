@@ -108,6 +108,7 @@ class ServerInviteController extends Controller
 
         if ($server && ! $server->users()->where('users.id', $user->id)->exists()) {
             $server->users()->attach($user->id);
+            $server->assignDefaultRole($user);
             $invite->increment('uses');
         }
 

@@ -25,6 +25,7 @@ const activeExpanded = ref<'text' | 'voice' | 'whiteboard' | null>(null);
 const pinnedExpanded = ref<'text' | 'voice' | 'whiteboard' | null>(null);
 
 const displayMode = computed(() => pinnedExpanded.value || activeExpanded.value);
+const isWhiteboardEnabled = computed(() => selectedServer?.enable_whiteboard !== false);
 
 const textChannels = computed(() => channels?.filter(c => c.type === ChannelType.Text) || []);
 const voiceChannels = computed(() => channels?.filter(c => c.type === ChannelType.Voice) || []);
@@ -190,6 +191,7 @@ class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
                     VOICE
                 </button>
                 <button
+                    v-if="isWhiteboardEnabled"
                     :class="{'btn-accent': displayMode === 'whiteboard'}"
                     class="btn join-item hover:btn-accent"
                     @click="togglePin('whiteboard')"
@@ -205,7 +207,7 @@ class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
             <div class="flex-1 flex justify-start overflow-hidden h-full">
                 <div
                     :class="[
-                        (displayMode === 'voice' || displayMode === 'whiteboard') ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0',
+                        (displayMode === 'voice' || (displayMode === 'whiteboard' && isWhiteboardEnabled)) ? 'opacity-100 max-w-full px-2' : 'max-w-0 opacity-0 px-0',
                         isEditMode ? 'gap-6' : 'gap-2'
                     ]"
                     class="flex items-center overflow-x-auto overflow-y-visible transition-all duration-300 ease-in-out scrollbar-hide w-full justify-start h-full pt-3"
@@ -254,7 +256,7 @@ class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
                     </template>
 
                     <!-- Whiteboard Channels -->
-                    <template v-if="displayMode === 'whiteboard'">
+                    <template v-if="displayMode === 'whiteboard' && isWhiteboardEnabled">
                         <div
 v-for="channel in whiteboardChannels" :key="channel.id"
                              class="indicator relative group whitespace-nowrap shrink-0">

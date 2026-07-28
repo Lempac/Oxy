@@ -12,6 +12,13 @@ use Inertia\Response;
 
 class HomeController extends Controller
 {
+    private function getUsersWithRoles(Server $server)
+    {
+        return $server->users->each(function (User $user) use ($server) {
+            $user['rolesWithServer'] = $user->roles()->where('roles.server_id', $server->id)->get();
+        });
+    }
+
     public function home(Request $request): Response
     {
         return Inertia::render('Home')->with([
@@ -24,7 +31,7 @@ class HomeController extends Controller
         return Inertia::render('Home')->with([
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
             'inviteCode' => $server->getInviteCode(),
@@ -36,7 +43,7 @@ class HomeController extends Controller
         return Inertia::render('Text/Texting')->with([
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
             'inviteCode' => $server->getInviteCode(),
@@ -48,11 +55,14 @@ class HomeController extends Controller
         return Inertia::render('Text/Texting', [
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
             'channels' => $server->channels,
-            'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) {
+            'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) use ($server) {
+                if ($message->user) {
+                    $message->user['rolesWithServer'] = $message->user->roles()->where('roles.server_id', $server->id)->get();
+                }
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server->getInviteCode(),
@@ -64,10 +74,14 @@ class HomeController extends Controller
         return Inertia::render('Text/Texting', [
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedChannel' => $channel,
             'selectedMessage' => $message,
             'channels' => $server->channels,
-            'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) {
+            'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) use ($server) {
+                if ($message->user) {
+                    $message->user['rolesWithServer'] = $message->user->roles()->where('roles.server_id', $server->id)->get();
+                }
                 $message['sender'] = fn (): User => $message->user;
             }),
             'inviteCode' => $server->getInviteCode(),
@@ -79,7 +93,7 @@ class HomeController extends Controller
         return Inertia::render('Voice/Speaking', [
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
             'inviteCode' => $server->getInviteCode(),
@@ -91,7 +105,7 @@ class HomeController extends Controller
         return Inertia::render('Voice/Speaking', [
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
             'channels' => $server->channels,
@@ -111,7 +125,7 @@ class HomeController extends Controller
         return Inertia::render('Whiteboard/Whiteboarding')->with([
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
             'channels' => $server->channels,
@@ -124,7 +138,7 @@ class HomeController extends Controller
         return Inertia::render('Whiteboard/Whiteboarding')->with([
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $this->getUsersWithRoles($server),
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
             'inviteCode' => $server->getInviteCode(),

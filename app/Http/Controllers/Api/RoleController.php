@@ -80,6 +80,11 @@ class RoleController extends Controller
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
+        if ($role->server && $role->server->default_role_id === $role->id) {
+            $role->server->default_role_id = null;
+            $role->server->save();
+        }
+
         $role->delete();
 
         return response()->json(['message' => 'Role deleted successfully.']);
@@ -89,7 +94,9 @@ class RoleController extends Controller
     {
         return Inertia::render('Settings/Role')->with([
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $server->users->each(function (User $user) use ($server) {
+                $user['rolesWithServer'] = $user->roles()->where('roles.server_id', $server->id)->get();
+            }),
             'selectedServer.roles' => $server->roles,
             'allPermissions' => Permission::all(['name', 'title', 'description', 'category']),
         ]);

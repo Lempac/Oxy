@@ -39,6 +39,7 @@ class ServerController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'icon' => empty($path) ? null : Storage::url($path),
+            'enable_whiteboard' => $request->has('enable_whiteboard') ? $request->boolean('enable_whiteboard') : true,
         ]);
 
         setPermissionsTeamId($server->id);
@@ -85,6 +86,7 @@ class ServerController extends Controller
         }
 
         $server->users()->attach(Auth::id());
+        $server->assignDefaultRole(Auth::user());
         $invite->increment('uses');
 
         broadcast(new ServerJoined(Auth::id(), $server->id));
@@ -119,6 +121,7 @@ class ServerController extends Controller
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'enable_whiteboard' => 'nullable|boolean',
         ]);
 
         $serverId = $server->id;
@@ -141,6 +144,12 @@ class ServerController extends Controller
 
         $server->name = $request->input('name', $server->name);
         $server->description = $request->input('description', $server->description);
+        if ($request->has('default_role_id')) {
+            $server->default_role_id = $request->input('default_role_id');
+        }
+        if ($request->has('enable_whiteboard')) {
+            $server->enable_whiteboard = $request->boolean('enable_whiteboard');
+        }
         $server->save();
 
         //        broadcast(new ServerEdited($serverId, $server->name, $server->description, $server->icon));
@@ -158,7 +167,9 @@ class ServerController extends Controller
 
         return Inertia::render('Settings/Server')->with([
             'selectedServer' => $server,
-            'selectedServer.users' => $server->users,
+            'selectedServer.users' => $server->users->each(function ($user) use ($server) {
+                $user['rolesWithServer'] = $user->roles()->where('roles.server_id', $server->id)->get();
+            }),
             'selectedServer.roles' => $server->roles,
             'inviteCode' => $server->getInviteCode(),
         ]);
@@ -197,6 +208,8 @@ class ServerController extends Controller
             'name' => 'required|string|max:50',
             'description' => 'nullable|string|max:255',
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'default_role_id' => 'nullable|string|exists:roles,id',
+            'enable_whiteboard' => 'nullable|boolean',
         ]);
 
         $serverId = $server->id;
@@ -218,6 +231,22 @@ class ServerController extends Controller
 
         $server->name = $request->input('name', $server->name);
         $server->description = $request->input('description', $server->description);
+        if ($request->has('default_role_id')) {
+            $defaultRoleId = $request->input('default_role_id');
+            if ($defaultRoleId === '' || $defaultRoleId === 'null') {
+                $defaultRoleId = null;
+            }
+            if ($defaultRoleId) {
+                $roleExists = Role::where('id', $defaultRoleId)->where('server_id', $server->id)->exists();
+                if (! $roleExists) {
+                    return back()->withErrors(['default_role_id' => 'The selected default role is invalid.']);
+                }
+            }
+            $server->default_role_id = $defaultRoleId;
+        }
+        if ($request->has('enable_whiteboard')) {
+            $server->enable_whiteboard = $request->boolean('enable_whiteboard');
+        }
         $server->save();
 
         return redirect()->route('settings.server', ['server' => $server])

@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import { usePerms, fetchJson, baseUrl } from '@/bootstrap';
+import {baseUrl, fetchJson, getMemberRoleColor, usePerms} from '@/bootstrap';
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import { GiBootKick } from 'vue-icons-plus/gi';
-import { BsCheckLg } from 'vue-icons-plus/bs';
-import { ref } from 'vue';
+import {GiBootKick} from 'vue-icons-plus/gi';
+import {BsCheckLg} from 'vue-icons-plus/bs';
+import {computed, ref} from 'vue';
+import {PermType, Role, Server, User} from '@/types';
+import {Link, router, usePage} from '@inertiajs/vue3';
+import {server} from '@/routes/home';
+import {addUser, removeUser as roles_removeUser} from '@/routes/roles';
+import {removeUser as server_removeUser} from '@/routes/server';
 
 interface customUser extends User {
     rolesWithServer: Role[]
@@ -15,33 +20,49 @@ interface customServer extends Server {
 }
 
 const perms = usePerms();
-const { selectedServer } = defineProps<{
+const {selectedServer} = defineProps<{
     selectedServer: customServer,
 }>();
 
 const createdInviteCode = ref<string | null>(null);
+const searchMembers = ref('');
+const filterRoleId = ref<string | null>(null);
+
+const filteredMembers = computed(() => {
+    let members = selectedServer.users;
+    if (searchMembers.value) {
+        const query = searchMembers.value.toLowerCase();
+        members = members.filter(user => user.nickname.toLowerCase().includes(query));
+    }
+    if (filterRoleId.value) {
+        members = members.filter(user =>
+            user.rolesWithServer.some(role => role.id === filterRoleId.value)
+        );
+    }
+    return members;
+});
 
 const toggleRole = (roleId: string, userId: string, state: boolean) => {
     if (state) {
-        router.post(addUser.url({ role: roleId, user: userId }), {}, {
-            onSuccess: () => router.reload({ only: ['selected_server'] })
+        router.post(addUser.url({role: roleId, user: userId}), {}, {
+            onSuccess: () => router.reload({only: ['selected_server']})
         });
     } else {
-        router.delete(roles_removeUser.url({ role: roleId, user: userId }), {
-            onSuccess: () => router.reload({ only: ['selected_server'] })
+        router.delete(roles_removeUser.url({role: roleId, user: userId}), {
+            onSuccess: () => router.reload({only: ['selected_server']})
         });
     }
 };
 
 const kickMember = (userId: string) =>
     router.delete(server_removeUser.url(selectedServer.route_key), {
-        data: { 'user_id': userId },
-        onSuccess: () => router.reload({ only: ['selected_server'] })
+        data: {'user_id': userId},
+        onSuccess: () => router.reload({only: ['selected_server']})
     });
 
 const generateInvite = async () => {
     try {
-        const { data } = await fetchJson(`/server/${selectedServer.id}/invites`, {
+        const {data} = await fetchJson(`/server/${selectedServer.id}/invites`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -59,11 +80,13 @@ const generateInvite = async () => {
 <template>
     <div class="flex h-screen bg-base-100 overflow-hidden">
         <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
-            <SettingsHeader :selected-server="selectedServer">
-                <template #title>
-                    Members
-                </template>
-            </SettingsHeader>
+            <div class="px-6 pt-6 md:px-10 md:pt-10 max-w-6xl mx-auto w-full pb-0">
+                <SettingsHeader :selected-server="selectedServer">
+                    <template #title>
+                        Members
+                    </template>
+                </SettingsHeader>
+            </div>
 
             <div class="flex-1 overflow-y-auto p-6 md:p-10">
                 <div class="max-w-4xl mx-auto space-y-6 pb-20">
@@ -72,8 +95,13 @@ const generateInvite = async () => {
                             <h2 class="text-2xl font-bold text-base-content">Server Members</h2>
                             <p class="text-sm text-base-content/70 mt-1">Manage members and roles for this server.</p>
                         </div>
-                        <div v-if="perms.has([PermType.CAN_INVITE, PermType.CAN_MANAGE_SERVER])">
-                            <button class="btn btn-primary" @click="generateInvite">
+                        <div class="flex items-center gap-3">
+                            <Link :href="server.url(selectedServer.route_key)" class="btn btn-neutral px-6">
+                                ← Back to Server
+                            </Link>
+                            <button
+                                v-if="perms.has([PermType.CAN_INVITE, PermType.CAN_MANAGE_SERVER])"
+                                class="btn btn-primary" @click="generateInvite">
                                 Generate Invite Code
                             </button>
                         </div>
@@ -83,72 +111,105 @@ const generateInvite = async () => {
                         <span>Invite Code: <strong class="text-lg font-mono">{{ createdInviteCode }}</strong></span>
                     </div>
 
-                    <div class="card bg-base-200 border border-base-300 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto">
+                    <!-- Search & Filter -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input
+                            v-model="searchMembers"
+                            autocomplete="off"
+                            class="input input-bordered input-sm flex-1 bg-base-100"
+                            data-bwignore="true"
+                            placeholder="Search members..."
+                            type="text"/>
+                        <select
+                            v-model="filterRoleId"
+                            class="select select-bordered select-sm w-full sm:w-48 bg-base-100">
+                            <option :value="null">All Roles</option>
+                            <option v-for="role in selectedServer.roles" :key="role.id" :value="role.id">
+                                {{ role.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="card bg-base-200 border border-base-300 shadow-sm">
+                        <div class="overflow-x-visible">
                             <table class="table w-full">
                                 <thead>
-                                    <tr class="border-b border-base-300 bg-base-300/50">
-                                        <th class="py-4 px-6 text-start text-xs font-semibold text-base-content/70 uppercase">User</th>
-                                        <th class="py-4 px-6 text-center text-xs font-semibold text-base-content/70 uppercase">Roles</th>
-                                        <th class="py-4 px-6 text-end text-xs font-semibold text-base-content/70 uppercase">Actions</th>
-                                    </tr>
+                                <tr class="border-b border-base-300 bg-base-300/50">
+                                    <th class="py-4 px-6 text-start text-xs font-semibold text-base-content/70 uppercase">
+                                        User
+                                    </th>
+                                    <th class="py-4 px-6 text-center text-xs font-semibold text-base-content/70 uppercase">
+                                        Roles
+                                    </th>
+                                    <th class="py-4 px-6 text-end text-xs font-semibold text-base-content/70 uppercase">
+                                        Actions
+                                    </th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    <tr
-                                        v-for="user in selectedServer.users" :key="user.id"
-                                        class="border-b border-base-300 hover:bg-base-300/30 transition-colors">
-                                        <td class="py-4 px-6">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="avatar" :class="{ placeholder: !user.icon }">
-                                                    <div class="bg-neutral text-neutral-content rounded-full w-8 h-8">
-                                                        <img v-if="user.icon" :src="baseUrl + user.icon" :alt="user.nickname" />
-                                                        <span v-else class="text-xs uppercase">{{ user.nickname.substring(0, 2) }}</span>
-                                                    </div>
+                                <tr
+                                    v-for="user in filteredMembers" :key="user.id"
+                                    class="border-b border-base-300 hover:bg-base-300/30 transition-colors">
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center space-x-3">
+                                            <div :class="{ placeholder: !user.icon }" class="avatar">
+                                                <div class="bg-neutral text-neutral-content rounded-full w-8 h-8">
+                                                    <img
+                                                        v-if="user.icon" :alt="user.nickname"
+                                                        :src="baseUrl + user.icon"/>
+                                                    <span v-else class="text-xs uppercase">{{
+                                                            user.nickname.substring(0, 2)
+                                                        }}</span>
                                                 </div>
-                                                <span class="font-medium text-base-content">{{ user.nickname }}</span>
                                             </div>
-                                        </td>
-                                        <td class="py-4 px-6 text-center">
-                                            <div class="dropdown dropdown-bottom dropdown-end">
-                                                <button
-                                                    :disabled="selectedServer.roles?.length === 0"
-                                                    class="btn btn-sm bg-base-100 hover:bg-base-300 border-base-300"
-                                                    :class="selectedServer.roles?.length === 0 ? 'tooltip' : ''"
-                                                    data-tip="Your server doesnt have roles."
-                                                    tabindex="0">
-                                                    {{ user.rolesWithServer.map(role => role.name).join(', ') || 'None' }}
-                                                </button>
-                                                <ul
-                                                    class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg gap-y-1 mt-2 border border-base-300"
-                                                    tabindex="0">
-                                                    <li v-for="role in selectedServer.roles" :key="role.id">
-                                                        <button
-                                                            :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'hover:bg-base-200'"
-                                                            :disabled="!perms.has([PermType.CAN_EDIT_MEMBER_ROLES])"
-                                                            class="btn btn-ghost btn-sm justify-start w-full"
-                                                            @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))">
-                                                            <BsCheckLg
-                                                                v-if="user.rolesWithServer.find(objRole => objRole.id === role.id)"
-                                                                class="w-4 h-4 mr-2"
-                                                            />
-                                                            <span v-else class="w-4 h-4 mr-2"></span>
-                                                            {{ role.name }}
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                        <td class="py-4 px-6 text-end">
-                                            <ConfirmDialog
-                                                v-if="user.id !== usePage().props.user?.id"
-                                                :class-name="`btn btn-ghost btn-sm text-error hover:bg-error/20 ${!perms.has([PermType.CAN_KICK]) ? 'btn-disabled opacity-50' : ''}`"
-                                                :confirm="() => kickMember(user.id)"
-                                                :description="`Are you sure you want to kick ${user.nickname}? This action cannot be undone.`"
-                                                :title="`Kick ${user.nickname}`">
-                                                <GiBootKick class="w-5 h-5"/>
-                                            </ConfirmDialog>
-                                        </td>
-                                    </tr>
+                                            <span
+                                                :style="{ color: getMemberRoleColor(user, selectedServer.roles) }"
+                                                class="font-medium">{{
+                                                    user.nickname
+                                                }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-center">
+                                        <div class="dropdown dropdown-top dropdown-end">
+                                            <button
+                                                :class="selectedServer.roles?.length === 0 ? 'tooltip' : ''"
+                                                :disabled="selectedServer.roles?.length === 0"
+                                                class="btn btn-sm bg-base-100 hover:bg-base-300 border-base-300"
+                                                data-tip="Your server doesnt have roles."
+                                                tabindex="0">
+                                                {{ user.rolesWithServer.map(role => role.name).join(', ') || 'None' }}
+                                            </button>
+                                            <ul
+                                                class="dropdown-content menu bg-base-100 rounded-box z-50 w-52 p-2 shadow-lg gap-y-1 mb-2 border border-base-300"
+                                                tabindex="0">
+                                                <li v-for="role in selectedServer.roles" :key="role.id">
+                                                    <button
+                                                        :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'hover:bg-base-200'"
+                                                        :disabled="!perms.has([PermType.CAN_EDIT_MEMBER_ROLES])"
+                                                        class="btn btn-ghost btn-sm justify-start w-full"
+                                                        @click="() => toggleRole(role.id, user.id, !user.rolesWithServer.find(objRole => objRole.id === role.id))">
+                                                        <BsCheckLg
+                                                            v-if="user.rolesWithServer.find(objRole => objRole.id === role.id)"
+                                                            class="w-4 h-4 mr-2"
+                                                        />
+                                                        <span v-else class="w-4 h-4 mr-2"></span>
+                                                        {{ role.name }}
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-6 text-end">
+                                        <ConfirmDialog
+                                            v-if="user.id !== usePage().props.user?.id"
+                                            :class-name="`btn btn-ghost btn-sm text-error hover:bg-error/20 ${!perms.has([PermType.CAN_KICK]) ? 'btn-disabled opacity-50' : ''}`"
+                                            :confirm="() => kickMember(user.id)"
+                                            :description="`Are you sure you want to kick ${user.nickname}? This action cannot be undone.`"
+                                            :title="`Kick ${user.nickname}`">
+                                            <GiBootKick class="w-5 h-5"/>
+                                        </ConfirmDialog>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>

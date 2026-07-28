@@ -154,7 +154,7 @@ const updateIcon = (val: File) => {
             <!-- User Profile -->
             <div class="dropdown dropdown-end">
                 <div class="flex items-center btn btn-ghost px-2" role="button" tabindex="0">
-                    <div class="mr-2 hidden md:block">{{ $page.props.user?.name }}</div>
+                    <div class="mr-2 hidden md:block">{{ $page.props.user?.nickname }}</div>
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img

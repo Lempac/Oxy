@@ -60,11 +60,11 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'icon' => $iconPath,
         ]);
-
         // Attach user to server and update invite count
         $server = $invite->server;
         if ($server && ! $server->users()->where('users.id', $user->id)->exists()) {
             $server->users()->attach($user->id);
+            $server->assignDefaultRole($user);
         }
         $invite->increment('uses');
 

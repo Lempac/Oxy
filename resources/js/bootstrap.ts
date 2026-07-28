@@ -95,3 +95,23 @@ export const joinServer = async (code: string): Promise<[number, string?]> => {
     }
 }
 
+export const getMemberRoleColor = (
+    user?: (User & { rolesWithServer?: Role[] | null }) | null,
+    serverRoles?: Role[] | null
+): string | undefined => {
+    if (!user || !serverRoles || serverRoles.length === 0) return undefined;
+
+    const userRoles = user.rolesWithServer || user.roles || [];
+    if (userRoles.length === 0) return undefined;
+
+    const memberServerRoles = serverRoles.filter(sRole =>
+        userRoles.some(uRole => uRole.id === sRole.id)
+    );
+
+    if (memberServerRoles.length === 0) return undefined;
+
+    memberServerRoles.sort((a, b) => a.importance - b.importance);
+
+    return memberServerRoles[0]?.color;
+};
+

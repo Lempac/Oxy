@@ -8,6 +8,7 @@ use Database\Factories\ServerFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -23,6 +24,16 @@ class Server extends Model
         'description',
         'icon',
         'slug',
+        'default_role_id',
+        'enable_whiteboard',
+    ];
+
+    protected $casts = [
+        'enable_whiteboard' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'enable_whiteboard' => true,
     ];
 
     protected $dispatchesEvents = [
@@ -107,6 +118,11 @@ class Server extends Model
         return $this->hasMany(Role::class);
     }
 
+    public function defaultRole(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'default_role_id');
+    }
+
     public function invites(): HasMany
     {
         return $this->hasMany(ServerInvite::class);
@@ -131,5 +147,18 @@ class Server extends Model
         }
 
         return $invite->code;
+    }
+
+    public function assignDefaultRole(User $user): void
+    {
+        if ($this->default_role_id) {
+            $defaultRole = Role::where('id', $this->default_role_id)
+                ->where('server_id', $this->id)
+                ->first();
+            if ($defaultRole) {
+                setPermissionsTeamId($this->id);
+                $user->assignRole($defaultRole);
+            }
+        }
     }
 }

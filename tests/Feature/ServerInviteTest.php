@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserStatus;
+use App\Models\Role;
 use App\Models\Server;
 use App\Models\ServerInvite;
 use App\Models\User;
@@ -77,7 +78,7 @@ test('authenticated user with permission can create invite using server UUID id 
     $server = Server::factory()->create();
     $server->users()->attach($user->id);
 
-    $role = \App\Models\Role::factory()->create(['server_id' => $server->id]);
+    $role = Role::factory()->create(['server_id' => $server->id]);
     $role->syncPermissions(['CAN_INVITE']);
     setPermissionsTeamId($server->id);
     $user->assignRole($role);

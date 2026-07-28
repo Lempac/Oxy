@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { usePerms } from '@/bootstrap';
+import { usePerms, fetchJson } from '@/bootstrap';
 import {destroy, update} from '@/routes/server';
 import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -7,8 +7,9 @@ import {router, useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {baseUrl} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
-import {PermType, Server} from "@/types";
+import { PermType, Server } from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';
+import { BsCheckLg } from 'vue-icons-plus/bs';
 import { server } from '@/routes/home';
 import { Link } from '@inertiajs/vue3';
 
@@ -25,6 +26,8 @@ const form = useForm({
     name: selectedServer?.name,
     description: selectedServer?.description,
     icon: null as File | null,
+    default_role_id: selectedServer?.default_role_id ?? null as string | null,
+    enable_whiteboard: selectedServer?.enable_whiteboard ?? true,
 });
 
 form.defaults();
@@ -66,6 +69,24 @@ const copyToClipboard = (text: string) => {
         copyText.value = 'Copy';
     }, 2000);
 }
+
+const createdInviteCode = ref<string | null>(null);
+
+const generateInvite = async () => {
+    try {
+        const {data} = await fetchJson(`/server/${selectedServer!.id}/invites`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (data && data.invite) {
+            createdInviteCode.value = data.invite.code;
+        }
+    } catch {
+        // Handle error
+    }
+};
 </script>
 
 <template>
@@ -145,6 +166,55 @@ const copyToClipboard = (text: string) => {
                                             placeholder="Enter server description"
                                         ></textarea>
                                     </div>
+                                    <div class="form-control w-full">
+                                        <label class="label"><span class="label-text font-medium">Default Role</span></label>
+                                        <div class="dropdown dropdown-top w-full">
+                                            <button
+                                                id="defaultRole"
+                                                type="button"
+                                                :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
+                                                class="btn btn-sm bg-base-100 hover:bg-base-300 border-base-300 w-full justify-between font-normal h-10 min-h-0"
+                                                tabindex="0">
+                                                <span>{{ selectedServer?.roles?.find(r => r.id === form.default_role_id)?.name || 'None' }}</span>
+                                                <span class="opacity-50 text-xs">▲</span>
+                                            </button>
+                                            <ul
+                                                class="dropdown-content menu bg-base-100 rounded-box z-[50] w-full p-2 shadow-lg gap-y-1 mb-2 border border-base-300"
+                                                tabindex="0">
+                                                <li>
+                                                    <button
+                                                        type="button"
+                                                        :class="form.default_role_id === null ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'hover:bg-base-200'"
+                                                        class="btn btn-ghost btn-sm justify-start w-full"
+                                                        @click="form.default_role_id = null">
+                                                        <BsCheckLg
+                                                            v-if="form.default_role_id === null"
+                                                            class="w-4 h-4 mr-2"
+                                                        />
+                                                        <span v-else class="w-4 h-4 mr-2"></span>
+                                                        None
+                                                    </button>
+                                                </li>
+                                                <li v-for="role in selectedServer?.roles" :key="role.id">
+                                                    <button
+                                                        type="button"
+                                                        :class="form.default_role_id === role.id ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'hover:bg-base-200'"
+                                                        class="btn btn-ghost btn-sm justify-start w-full"
+                                                        @click="form.default_role_id = role.id">
+                                                        <BsCheckLg
+                                                            v-if="form.default_role_id === role.id"
+                                                            class="w-4 h-4 mr-2"
+                                                        />
+                                                        <span v-else class="w-4 h-4 mr-2"></span>
+                                                        <div class="w-3 h-3 rounded-full shrink-0 border border-black/10 mr-1" :style="{ backgroundColor: role.color }"></div>
+                                                        {{ role.name }}
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <p class="text-xs text-base-content/60 mt-1">Automatically assign this role to new members when they join.</p>
+                                        <ErrorAlert v-if="form.errors.default_role_id" :message="form.errors.default_role_id" class="mt-2"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -154,33 +224,68 @@ const copyToClipboard = (text: string) => {
                     <div class="card bg-base-200 shadow-sm border border-base-300">
                         <div class="card-body">
                             <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">Features</h2>
-                            <div class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
-                                <div>
-                                    <span class="font-semibold text-base-content">Allow Attachments</span>
-                                    <p class="text-sm text-base-content/70 mt-1">Let's you send images and videos in chat.</p>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
+                                    <div>
+                                        <span class="font-semibold text-base-content">Enable Whiteboard</span>
+                                        <p class="text-sm text-base-content/70 mt-1">Allow creation and use of whiteboard channels in this server.</p>
+                                    </div>
+                                    <input
+                                        v-model="form.enable_whiteboard"
+                                        :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
+                                        class="toggle toggle-primary"
+                                        type="checkbox"
+                                    />
                                 </div>
-                                <input class="toggle toggle-primary" disabled type="checkbox"/>
+                                <div class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
+                                    <div>
+                                        <span class="font-semibold text-base-content">Allow Attachments</span>
+                                        <p class="text-sm text-base-content/70 mt-1">Let's you send images and videos in chat.</p>
+                                    </div>
+                                    <input class="toggle toggle-primary" disabled type="checkbox"/>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Invite Code -->
-                    <div v-if="inviteCode && perms.has([PermType.CAN_INVITE])" class="card bg-base-200 shadow-sm border border-base-300">
+                    <div v-if="perms.has([PermType.CAN_INVITE])" class="card bg-base-200 shadow-sm border border-base-300">
                         <div class="card-body">
                             <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">Invite Code</h2>
-                            <div class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
-                                <div>
-                                    <span class="font-semibold text-base-content">Server Invite Code</span>
-                                    <p class="text-sm text-base-content/70 mt-1">Share this code with others so they can join.</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider">{{ inviteCode }}</span>
-                                    <div class="tooltip tooltip-top" :data-tip="copyText">
-                                        <button class="btn btn-square btn-ghost" @click="copyToClipboard(inviteCode)">
-                                            <HiClipboardCopy class="w-5 h-5" />
-                                        </button>
+                            <div class="space-y-4">
+                                <div v-if="inviteCode" class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
+                                    <div>
+                                        <span class="font-semibold text-base-content">Server Invite Code</span>
+                                        <p class="text-sm text-base-content/70 mt-1">Share this code with others so they can join.</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider">{{ inviteCode }}</span>
+                                        <div class="tooltip tooltip-top" :data-tip="copyText">
+                                            <button class="btn btn-square btn-ghost" @click="copyToClipboard(inviteCode)">
+                                                <HiClipboardCopy class="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
+                                <div v-if="createdInviteCode" class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-primary/30">
+                                    <div>
+                                        <span class="font-semibold text-base-content">Generated Invite Code</span>
+                                        <p class="text-sm text-base-content/70 mt-1">A new invite code has been generated.</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider">{{ createdInviteCode }}</span>
+                                        <div class="tooltip tooltip-top" :data-tip="copyText">
+                                            <button class="btn btn-square btn-ghost" @click="copyToClipboard(createdInviteCode)">
+                                                <HiClipboardCopy class="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    class="btn btn-primary btn-sm"
+                                    @click="generateInvite">
+                                    Generate Invite Code
+                                </button>
                             </div>
                         </div>
                     </div>

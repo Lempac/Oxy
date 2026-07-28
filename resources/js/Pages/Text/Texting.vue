@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, defaultIcon, usePerms} from '@/bootstrap';
+import {baseUrl, defaultIcon, getMemberRoleColor, usePerms} from '@/bootstrap';
 
 import {create, deleteMethod, edit} from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
@@ -169,8 +169,8 @@ const uploadFile = (val: File) => {
                             </div>
                         </div>
                         <div class="chat-header">
-                            {{ message.sender.name }}
-                            <time class="text-xs opacity-50">{{ formatDate(message.created_at) }}</time>
+                            <span class="font-semibold" :style="{ color: getMemberRoleColor(message.sender, selectedServer?.roles) }">{{ message.sender.nickname || message.sender.name }}</span>
+                            <time class="text-xs opacity-50 ml-1">{{ formatDate(message.created_at) }}</time>
                         </div>
 
                         <div class="indicator">

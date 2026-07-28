@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, defaultIcon} from "@/bootstrap";
+import {baseUrl, defaultIcon, getMemberRoleColor} from "@/bootstrap";
 import {Server} from "@/types";
 
 defineProps<{
@@ -17,7 +17,10 @@ defineProps<{
                         <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" alt="user"/>
                     </div>
                 </div>
-                <div class="text-xs mt-1">{{ user.nickname }}</div>
+                <div
+                    :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }"
+                    class="text-xs mt-1 font-medium">{{ user.nickname }}
+                </div>
             </div>
 
             <div

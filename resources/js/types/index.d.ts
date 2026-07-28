@@ -182,6 +182,9 @@ export interface Server extends Object {
     name: string;
     description: string;
     icon: string | null;
+    default_role_id?: string | null;
+    default_role?: Role | null;
+    enable_whiteboard?: boolean;
     users: User[] | null;
     roles: Role[] | null;
     route_key: string;
@@ -219,6 +222,7 @@ export interface User {
     light_theme: ThemeType;
     dark_theme: ThemeType;
     roles: Role[] | null;
+    rolesWithServer?: Role[] | null;
     servers: Server[] | null;
 }
 

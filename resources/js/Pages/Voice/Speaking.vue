@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, defaultIcon, usePerms} from '@/bootstrap';
+import {baseUrl, defaultIcon, getMemberRoleColor, usePerms} from '@/bootstrap';
 
 import {create, deleteMethod, edit} from '@/routes/channel';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
@@ -150,7 +150,7 @@ const leaveChannel = async () => {
                             <div class="flex w-10 h-auto rounded-full ml-5">
                                 <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" alt=""/>
                             </div>
-                            <div class="flex items-center h-full w-full p-4">
+                            <div class="flex items-center h-full w-full p-4 font-medium" :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }">
                                 {{ user.nickname }}
                             </div>
                         </div>
