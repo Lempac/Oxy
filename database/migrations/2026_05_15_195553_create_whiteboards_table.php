@@ -13,8 +13,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('whiteboards', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('channel_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('channel_id')->constrained()->cascadeOnDelete();
             $table->longText('state')->nullable();
             $table->enum('sync_status', array_column(WhiteboardSyncState::cases(), 'value'))->default(WhiteboardSyncState::Synced->value);
             $table->timestamps();

@@ -2,17 +2,11 @@
 
 use App\Models\User;
 
-// test('login screen can be rendered', function () {
-//    $response = $this->get('/login');
-//
-//    $response->assertStatus(200);
-// });
-
-test('users can authenticate using the login screen', function () {
+test('users can authenticate using nickname and password', function () {
     $user = User::factory()->create();
 
     $response = $this->post('/login', [
-        'email' => $user->email,
+        'nickname' => $user->nickname,
         'password' => 'password',
     ]);
 
@@ -24,7 +18,7 @@ test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
     $this->post('/login', [
-        'email' => $user->email,
+        'nickname' => $user->nickname,
         'password' => 'wrong-password',
     ]);
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { home, login, manual, register } from '@/routes';
-import {Head, Link, useForm} from '@inertiajs/vue3';
-import {ref} from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { MdMessage, MdCall, MdScreenShare } from 'vue-icons-plus/md';
 import { FaBook } from 'vue-icons-plus/fa';
@@ -10,25 +10,71 @@ import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 const loginModel = ref<HTMLDialogElement>();
 const registerModel = ref<HTMLDialogElement>();
 
-const form = useForm({
-    name: '',
-    email: '',
+const loginForm = useForm({
+    nickname: '',
     password: '',
-    password_confirmation: '',
     remember: false,
 });
 
+const iconPreview = ref<string | null>(null);
+const serverInfo = ref<{ name: string; description: string; icon: string; members_count: number; online_count: number } | null>(null);
+
+const registerForm = useForm<{
+    server_code: string;
+    nickname: string;
+    password: string;
+    password_confirmation: string;
+    icon: File | null;
+}>({
+    server_code: '',
+    nickname: '',
+    password: '',
+    password_confirmation: '',
+    icon: null,
+});
+
+const checkServerCode = async () => {
+    const code = registerForm.server_code.trim();
+    if (!code) {
+        serverInfo.value = null;
+        return;
+    }
+    try {
+        const res = await fetch(`/invites/${encodeURIComponent(code)}/check`);
+        const data = await res.json();
+        if (res.ok && data.valid) {
+            serverInfo.value = data.server;
+            registerForm.clearErrors('server_code');
+        } else {
+            serverInfo.value = null;
+            registerForm.setError('server_code', data.message || 'The provided server code is invalid or has expired.');
+        }
+    } catch {
+        serverInfo.value = null;
+    }
+};
+
+const updateRegisterIcon = (file: File | undefined) => {
+    if (file) {
+        registerForm.icon = file;
+        iconPreview.value = URL.createObjectURL(file);
+    }
+};
+
 const submitLogin = () => {
-    form.post(login.url(), {
+    loginForm.post(login.url(), {
         onFinish: () => {
-            form.reset('password');
+            loginForm.reset('password');
         },
     });
 };
+
 const submitRegister = () => {
-    form.post(register.url(), {
-        onFinish: () => {
-            form.reset('password', 'password_confirmation');
+    registerForm.post(register.url(), {
+        onError: (errors) => {
+            if (errors.password || errors.password_confirmation) {
+                registerForm.reset('password', 'password_confirmation');
+            }
         }
     });
 };
@@ -52,7 +98,7 @@ const submitRegister = () => {
                     <template v-else>
                         <button
                             class="btn btn-lg btn-primary"
-                            @click="() => {form.clearErrors(); loginModel?.showModal()}">
+                            @click="() => {loginForm.clearErrors(); loginModel?.showModal()}">
                             Join
                         </button>
                     </template>
@@ -94,7 +140,7 @@ const submitRegister = () => {
                     <template v-else>
                         <button
                             class="btn btn-lg btn-primary"
-                            @click="() => {form.clearErrors(); loginModel?.showModal()}">
+                            @click="() => {loginForm.clearErrors(); loginModel?.showModal()}">
                             Join
                         </button>
                     </template>
@@ -119,122 +165,164 @@ const submitRegister = () => {
         <form class="modal-box bg-base-200 space-y-4 text-base-content" @submit.prevent="submitLogin">
             <h2 class="text-2xl font-bold border-b border-base-300 pb-2">Log in</h2>
             <fieldset class="fieldset">
-                <legend class="fieldset-legend">Email</legend>
+                <legend class="fieldset-legend">Nickname</legend>
                 <input
-                    id="login-email"
-                    v-model="form.email"
+                    id="login-nickname"
+                    v-model="loginForm.nickname"
                     autocomplete="username"
                     class="input input-bordered w-full"
-                    name="email"
+                    name="nickname"
                     required
-                    type="email"
+                    type="text"
                 />
-                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" />
+                <ErrorAlert v-if="loginForm.errors.nickname" :message="loginForm.errors.nickname" />
             </fieldset>
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Password</legend>
                 <input
                     id="login-password"
-                    v-model="form.password"
+                    v-model="loginForm.password"
                     autocomplete="current-password"
                     class="input input-bordered w-full"
                     name="password"
                     required
                     type="password"
                 />
-                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" />
+                <ErrorAlert v-if="loginForm.errors.password" :message="loginForm.errors.password" />
             </fieldset>
             <fieldset class="fieldset p-0">
                 <label class="fieldset-label cursor-pointer flex-row gap-3">
-                    <input id="remember" v-model="form.remember" autocomplete="off" class="checkbox" data-bwignore="true" name="remember" type="checkbox"/>
+                    <input id="remember" v-model="loginForm.remember" autocomplete="off" class="checkbox" data-bwignore="true" name="remember" type="checkbox"/>
                     Remember me
                 </label>
             </fieldset>
             <div class="modal-action mt-6 gap-2">
-                <button class="btn btn-primary px-8" type="submit">
+                <button class="btn btn-primary px-8" type="submit" :disabled="loginForm.processing">
                     Log in
                 </button>
                 <button class="btn btn-ghost" type="button" @click="() => loginModel?.close()">Cancel</button>
             </div>
             <div class="text-center mt-2">
-                <button class="btn btn-link btn-sm" type="button" @click="() => {loginModel?.close(); registerModel?.showModal();}">
-                    Create an account?
+                <button class="btn btn-link btn-sm" type="button" @click="() => {loginModel?.close(); registerForm.clearErrors(); registerModel?.showModal();}">
+                    First time here? Enter Server Code to Join
                 </button>
             </div>
         </form>
     </dialog>
+
     <dialog ref="registerModel" class="modal">
         <form class="modal-box bg-base-200 space-y-4 text-base-content" @submit.prevent="submitRegister">
-            <h2 class="text-2xl font-bold border-b border-base-300 pb-2">Register</h2>
-            <!-- Name Input -->
+            <h2 class="text-2xl font-bold border-b border-base-300 pb-2">Join with Server Code</h2>
+
+            <!-- Server Code Input -->
             <fieldset class="fieldset">
-                <legend class="fieldset-legend">Name</legend>
+                <legend class="fieldset-legend">Server Code / Invite Code</legend>
                 <input
-                    id="register-name"
-                    v-model="form.name"
-                    autocomplete="name"
+                    id="register-server_code"
+                    v-model="registerForm.server_code"
                     class="input input-bordered w-full"
-                    name="name"
+                    name="server_code"
+                    placeholder="Enter invite code"
+                    required
+                    type="text"
+                    @blur="checkServerCode"
+                />
+                <div v-if="serverInfo" class="mt-2 p-3 bg-success/10 border border-success/30 rounded-lg flex items-center gap-3">
+                    <img v-if="serverInfo.icon" :src="serverInfo.icon" class="size-10 rounded-full object-cover border border-base-300" />
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-success truncate">Joining: {{ serverInfo.name }}</p>
+                        <p v-if="serverInfo.description" class="text-xs text-base-content/70 truncate">{{ serverInfo.description }}</p>
+                        <div class="flex items-center gap-4 mt-1 text-xs text-base-content/80 font-medium">
+                            <span class="flex items-center gap-1.5">
+                                <span class="size-2 rounded-full bg-success"></span>
+                                {{ serverInfo.online_count ?? 0 }} Online
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <span class="size-2 rounded-full bg-base-content/40"></span>
+                                {{ serverInfo.members_count ?? 0 }} Members
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <ErrorAlert v-if="registerForm.errors.server_code" :message="registerForm.errors.server_code" />
+            </fieldset>
+
+            <!-- Nickname Input -->
+            <fieldset class="fieldset">
+                <legend class="fieldset-legend">Nickname</legend>
+                <input
+                    id="register-nickname"
+                    v-model="registerForm.nickname"
+                    autocomplete="username"
+                    class="input input-bordered w-full"
+                    name="nickname"
                     required
                     type="text"
                 />
-                <ErrorAlert v-if="form.errors.name" :message="form.errors.name" />
+                <ErrorAlert v-if="registerForm.errors.nickname" :message="registerForm.errors.nickname" />
             </fieldset>
+
+            <!-- Profile Icon Input -->
             <fieldset class="fieldset">
-                <legend class="fieldset-legend">Email</legend>
-                <input
-                    id="register-email"
-                    v-model="form.email"
-                    autocomplete="username"
-                    class="input input-bordered w-full"
-                    name="email"
-                    required
-                    type="email"
-                />
-                <ErrorAlert v-if="form.errors.email" :message="form.errors.email" />
+                <legend class="fieldset-legend">Profile Icon (Optional)</legend>
+                <div class="flex items-center gap-4">
+                    <img v-if="iconPreview" :src="iconPreview" alt="Preview" class="size-12 rounded-full object-cover"/>
+                    <input
+                        id="register-icon"
+                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                        class="file-input file-input-bordered w-full"
+                        name="icon"
+                        type="file"
+                        @change="updateRegisterIcon((<HTMLInputElement>$event.target).files?.[0])"
+                    />
+                </div>
+                <ErrorAlert v-if="registerForm.errors.icon" :message="registerForm.errors.icon" />
             </fieldset>
+
             <!-- Password Input -->
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Password</legend>
                 <input
                     id="register-password"
-                    v-model="form.password"
+                    v-model="registerForm.password"
                     autocomplete="new-password"
                     class="input input-bordered w-full"
                     name="password"
                     required
                     type="password"
                 />
-                <ErrorAlert v-if="form.errors.password" :message="form.errors.password" />
+                <ErrorAlert v-if="registerForm.errors.password" :message="registerForm.errors.password" />
             </fieldset>
+
             <!-- Password Confirmation Input -->
             <fieldset class="fieldset">
                 <legend class="fieldset-legend">Confirm Password</legend>
                 <input
                     id="register-password_confirmation"
-                    v-model="form.password_confirmation"
+                    v-model="registerForm.password_confirmation"
                     autocomplete="new-password"
                     class="input input-bordered w-full"
                     name="password_confirmation"
                     required
                     type="password"
                 />
-                <ErrorAlert v-if="form.errors.password_confirmation" :message="form.errors.password_confirmation" />
+                <ErrorAlert v-if="registerForm.errors.password_confirmation" :message="registerForm.errors.password_confirmation" />
             </fieldset>
+
             <!-- Submit and Cancel Buttons -->
             <div class="modal-action mt-6 gap-2">
                 <button
-                    :disabled="form.processing" class="btn btn-primary px-8"
+                    :disabled="registerForm.processing" class="btn btn-primary px-8"
                     type="submit">
-                    Register
+                    Join & Register
                 </button>
                 <button class="btn btn-ghost" type="button" @click="() => registerModel?.close()">
                     Cancel
                 </button>
             </div>
             <div class="text-center mt-2">
-                <button class="btn btn-link btn-sm" type="button" @click="() => {registerModel?.close(); loginModel?.showModal();}">
-                    Already have an account?
+                <button class="btn btn-link btn-sm" type="button" @click="() => {registerModel?.close(); loginForm.clearErrors(); loginModel?.showModal();}">
+                    Already have an account? Log in
                 </button>
             </div>
         </form>

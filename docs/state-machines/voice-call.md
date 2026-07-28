@@ -68,6 +68,12 @@ stateDiagram-v2
 
 ---
 
+## Real-Time WebRTC Signaling
+
+WebRTC SDP offer/answer exchanges, ICE candidates, and peer participant state changes are signaled over Laravel Reverb via `private-voice.{channelId}` (`App\Events\Voices\Status`).
+
+---
+
 ## Frontend Integration (`useVoiceCallStateMachine`)
 
 ```ts

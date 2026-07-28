@@ -17,7 +17,7 @@ defineProps<{
                         <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" alt="user"/>
                     </div>
                 </div>
-                <div class="text-xs mt-1">{{ user.name }}</div>
+                <div class="text-xs mt-1">{{ user.nickname }}</div>
             </div>
 
             <div

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Events\Servers\ServerCreated;
 use App\Events\Servers\ServerEdited;
 use Database\Factories\ServerFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +16,7 @@ use Spatie\Permission\Models\Permission;
 
 class Server extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'name',
@@ -31,27 +32,7 @@ class Server extends Model
 
     protected $appends = ['route_key'];
 
-    public function getRouteKey()
-    {
-        return $this->slug;
-    }
-
-    public function getRouteKeyName()
-    {
-        return 'slug';
-    }
-
-    public function getRouteKeyAttribute()
-    {
-        return $this->slug;
-    }
-
-    public function resolveRouteBinding($value, $field = null)
-    {
-        return $this->where('slug', $value)->firstOrFail();
-    }
-
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
@@ -67,6 +48,42 @@ class Server extends Model
                 $server->slug = $slug;
             }
         });
+    }
+
+    protected static function newFactory(): ServerFactory
+    {
+        return ServerFactory::new()->afterCreating(function ($server) {
+            $role = Role::create([
+                'name' => 'Owner',
+                'color' => '#ffffff',
+                'importance' => 0,
+                'server_id' => $server->id,
+                'guard_name' => 'web',
+            ]);
+
+            $permissions = Permission::pluck('name')->toArray();
+            $role->syncPermissions($permissions);
+        });
+    }
+
+    public function getRouteKey()
+    {
+        return $this->slug;
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function getRouteKeyAttribute()
+    {
+        return $this->slug;
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('slug', $value)->orWhere('id', $value)->firstOrFail();
     }
 
     public function users(): BelongsToMany
@@ -90,19 +107,29 @@ class Server extends Model
         return $this->hasMany(Role::class);
     }
 
-    protected static function newFactory(): ServerFactory
+    public function invites(): HasMany
     {
-        return ServerFactory::new()->afterCreating(function ($server) {
-            $role = Role::create([
-                'name' => 'Owner',
-                'color' => '#ffffff',
-                'importance' => 0,
-                'server_id' => $server->id,
-                'guard_name' => 'web',
-            ]);
+        return $this->hasMany(ServerInvite::class);
+    }
 
-            $permissions = Permission::pluck('name')->toArray();
-            $role->syncPermissions($permissions);
-        });
+    public function getInviteCode(): string
+    {
+        $invite = $this->invites()
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('max_uses')->orWhereColumn('uses', '<', 'max_uses');
+            })
+            ->latest()
+            ->first();
+
+        if (! $invite) {
+            $invite = $this->invites()->create([
+                'code' => ServerInvite::generateCode(),
+            ]);
+        }
+
+        return $invite->code;
     }
 }

@@ -2,7 +2,7 @@ import {onMounted, onUnmounted} from 'vue';
 import {router} from '@inertiajs/vue3';
 import echo from '@/echo';
 
-export function useServerEvents(serverId?: number | null) {
+export function useServerEvents(serverId?: string | null) {
     const handleServerJoinedOrLeft = () => router.reload({only: ['selected_server']});
     const handleServerEdited = () => router.reload({only: ['servers', 'selected_server']});
     const handleRoleEditedOrDeleted = () => router.reload({only: ['selected_server']});

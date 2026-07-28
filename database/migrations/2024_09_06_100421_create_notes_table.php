@@ -12,13 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notes', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('title');
             $table->string('text');
             $table->timestamps();
-            $table->unsignedBigInteger('board_id');
-
-            $table->foreign('board_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('boards');
+            $table->foreignUuid('board_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
         });
     }
 

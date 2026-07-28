@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\Theme;
 use App\Enums\UserStatus;
 use App\Events\Users\UserStatusUpdated;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,9 +17,9 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, HasRoles, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable;
 
     /**
      * The attributes that are mass-assignable.
@@ -27,8 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
+        'nickname',
         'icon',
         'password',
         'status',
@@ -68,6 +67,11 @@ class User extends Authenticatable implements MustVerifyEmail
         );
     }
 
+    public function connections(): HasMany
+    {
+        return $this->hasMany(UserAuthConnection::class);
+    }
+
     /**
      * Transition the user to a new status using the UserStatus state machine.
      */
@@ -105,7 +109,6 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,
             'light_theme' => Theme::class,

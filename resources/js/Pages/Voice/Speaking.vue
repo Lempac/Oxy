@@ -151,7 +151,7 @@ const leaveChannel = async () => {
                                 <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" alt=""/>
                             </div>
                             <div class="flex items-center h-full w-full p-4">
-                                {{ user.name }}
+                                {{ user.nickname }}
                             </div>
                         </div>
                     </div>

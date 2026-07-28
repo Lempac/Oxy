@@ -18,8 +18,7 @@ test('profile information can be updated', function () {
     $response = $this
         ->actingAs($user)
         ->post('/profile', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'nickname' => 'NewNickname',
             'light_theme' => 'oxy',
             'dark_theme' => 'dark',
         ]);
@@ -30,9 +29,7 @@ test('profile information can be updated', function () {
 
     $user->refresh();
 
-    $this->assertSame('Test User', $user->name);
-    $this->assertSame('test@example.com', $user->email);
-    $this->assertNull($user->email_verified_at);
+    $this->assertSame('NewNickname', $user->nickname);
 });
 
 test('profile theme can be updated', function () {
@@ -41,8 +38,7 @@ test('profile theme can be updated', function () {
     $response = $this
         ->actingAs($user)
         ->post('/profile', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'nickname' => 'TestUser',
             'light_theme' => 'cyberpunk',
             'dark_theme' => 'synthwave',
         ]);
@@ -54,25 +50,6 @@ test('profile theme can be updated', function () {
     $refreshed = $user->refresh();
     $this->assertSame('cyberpunk', $refreshed->light_theme->value);
     $this->assertSame('synthwave', $refreshed->dark_theme->value);
-});
-
-test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->post('/profile', [
-            'name' => 'Test User',
-            'email' => $user->email,
-            'light_theme' => 'oxy',
-            'dark_theme' => 'dark',
-        ]);
-
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
-
-    $this->assertNotNull($user->refresh()->email_verified_at);
 });
 
 test('user can delete their account', function () {

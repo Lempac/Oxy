@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ServerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServerInviteController;
 use App\Http\Controllers\WhiteboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -11,9 +12,12 @@ use Inertia\Inertia;
 
 Route::get('/', fn () => Inertia::render('Welcome'))->name('welcome');
 Route::get('manual', fn () => Inertia::render('Manual'))->name('manual');
+Route::get('/invites/{code}/check', [ServerInviteController::class, 'check'])
+    ->name('invites.check')
+    ->middleware('throttle:10,1');
 
 Route::post('language', function (Request $request) {
-    $request->validate(['language' => 'required|string|in:en,lv']);
+    $request.validate(['language' => 'required|string|in:en,lv']);
     session()->put('locale', $request->language);
     cache()->forget('translations_'.$request->language); // Clear cache if needed, though usually not on every change
 
@@ -25,7 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(HomeController::class)->prefix('home')->name('home')
         ->whereNumber(['message', 'whiteboard'])
         ->group(function () {
-            Route::get('/', 'home')->middleware('verified');
+            Route::get('/', 'home');
             Route::get('/{server}', 'server')->name('.server');
             Route::get('/{server}/text', 'text')->name('.text');
             Route::get('/{server}/text/{channel}', 'channel')->name('.text.channel');
@@ -64,6 +68,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/{whiteboard}/save', 'saveState')->name('whiteboard.save');
     }
     );
+
+    Route::post('/invites/join', [ServerInviteController::class, 'join'])
+        ->name('invites.join')
+        ->middleware('throttle:10,1');
+    Route::post('/server/{server}/invites', [ServerInviteController::class, 'store'])->name('server.invites.store');
 });
 
 require __DIR__.'/auth.php';

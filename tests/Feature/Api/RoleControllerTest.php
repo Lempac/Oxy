@@ -129,3 +129,43 @@ test('user with permissions can remove user from role', function () {
 
     $response->assertStatus(302);
 });
+
+test('user with CAN_EDIT_ROLE permission can update role with string UUID', function () {
+    $user = User::factory()->create();
+    $server = Server::factory()->create();
+    $role = Role::factory()->create(['server_id' => $server->id]);
+    $targetRole = Role::factory()->create(['server_id' => $server->id]);
+
+    $server->users()->attach($user->id);
+    $role->syncPermissions(['CAN_EDIT_ROLE']);
+    setPermissionsTeamId($server->id);
+    $user->assignRole($role);
+
+    $response = $this->actingAs($user)->patchJson("/api/roles/{$targetRole->id}", [
+        'name' => 'Updated Role Name',
+        'color' => '#123456',
+        'importance' => 5,
+    ]);
+
+    $response->assertStatus(200);
+    expect($targetRole->fresh()->name)->toBe('Updated Role Name')
+        ->and($targetRole->fresh()->color)->toBe('#123456')
+        ->and($targetRole->fresh()->importance)->toBe(5);
+});
+
+test('user with CAN_DELETE_ROLE permission can delete role with string UUID', function () {
+    $user = User::factory()->create();
+    $server = Server::factory()->create();
+    $role = Role::factory()->create(['server_id' => $server->id]);
+    $targetRole = Role::factory()->create(['server_id' => $server->id]);
+
+    $server->users()->attach($user->id);
+    $role->syncPermissions(['CAN_DELETE_ROLE']);
+    setPermissionsTeamId($server->id);
+    $user->assignRole($role);
+
+    $response = $this->actingAs($user)->deleteJson("/api/roles/{$targetRole->id}");
+
+    $response->assertStatus(200);
+    expect(Role::find($targetRole->id))->toBeNull();
+});

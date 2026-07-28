@@ -30,7 +30,6 @@ const form = useForm({
 form.defaults();
 
 const updateIcon = (file: File | null) => {
-    console.log('Selected file:', file);
     if (!file) return;
     inputFile.value = file;
     form.icon = file;
@@ -75,7 +74,7 @@ const copyToClipboard = (text: string) => {
             <div class="px-6 pt-6 md:px-10 md:pt-10 max-w-6xl mx-auto w-full pb-0">
                 <SettingsHeader :selected-server="selectedServer!"/>
             </div>
-            
+
             <div class="flex-1 overflow-y-auto p-6 md:p-10 pt-0">
                 <div class="max-w-4xl mx-auto space-y-8 pb-20">
                     <div class="flex items-center justify-between">

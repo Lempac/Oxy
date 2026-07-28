@@ -2,7 +2,7 @@ import { onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import echo from '@/echo';
 
-export function useChannelEvents(serverId?: number | null, onlyKeys: string[] = ['channels']) {
+export function useChannelEvents(serverId?: string | null, onlyKeys: string[] = ['channels']) {
     const handleChannelChange = () => router.reload({ only: onlyKeys });
 
     onMounted(() => {

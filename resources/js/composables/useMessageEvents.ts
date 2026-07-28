@@ -2,7 +2,7 @@ import { onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import echo from '@/echo';
 
-export function useMessageEvents(channelId?: number | null) {
+export function useMessageEvents(channelId?: string | null) {
     const handleMessageChange = () => router.reload({ only: ['messages'] });
 
     onMounted(() => {

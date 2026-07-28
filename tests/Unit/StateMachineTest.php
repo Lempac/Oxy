@@ -20,8 +20,7 @@ test('UserStatus state machine transitions correctly', function () {
     Event::fake();
 
     $user = new User([
-        'name' => 'Test User',
-        'email' => 'test@example.com',
+        'nickname' => 'Test User',
         'status' => UserStatus::Offline,
     ]);
 

@@ -26,7 +26,41 @@ const {servers, selectedServer} = defineProps<{
 const serverModal = ref<HTMLDialogElement>();
 const activeTab = ref<'create' | 'join'>('create');
 const val = ref<[number, string?]>();
-const code = ref<HTMLInputElement>();
+const joinCodeInput = ref('');
+const serverInfo = ref<{ name: string; description: string; icon: string; members_count: number; online_count: number } | null>(null);
+const checkLoading = ref(false);
+const checkError = ref<string | null>(null);
+
+let checkDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+const checkServerCode = () => {
+    if (checkDebounceTimer) clearTimeout(checkDebounceTimer);
+    checkDebounceTimer = setTimeout(async () => {
+        const codeToTest = joinCodeInput.value.trim();
+        if (!codeToTest) {
+            serverInfo.value = null;
+            checkError.value = null;
+            return;
+        }
+        checkLoading.value = true;
+        try {
+            const res = await fetch(`/invites/${encodeURIComponent(codeToTest)}/check`);
+            const data = await res.json();
+            if (res.ok && data.valid) {
+                serverInfo.value = data.server;
+                checkError.value = null;
+            } else {
+                serverInfo.value = null;
+                checkError.value = data.message || 'Invalid or expired server code.';
+            }
+        } catch {
+            serverInfo.value = null;
+            checkError.value = 'Failed to verify invite code.';
+        } finally {
+            checkLoading.value = false;
+        }
+    }, 300);
+};
 
 const form = useForm<{ name: string, description: string, icon: File | null }>({
     name: '',
@@ -226,15 +260,48 @@ v-if="icon !== null" :src="icon" alt=""
 
                     <!-- Join Server Tab Content -->
                     <div v-if="activeTab === 'join'">
-                        <fieldset class="fieldset w-full mb-6">
+                        <fieldset class="fieldset w-full mb-4">
                             <legend class="fieldset-legend">Server Invite Code</legend>
                             <input
-                                id="code" ref="code" autocomplete="off" class="input input-bordered w-full bg-base-100" data-bwignore="true" name="code"
-                                placeholder="Enter invite code" type="text"/>
+                                id="join-code"
+                                v-model="joinCodeInput"
+                                autocomplete="off"
+                                class="input input-bordered w-full bg-base-100"
+                                data-bwignore="true"
+                                name="code"
+                                placeholder="Enter invite code"
+                                type="text"
+                                @input="checkServerCode"
+                                @blur="checkServerCode"
+                            />
                         </fieldset>
+
+                        <!-- Server Preview Card -->
+                        <div v-if="serverInfo" class="mb-4 p-3 bg-success/10 border border-success/30 rounded-lg flex items-center gap-3">
+                            <img v-if="serverInfo.icon" :src="serverInfo.icon" class="size-10 rounded-full object-cover border border-base-300" />
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-success truncate">Joining: {{ serverInfo.name }}</p>
+                                <p v-if="serverInfo.description" class="text-xs text-base-content/70 truncate">{{ serverInfo.description }}</p>
+                                <div class="flex items-center gap-4 mt-1 text-xs text-base-content/80 font-medium">
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="size-2 rounded-full bg-success"></span>
+                                        {{ serverInfo.online_count ?? 0 }} Online
+                                    </span>
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="size-2 rounded-full bg-base-content/40"></span>
+                                        {{ serverInfo.members_count ?? 0 }} Members
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <ErrorAlert v-if="checkError" :message="checkError" class="mb-4" />
+
                         <button
                             class="btn btn-primary w-full"
-                            @click="async () => {val = await joinServer(code!.value); val[0] === 200 ? serverModal?.close() : ''; form.reset();}">
+                            :disabled="!serverInfo || checkLoading"
+                            @click="async () => { val = await joinServer(joinCodeInput); if (val[0] === 200) { serverModal?.close(); joinCodeInput = ''; serverInfo = null; } }">
+                            <span v-if="checkLoading" class="loading loading-spinner loading-xs"></span>
                             Join Server
                         </button>
                         <ErrorAlert v-if="val && val[0] !== 200" :message="val[1]" class="mt-3"/>

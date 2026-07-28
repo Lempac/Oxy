@@ -51,7 +51,7 @@ class RoleController extends Controller
         return response()->json(['message' => 'Role added to server successfully.', 'role' => $role], 201);
     }
 
-    public function edit(Request $request, int $roleId)
+    public function edit(Request $request, Role $role)
     {
         $request->validate([
             'name' => 'nullable|string|max:255',
@@ -59,12 +59,6 @@ class RoleController extends Controller
             'perms' => 'nullable|array',
             'importance' => 'nullable|integer|min:0',
         ]);
-
-        $role = Role::with('server')->find($roleId);
-
-        if (! $role) {
-            return response()->json(['message' => 'Role not found.'], 404);
-        }
 
         setPermissionsTeamId($role->server_id);
         if (! Auth::user()->hasPermissionTo('CAN_EDIT_ROLE')) {
@@ -76,27 +70,17 @@ class RoleController extends Controller
             $role->syncPermissions($request->perms);
         }
 
-        //        broadcast(new RoleEdited($role));
-
         return response()->json(['message' => 'Role updated successfully.', 'role' => $role]);
     }
 
-    public function delete(int $roleId)
+    public function delete(Role $role)
     {
-        $role = Role::with('server')->find($roleId);
-
-        if (! $role) {
-            return response()->json(['message' => 'Role not found.'], 404);
-        }
-
         setPermissionsTeamId($role->server_id);
         if (! Auth::user()->hasPermissionTo('CAN_DELETE_ROLE')) {
             return response()->json(['message' => 'Forbidden.'], 403);
         }
 
         $role->delete();
-
-        //        broadcast(new RoleDeleted($role));
 
         return response()->json(['message' => 'Role deleted successfully.']);
     }
@@ -125,19 +109,8 @@ class RoleController extends Controller
         ]);
     }
 
-    public function addUser(int $roleId, int $userId)
+    public function addUser(Role $role, User $user)
     {
-        $user = User::find($userId);
-        $role = Role::with('server')->find($roleId);
-
-        if (! $role) {
-            abort(404, 'Role not found.');
-        }
-
-        if (! $user) {
-            abort(404, 'User not found.');
-        }
-
         setPermissionsTeamId($role->server_id);
         if (! Auth::user()->hasPermissionTo('CAN_EDIT_MEMBER_ROLES') && ! Auth::user()->hasPermissionTo('CAN_MANAGE_ROLE')) {
             abort(403, 'Forbidden.');
@@ -148,19 +121,8 @@ class RoleController extends Controller
         return back()->with('message', 'Role added successfully.');
     }
 
-    public function removeUser(int $roleId, int $userId)
+    public function removeUser(Role $role, User $user)
     {
-        $user = User::find($userId);
-        $role = Role::with('server')->find($roleId);
-
-        if (! $role) {
-            abort(404, 'Role not found.');
-        }
-
-        if (! $user) {
-            abort(404, 'User not found.');
-        }
-
         setPermissionsTeamId($role->server_id);
         if (! Auth::user()->hasPermissionTo('CAN_EDIT_MEMBER_ROLES') && ! Auth::user()->hasPermissionTo('CAN_MANAGE_ROLE')) {
             abort(403, 'Forbidden.');

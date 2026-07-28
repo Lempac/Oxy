@@ -13,12 +13,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('calls', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->enum('status', array_column(VoiceCallStatus::cases(), 'value'))->default(VoiceCallStatus::Idle->value);
             $table->timestamps();
-            $table->unsignedBigInteger('channel_id');
-
-            $table->foreign('channel_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('channels');
+            $table->foreignUuid('channel_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
         });
     }
 

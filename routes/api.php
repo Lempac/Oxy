@@ -11,18 +11,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware(['auth', 'web']);
-//
-// Route::post('/tokens/create', function (Request $request) {
-//    dd($request->user());
-//    $token = $request->user()->createToken($request->token_name);
-//
-//    return ['token' => $token->plainTextToken];
-// })->middleware('auth:web')->name('tokens.create');
 
 Route::middleware(['web'])->group(function () {
     Route::controller(ServerController::class)->prefix('server')->name('server')->group(function () {
         Route::post('/', 'create')->name('.create');
-        Route::post('/add-user', 'addUser')->name('.addUser');
+        Route::post('/add-user', 'addUser')->name('.addUser')->middleware('throttle:10,1');
         Route::patch('/{server}', 'edit')->name('.edit');
         Route::delete('/{server}/remove-user', 'removeUser')->name('.removeUser');
         Route::delete('/{server}', 'delete')->name('.delete');

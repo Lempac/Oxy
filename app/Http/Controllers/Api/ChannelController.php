@@ -24,8 +24,6 @@ class ChannelController
 
         Channel::create(['name' => $request->get('name'), 'type' => $request->get('type'), 'server_id' => $serverId]);
 
-        //        broadcast(new ChannelCreated($serverId));
-
         return back()->with('message', 'Channel added to server successfully.');
     }
 
@@ -41,8 +39,6 @@ class ChannelController
         $channel->name = $request->get('name');
         $channel->save();
 
-        //        broadcast(new ChannelEdited($channel->id));
-
         return back()->with('message', 'Channel updated successfully.');
     }
 
@@ -57,8 +53,6 @@ class ChannelController
         $channelId = $channel->id;
         $channelSlug = $channel->slug;
         $channel->delete();
-
-        //        broadcast(new ChannelDeleted($channelId));
 
         $previousUrl = url()->previous();
 

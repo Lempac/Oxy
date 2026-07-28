@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\WhiteboardSyncState;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use InvalidArgumentException;
 
 class Whiteboard extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = ['channel_id', 'state', 'sync_status'];
 

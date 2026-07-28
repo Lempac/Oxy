@@ -7,6 +7,7 @@ use App\Events\Servers\ServerLeft;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\Server;
+use App\Models\ServerInvite;
 use Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -64,17 +65,17 @@ class ServerController extends Controller
     public function addUser(Request $request)
     {
         $request->validate([
-            'code' => 'required|string|max:20',
+            'code' => 'required|string',
         ]);
 
-        $data = explode('#', $request->code);
-        $serverId = $data[0];
-        $code = $data[1];
-        if (hash('xxh32', $serverId) !== $code) {
-            return response()->json(['message' => 'Code is invalid.'], 404);
+        $invite = ServerInvite::where('code', $request->code)->first();
+
+        if (! $invite || ! $invite->isValid()) {
+            return response()->json(['message' => 'Code is invalid or has expired.'], 404);
         }
 
-        $server = Server::find($serverId);
+        $server = $invite->server;
+
         if (! $server) {
             return response()->json(['message' => 'Server not found.'], 404);
         }
@@ -84,8 +85,9 @@ class ServerController extends Controller
         }
 
         $server->users()->attach(Auth::id());
+        $invite->increment('uses');
 
-        broadcast(new ServerJoined(Auth::id(), $serverId));
+        broadcast(new ServerJoined(Auth::id(), $server->id));
 
         // Note: addUser is called via fetchJson in bootstrap.ts, so we MUST return JSON!
         return response()->json(['message' => 'User added to server successfully.']);
@@ -158,7 +160,7 @@ class ServerController extends Controller
             'selectedServer' => $server,
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 

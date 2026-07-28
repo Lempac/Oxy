@@ -50,22 +50,14 @@ class MessageController
             'user_id' => $request->user()->id,
         ]);
 
-        //        broadcast(new MessageCreated($request->mdata, $request->user()->id, $channel->id));
-
         return back()->with('message', 'Message created');
     }
 
-    public function edit(Request $request, int $messageId)
+    public function edit(Request $request, Message $message)
     {
         $request->validate([
             'mdata' => 'required|string',
         ]);
-
-        $message = Message::find($messageId);
-
-        if (! $message) {
-            abort(404, 'Message not found');
-        }
 
         if ($message->user_id !== Auth::id()) {
             abort(403, 'Forbidden.');
@@ -78,23 +70,14 @@ class MessageController
         $message->update([
             'mdata' => $request->mdata,
         ]);
-        $message->save();
-
-        //        broadcast(new MessageEdited($message->id, $message->channel_id, $request->user()->id));
 
         return back()->with('message', 'Message updated');
     }
 
-    public function delete(int $messageId)
+    public function delete(Message $message)
     {
-        $message = Message::find($messageId);
-
-        if (! $message) {
-            abort(404, 'Message not found');
-        }
-
         setPermissionsTeamId($message->channel->server_id);
-        if ($message->user->id !== Auth::id() && ! Auth::user()->hasPermissionTo('CAN_DELETE_MESSAGE')) {
+        if ($message->user_id !== Auth::id() && ! Auth::user()->hasPermissionTo('CAN_DELETE_MESSAGE')) {
             abort(403, 'Forbidden.');
         }
 
@@ -103,15 +86,6 @@ class MessageController
         }
 
         $message->delete();
-
-        //        $serverId = $message->channel->server->id;
-
-        //        broadcast(new MessageDeleted(
-        //            $message->id,
-        //            $message->channel->id,
-        //            $serverId,
-        //            $request->user()->id
-        //        ));
 
         return back()->with('message', 'Message deleted');
     }

@@ -47,6 +47,7 @@ export const usePerms = () => {
 export const fetchJson = async (url: string, options: RequestInit = {}) => {
     const xsrfTokenMatch = document.cookie.match(new RegExp('(^| )XSRF-TOKEN=([^;]+)'));
     const xsrfToken = xsrfTokenMatch ? decodeURIComponent(xsrfTokenMatch[2]) : '';
+    const csrfMeta = typeof document !== 'undefined' ? (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content : '';
 
     const headers: Record<string, string> = {
         'Accept': 'application/json',
@@ -56,6 +57,9 @@ export const fetchJson = async (url: string, options: RequestInit = {}) => {
 
     if (xsrfToken) {
         headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+    if (csrfMeta) {
+        headers['X-CSRF-TOKEN'] = csrfMeta;
     }
 
     const response = await fetch(url, {

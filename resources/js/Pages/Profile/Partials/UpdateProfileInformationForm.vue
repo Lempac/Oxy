@@ -1,18 +1,14 @@
 <script lang="ts" setup>
 import { update } from '@/routes/profile';
-import { send } from '@/routes/verification';
-import {Link, useForm, usePage} from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {ref} from "vue";
-import {baseUrl} from "@/bootstrap";
-import {Themes, ThemeType} from "@/types";
+import { ref } from "vue";
+import { baseUrl } from "@/bootstrap";
+import { Themes, ThemeType } from "@/types";
 import { Io5AddOutline } from 'vue-icons-plus/io5';
-import { HiMail } from 'vue-icons-plus/hi';
 import { RiUser3Line } from 'vue-icons-plus/ri';
 
-
 defineProps<{
-    mustVerifyEmail?: boolean;
     status?: string;
 }>();
 
@@ -21,14 +17,12 @@ const user = usePage().props.user!;
 const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
 const inputFile = ref<File | null>();
 
-const form = useForm<{ name: string, email: string, icon: File | null, light_theme: ThemeType, dark_theme: ThemeType }>({
-    name: user.name,
-    email: user.email,
+const form = useForm<{ nickname: string, icon: File | null, light_theme: ThemeType, dark_theme: ThemeType }>({
+    nickname: user.nickname,
     icon: inputFile.value!,
     light_theme: user.light_theme || Themes.OXY,
     dark_theme: user.dark_theme || Themes.DARK,
 });
-
 
 const updateIcon = (val: File) => {
     inputFile.value = val;
@@ -41,7 +35,7 @@ const updateIcon = (val: File) => {
 <template>
     <section>
         <p class="mt-1 text-sm text-base-content/70">
-            Update your account's profile information and email address.
+            Update your account's nickname and profile picture.
         </p>
 
         <form class="mt-6 space-y-6" @submit.prevent="form.post(update.url(), {method: 'put'})">
@@ -68,40 +62,21 @@ const updateIcon = (val: File) => {
             <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
 
             <div class="form-control">
-                <label class="block font-medium text-sm text-base-content/90" for="name">Name</label>
+                <label class="block font-medium text-sm text-base-content/90" for="nickname">Nickname</label>
                 <label class="input input-bordered flex items-center gap-2">
                     <RiUser3Line class="h-4 w-4 opacity-70"/>
                     <input
-                        id="profile-name"
-                        v-model="form.name"
-                        autocomplete="name"
+                        id="profile-nickname"
+                        v-model="form.nickname"
+                        autocomplete="username"
                         autofocus
                         class="mt-1 block w-full"
-                        name="name"
+                        name="nickname"
                         required
                         type="text"
                     />
                 </label>
-                <ErrorAlert :message="form.errors.name" class="mt-2"/>
-            </div>
-
-            <div>
-                <label class="block font-medium text-sm text-base-content/90" for="email">Email</label>
-
-                <label class="input input-bordered flex items-center gap-2">
-                    <HiMail class="h-4 w-4 opacity-70"/>
-                    <input
-                        id="profile-email"
-                        v-model="form.email"
-                        autocomplete="username"
-                        class="mt-1 block w-full"
-                        name="email"
-                        required
-                        type="email"
-                    />
-                </label>
-
-                <ErrorAlert :message="form.errors.email" class="mt-2"/>
+                <ErrorAlert :message="form.errors.nickname" class="mt-2"/>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,26 +106,6 @@ const updateIcon = (val: File) => {
                         </option>
                     </select>
                     <ErrorAlert :message="form.errors.dark_theme" class="mt-2"/>
-                </div>
-            </div>
-
-            <div v-if="mustVerifyEmail && user.email_verified_at === null">
-                <p class="text-sm mt-2 text-base-content">
-                    Your email address is unverified.
-                    <Link
-                        :href="send.url()"
-                        class="underline text-sm text-base-content/70 hover:text-base-content rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        method="post"
-                    >
-                        Click here to re-send the verification email.
-                    </Link>
-                </p>
-
-                <div
-                    v-show="status === 'verification-link-sent'"
-                    class="mt-2 font-medium text-sm text-success"
-                >
-                    A new verification link has been sent to your email address.
                 </div>
             </div>
 

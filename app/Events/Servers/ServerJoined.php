@@ -14,8 +14,8 @@ class ServerJoined implements ShouldBroadcast
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public int $userId,
-        public int $serverId
+        public string $userId,
+        public string $serverId
     ) {}
 
     public function broadcastOn(): PrivateChannel

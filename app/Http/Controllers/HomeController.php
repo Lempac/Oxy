@@ -27,7 +27,7 @@ class HomeController extends Controller
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 
@@ -39,7 +39,7 @@ class HomeController extends Controller
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 
@@ -55,22 +55,22 @@ class HomeController extends Controller
             'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 
-    public function message(Request $request, Server $server, Channel $channel, int $message): Response
+    public function message(Request $request, Server $server, Channel $channel, Message $message): Response
     {
         return Inertia::render('Text/Texting', [
             'servers' => $request->user()->servers,
             'selectedServer' => $server,
             'selectedChannel' => $channel,
-            'selectedMessage' => Message::find($message),
+            'selectedMessage' => $message,
             'channels' => $server->channels,
             'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) {
                 $message['sender'] = fn (): User => $message->user;
             }),
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 
@@ -82,7 +82,7 @@ class HomeController extends Controller
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 
@@ -95,7 +95,7 @@ class HomeController extends Controller
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
             'channels' => $server->channels,
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 
@@ -115,7 +115,7 @@ class HomeController extends Controller
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
             'channels' => $server->channels,
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 
@@ -127,7 +127,7 @@ class HomeController extends Controller
             'selectedServer.users' => $server->users,
             'selectedServer.roles' => $server->roles,
             'channels' => $server->channels,
-            'inviteCode' => $server->id.'#'.hash('xxh32', (string) $server->id),
+            'inviteCode' => $server->getInviteCode(),
         ]);
     }
 }

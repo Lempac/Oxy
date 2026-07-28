@@ -35,6 +35,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        if ($request->is('broadcasting/*')) {
+            return [];
+        }
+
         $user = $request->user();
         if ($user) {
             $user->load('allRoles');

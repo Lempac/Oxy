@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Events\Roles\RoleCreated;
 use App\Events\Roles\RoleDeleted;
 use App\Events\Roles\RoleEdited;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Role extends \Spatie\Permission\Models\Role
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'name',

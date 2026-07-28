@@ -1,5 +1,5 @@
 interface Object {
-    readonly id: number;
+    readonly id: string;
     readonly update_at: string;
 }
 
@@ -166,7 +166,7 @@ export interface Role extends Object {
 }
 
 export interface Whiteboard extends Object {
-    channel_id: number;
+    channel_id: string;
     state: string | null;
     sync_status?: WhiteboardSyncStateType;
 }
@@ -174,7 +174,7 @@ export interface Whiteboard extends Object {
 export interface Channel extends Object {
     name: string;
     type: ChannelType;
-    server_id: number;
+    server_id: string;
     route_key: string;
 }
 
@@ -199,29 +199,37 @@ export interface Message extends Object {
     type: MessageType;
     status?: MessageStatusType;
     mdata: string;
-    user_id: number;
+    user_id: string;
     readonly created_at: string;
     readonly sender: User;
 }
 
 export interface Call {
-    id: number;
+    id: string;
     status: VoiceCallStatusType;
     start_at: string;
     end_at: string;
 }
 
 export interface User {
-    id: number;
+    id: string;
     icon: string | null;
-    name: string;
-    email: string;
-    readonly email_verified_at: string | null;
+    nickname: string;
     status: UserStatusType;
     light_theme: ThemeType;
     dark_theme: ThemeType;
     roles: Role[] | null;
     servers: Server[] | null;
+}
+
+export interface ServerInvite {
+    id: string;
+    server_id: string;
+    created_by_user_id: string | null;
+    code: string;
+    max_uses: number | null;
+    uses: number;
+    expires_at: string | null;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {

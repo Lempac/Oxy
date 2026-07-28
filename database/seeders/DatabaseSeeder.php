@@ -33,8 +33,7 @@ class DatabaseSeeder extends Seeder
         });
 
         $testUser = User::factory()->hasAttached($servers->random(2))->create([
-            'name' => 'Test User',
-            'email' => 'test@test.test',
+            'nickname' => 'testuser',
         ]);
 
         $testUser->servers->each(function (Server $server) use ($testUser) {

@@ -12,12 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('boards', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->timestamps();
-            $table->unsignedBigInteger('server_id');
-
-            $table->foreign('server_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('servers');
+            $table->foreignUuid('server_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
         });
     }
 

@@ -14,16 +14,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('messages', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->enum('type', array_column(MessageType::cases(), 'value'));
             $table->enum('status', array_column(MessageStatus::cases(), 'value'))->default(MessageStatus::Sent->value);
             $table->string('mdata', 500)->nullable();
             $table->timestamps();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('channel_id');
-
-            $table->foreign('user_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('users');
-            $table->foreign('channel_id')->cascadeOnDelete()->cascadeOnUpdate()->references('id')->on('channels');
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignUuid('channel_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
         });
     }
 
