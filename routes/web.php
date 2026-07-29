@@ -59,7 +59,8 @@ Route::middleware('auth')->group(function () {
     // Profile routes
     Route::controller(ProfileController::class)->prefix('profile')->group(function () {
         Route::get('/', 'edit')->name('profile.edit');
-        Route::post('/', 'update')->name('profile.update');
+        Route::match(['post', 'put', 'patch'], '/', 'update')->name('profile.update');
+        Route::post('/status', 'updateStatus')->name('profile.status');
         Route::delete('/', 'destroy')->name('profile.destroy');
     }
     );

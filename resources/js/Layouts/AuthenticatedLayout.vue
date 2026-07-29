@@ -6,6 +6,7 @@ import MembersList from "@/Components/MembersList.vue";
 import {Channel, Server} from "@/types";
 import {HiOutlineChevronDown, HiOutlineChevronUp} from 'vue-icons-plus/hi';
 import {useServerEvents} from "@/composables/useServerEvents";
+import {useUserPresence} from "@/composables/useUserPresence";
 
 const {selectedServer} = defineProps<{
     servers?: Server[];
@@ -19,6 +20,7 @@ const isTopHovered = ref(false);
 const isBottomHovered = ref(false);
 
 useServerEvents(selectedServer?.id);
+useUserPresence();
 
 </script>
 
@@ -34,8 +36,8 @@ useServerEvents(selectedServer?.id);
             <div class="bg-base-100 shadow-md border-b border-base-300">
                 <ServerSelectBar :selected-server="selectedServer" :servers="servers"/>
                 <ChannelSelectBar
-v-if="$page.url.startsWith('/home') && selectedServer"
-                                  :channels="channels" :selected-server="selectedServer"/>
+                    v-if="$page.url.startsWith('/home') && selectedServer"
+                    :channels="channels" :selected-server="selectedServer"/>
             </div>
             <!-- Pin Button -->
             <button

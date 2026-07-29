@@ -14,6 +14,7 @@ class HomeController extends Controller
 {
     private function getUsersWithRoles(Server $server)
     {
+        setPermissionsTeamId($server->id);
         return $server->users->each(function (User $user) use ($server) {
             $user['rolesWithServer'] = $user->roles()->where('roles.server_id', $server->id)->get();
         });
@@ -61,6 +62,7 @@ class HomeController extends Controller
             'channels' => $server->channels,
             'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) use ($server) {
                 if ($message->user) {
+                    setPermissionsTeamId($server->id);
                     $message->user['rolesWithServer'] = $message->user->roles()->where('roles.server_id', $server->id)->get();
                 }
                 $message['sender'] = fn (): User => $message->user;
@@ -80,6 +82,7 @@ class HomeController extends Controller
             'channels' => $server->channels,
             'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) use ($server) {
                 if ($message->user) {
+                    setPermissionsTeamId($server->id);
                     $message->user['rolesWithServer'] = $message->user->roles()->where('roles.server_id', $server->id)->get();
                 }
                 $message['sender'] = fn (): User => $message->user;

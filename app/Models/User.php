@@ -31,6 +31,7 @@ class User extends Authenticatable
         'icon',
         'password',
         'status',
+        'about_me',
         'light_theme',
         'dark_theme',
     ];

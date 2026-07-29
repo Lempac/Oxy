@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserStatus;
 use App\Models\Call;
 use App\Models\Channel;
 use App\Models\Message;
@@ -34,6 +35,8 @@ class DatabaseSeeder extends Seeder
 
         $testUser = User::factory()->hasAttached($servers->random(2))->create([
             'nickname' => 'testuser',
+            'status' => UserStatus::Online->value,
+            'about_me' => 'Hey there! I am using Oxy.',
         ]);
 
         $testUser->servers->each(function (Server $server) use ($testUser) {

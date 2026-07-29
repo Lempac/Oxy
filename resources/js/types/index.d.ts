@@ -224,6 +224,8 @@ export interface User {
     roles: Role[] | null;
     rolesWithServer?: Role[] | null;
     servers: Server[] | null;
+    about_me?: string | null;
+    created_at?: string;
 }
 
 export interface ServerInvite {

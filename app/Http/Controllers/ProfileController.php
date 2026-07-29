@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserStatus;
+use App\Events\Users\UserStatusUpdated;
 use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Storage;
@@ -53,7 +57,32 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit');
+        return back();
+    }
+
+    /**
+     * Update the user's online status.
+     */
+    public function updateStatus(Request $request): JsonResponse
+    {
+        $request->validate([
+            'status' => ['required', 'string', Rule::enum(UserStatus::class)],
+        ]);
+
+        $user = $request->user();
+        $newStatus = UserStatus::from($request->status);
+
+        if ($user->status === $newStatus) {
+            return response()->json(['status' => $user->status->value]);
+        }
+
+        $oldStatus = $user->status ?? UserStatus::Offline;
+        $user->status = $newStatus;
+        $user->save();
+
+        UserStatusUpdated::dispatch($user, $oldStatus, $newStatus);
+
+        return response()->json(['status' => $user->status->value]);
     }
 
     /**

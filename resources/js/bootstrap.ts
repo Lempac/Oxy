@@ -105,13 +105,13 @@ export const getMemberRoleColor = (
     if (userRoles.length === 0) return undefined;
 
     const memberServerRoles = serverRoles.filter(sRole =>
-        userRoles.some(uRole => uRole.id === sRole.id)
+        userRoles.some(uRole => String(uRole.id) === String(sRole.id))
     );
 
     if (memberServerRoles.length === 0) return undefined;
 
     memberServerRoles.sort((a, b) => a.importance - b.importance);
 
-    return memberServerRoles[0]?.color;
+    return memberServerRoles[0]?.color || undefined;
 };
 

@@ -19,6 +19,7 @@ class ProfileUpdateRequest extends FormRequest
         return [
             'nickname' => ['required', 'string', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
             'icon' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'about_me' => ['nullable', 'string', 'max:1000'],
             'light_theme' => ['sometimes', 'required', Rule::enum(Theme::class)],
             'dark_theme' => ['sometimes', 'required', Rule::enum(Theme::class)],
         ];

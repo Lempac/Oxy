@@ -17,8 +17,9 @@ const user = usePage().props.user!;
 const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
 const inputFile = ref<File | null>();
 
-const form = useForm<{ nickname: string, icon: File | null, light_theme: ThemeType, dark_theme: ThemeType }>({
+const form = useForm<{ nickname: string, about_me: string, icon: File | null, light_theme: ThemeType, dark_theme: ThemeType }>({
     nickname: user.nickname,
+    about_me: user.about_me || '',
     icon: inputFile.value!,
     light_theme: user.light_theme || Themes.OXY,
     dark_theme: user.dark_theme || Themes.DARK,
@@ -77,6 +78,18 @@ const updateIcon = (val: File) => {
                     />
                 </label>
                 <ErrorAlert :message="form.errors.nickname" class="mt-2"/>
+            </div>
+
+            <div class="form-control">
+                <label class="block font-medium text-sm text-base-content/90" for="about_me">About Me</label>
+                <textarea
+                    id="about_me"
+                    v-model="form.about_me"
+                    class="textarea textarea-bordered mt-1 block w-full resize-none"
+                    rows="3"
+                    placeholder="Tell others a little about yourself..."
+                />
+                <ErrorAlert :message="form.errors.about_me" class="mt-2"/>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
