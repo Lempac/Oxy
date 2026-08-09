@@ -17,6 +17,7 @@ test('profile information can be updated', function () {
 
     $response = $this
         ->actingAs($user)
+        ->from('/profile')
         ->post('/profile', [
             'nickname' => 'NewNickname',
             'light_theme' => 'oxy',
@@ -37,6 +38,7 @@ test('profile theme can be updated', function () {
 
     $response = $this
         ->actingAs($user)
+        ->from('/profile')
         ->post('/profile', [
             'nickname' => 'TestUser',
             'light_theme' => 'cyberpunk',

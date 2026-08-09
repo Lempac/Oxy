@@ -6,6 +6,7 @@ export function useServerEvents(serverId?: string | null) {
     const handleServerJoinedOrLeft = () => router.reload({only: ['selected_server']});
     const handleServerEdited = () => router.reload({only: ['servers', 'selected_server']});
     const handleRoleEditedOrDeleted = () => router.reload({only: ['selected_server']});
+    const handleUserStatusUpdated = () => router.reload({only: ['selected_server']});
 
     onMounted(() => {
         if (!serverId) return;
@@ -13,7 +14,8 @@ export function useServerEvents(serverId?: string | null) {
         echo?.private(`servers.${serverId}`)
             .listen('.ServerJoined', handleServerJoinedOrLeft)
             .listen('.ServerLeft', handleServerJoinedOrLeft)
-            .listen('.ServerEdited', handleServerEdited);
+            .listen('.ServerEdited', handleServerEdited)
+            .listen('.UserStatusUpdated', handleUserStatusUpdated);
 
         echo?.private(`roles.${serverId}`)
             .listen('.RoleDeleted', handleRoleEditedOrDeleted)
@@ -26,7 +28,8 @@ export function useServerEvents(serverId?: string | null) {
         echo?.private(`servers.${serverId}`)
             ?.stopListening('.ServerJoined', handleServerJoinedOrLeft)
             ?.stopListening('.ServerLeft', handleServerJoinedOrLeft)
-            ?.stopListening('.ServerEdited', handleServerEdited);
+            ?.stopListening('.ServerEdited', handleServerEdited)
+            ?.stopListening('.UserStatusUpdated', handleUserStatusUpdated);
 
         echo?.private(`roles.${serverId}`)
             ?.stopListening('.RoleDeleted', handleRoleEditedOrDeleted)

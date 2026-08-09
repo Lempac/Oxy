@@ -93,6 +93,7 @@ class RoleController extends Controller
     public function showSettings(Server $server)
     {
         setPermissionsTeamId($server->id);
+
         return Inertia::render('Settings/Role')->with([
             'selectedServer' => $server,
             'selectedServer.users' => $server->users->each(function (User $user) use ($server) {

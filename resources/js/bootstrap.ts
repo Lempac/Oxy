@@ -71,6 +71,9 @@ export const fetchJson = async (url: string, options: RequestInit = {}) => {
     const data = isJson ? await response.json() : null;
 
     if (!response.ok) {
+        if (response.status === 419 && typeof window !== 'undefined') {
+            router.reload();
+        }
         const error = new Error(response.statusText) as Error & { response: { status: number, data: unknown } };
         error.response = {status: response.status, data};
         throw error;

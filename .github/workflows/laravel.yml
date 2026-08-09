@@ -66,4 +66,5 @@ jobs:
       - name: Execute frontend tests via Vitest
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
+          VITE_REVERB_APP_KEY: 'test-reverb-key'
         run: npm run test

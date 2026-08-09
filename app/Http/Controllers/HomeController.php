@@ -6,6 +6,7 @@ use App\Models\Channel;
 use App\Models\Message;
 use App\Models\Server;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,6 +16,7 @@ class HomeController extends Controller
     private function getUsersWithRoles(Server $server)
     {
         setPermissionsTeamId($server->id);
+
         return $server->users->each(function (User $user) use ($server) {
             $user['rolesWithServer'] = $user->roles()->where('roles.server_id', $server->id)->get();
         });
@@ -91,29 +93,14 @@ class HomeController extends Controller
         ]);
     }
 
-    public function voice(Request $request, Server $server): Response
+    public function voice(Request $request, Server $server): RedirectResponse
     {
-        return Inertia::render('Voice/Speaking', [
-            'servers' => $request->user()->servers,
-            'selectedServer' => $server,
-            'selectedServer.users' => $this->getUsersWithRoles($server),
-            'selectedServer.roles' => $server->roles,
-            'channels' => $server->channels,
-            'inviteCode' => $server->getInviteCode(),
-        ]);
+        return redirect()->route('home.server', ['server' => $server->slug]);
     }
 
-    public function vchannel(Request $request, Server $server, Channel $channel): Response
+    public function vchannel(Request $request, Server $server, Channel $channel): RedirectResponse
     {
-        return Inertia::render('Voice/Speaking', [
-            'servers' => $request->user()->servers,
-            'selectedServer' => $server,
-            'selectedServer.users' => $this->getUsersWithRoles($server),
-            'selectedServer.roles' => $server->roles,
-            'selectedChannel' => $channel,
-            'channels' => $server->channels,
-            'inviteCode' => $server->getInviteCode(),
-        ]);
+        return redirect()->route('home.server', ['server' => $server->slug]);
     }
 
     public function wchannel(Request $request, Server $server, Channel $channel): Response

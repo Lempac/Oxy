@@ -25,7 +25,7 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            "@/types": path.resolve(__dirname, './resources/js/types/index.d.ts')
+            "@/types": path.resolve(import.meta.dirname, './resources/js/types/index.d.ts')
         }
     },
     optimizeDeps: {

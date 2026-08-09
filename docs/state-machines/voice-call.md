@@ -37,7 +37,7 @@ stateDiagram-v2
 
 ## 2. Participant Audio State Machine (`VoiceParticipantState`)
 
-Client-side participant state managed by `useVoiceCallStateMachine` composable (`resources/js/Pages/Voice/Speaking.vue`).
+Client-side participant state managed by `useVoiceCallStateMachine` composable (`resources/js/composables/useVoiceCallStateMachine.ts`).
 
 ```mermaid
 stateDiagram-v2

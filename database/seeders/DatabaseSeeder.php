@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Models\Server;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -33,8 +34,10 @@ class DatabaseSeeder extends Seeder
             });
         });
 
-        $testUser = User::factory()->hasAttached($servers->random(2))->create([
+        $testUser = User::firstOrCreate([
             'nickname' => 'testuser',
+        ], [
+            'password' => Hash::make('password'),
             'status' => UserStatus::Online->value,
             'about_me' => 'Hey there! I am using Oxy.',
         ]);
