@@ -1,15 +1,11 @@
 <script lang="ts" setup>
 import ServerSelectBar from "@/Components/ServerSelectBar.vue";
-import ChannelSidebar from "@/Components/ChannelSidebar.vue";
 import {ref} from "vue";
 import MembersList from "@/Components/MembersList.vue";
 import {Channel, Server} from "@/types";
 import {HiOutlineChevronDown, HiOutlineChevronUp} from 'vue-icons-plus/hi';
 import {useServerEvents} from "@/composables/useServerEvents";
 import {useUserPresence} from "@/composables/useUserPresence";
-import {usePaneDrag} from "@/composables/usePaneDrag";
-
-const { startSidebarResize } = usePaneDrag();
 
 const {selectedServer} = defineProps<{
     servers?: Server[];
@@ -49,33 +45,15 @@ useUserPresence();
             </button>
         </div>
 
-        <!-- Main Middle Area (Sidebar + Viewport Content) -->
+        <!-- Main Middle Area -->
         <div
             :class="[
                 isTopPinned ? 'pt-[4rem]' : 'pt-[1rem]',
                 isBottomPinned ? 'pb-[5rem]' : 'pb-[1rem]'
             ]"
-            class="flex-1 flex overflow-hidden transition-[padding] duration-300 ease-in-out"
+            class="flex-1 flex overflow-hidden transition-[padding] duration-300 ease-in-out w-full h-full relative"
         >
-            <!-- Channel Navigation Sidebar -->
-            <ChannelSidebar
-                v-if="selectedServer"
-                :channels="channels"
-                :selected-server="selectedServer"
-            />
-
-            <!-- Gutter Resizer between Sidebar & Main Content -->
-            <div
-                v-if="selectedServer"
-                class="w-1 hover:w-1.5 hover:bg-primary/50 active:bg-primary cursor-col-resize z-20 transition-all bg-base-300/80 flex-shrink-0 self-stretch select-none"
-                title="Drag to resize sidebar width"
-                @pointerdown.prevent="startSidebarResize"
-            ></div>
-
-            <!-- Main Content Area (Text Chat / Whiteboard / Pages) -->
-            <main class="flex-1 flex flex-col overflow-y-auto min-w-0">
-                <slot/>
-            </main>
+            <slot/>
         </div>
 
         <!-- Bottom Bar Container -->

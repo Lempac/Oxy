@@ -66,7 +66,7 @@ class Server extends Model
         return ServerFactory::new()->afterCreating(function ($server) {
             $role = Role::create([
                 'name' => 'Owner',
-                'color' => '#ffffff',
+                'color' => '#150f83',
                 'importance' => 0,
                 'server_id' => $server->id,
                 'guard_name' => 'web',
@@ -105,7 +105,7 @@ class Server extends Model
 
     public function channels(): HasMany
     {
-        return $this->hasMany(Channel::class);
+        return $this->hasMany(Channel::class)->orderBy('position')->orderBy('created_at');
     }
 
     public function board(): HasOne

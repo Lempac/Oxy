@@ -85,14 +85,6 @@ export const ChannelType = {
 
 export type ChannelType = typeof ChannelType[keyof typeof ChannelType];
 
-export const MessageType = {
-    Text: 'text',
-    Image: 'image',
-    File: 'file',
-} as const;
-
-export type MessageType = typeof MessageType[keyof typeof MessageType];
-
 export const Themes = {
     Oxy: 'oxy',
     Light: 'light',
@@ -198,13 +190,26 @@ export interface Perms {
     remove: (perm: string | string[]) => void;
 }
 
+export interface MessageAttachment {
+    id: string;
+    message_id: string;
+    filename: string;
+    path: string;
+    mime_type: string | null;
+    size: number;
+    width?: number | null;
+    height?: number | null;
+    url: string;
+    created_at?: string;
+}
+
 export interface Message extends Object {
-    type: MessageType;
     status?: MessageStatusType;
-    mdata: string;
+    content: string | null;
     user_id: string;
     readonly created_at: string;
     readonly sender: User;
+    attachments?: MessageAttachment[];
 }
 
 export interface Call {

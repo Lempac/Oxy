@@ -24,7 +24,6 @@ This guide details the coding standards and list of String-backed Enums across O
 | `App\Enums\MessageStatus` | `string` | `Sending`, `Sent`, `Delivered`, `Edited`, `Deleted`, `Failed` | Tracks text/file message lifecycle |
 | `App\Enums\ServerMemberStatus` | `string` | `Invited`, `Active`, `Muted`, `Suspended`, `Left` | Manages server membership pivot status |
 | `App\Enums\ChannelType` | `string` | `Text`, `Voice`, `Whiteboard` | Defines channel types |
-| `App\Enums\MessageType` | `string` | `Text`, `Image`, `File` | Defines payload type of chat messages |
 | `App\Enums\Theme` | `string` | `Oxy`, `Light`, `Dark`, `Cupcake`, `Bumblebee`, ... | Controls UI theme preference |
 
 ---

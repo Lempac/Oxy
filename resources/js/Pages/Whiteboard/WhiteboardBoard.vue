@@ -17,7 +17,7 @@ const toggleMaximize = () => {
     isMaximized.value = !isMaximized.value;
     emit('toggle-maximize', isMaximized.value);
 };
-const { isDragModeActive, startPaneSwapDrag, dropOnPane } = usePaneDrag();
+const { startPaneSwapDrag, endPaneSwapDrag, dropOnPane } = usePaneDrag();
 
 const props = defineProps<{
     whiteboard: WhiteboardType;
@@ -680,11 +680,11 @@ const deleteSelected = () => {
                     </button>
                 </div>
                 <div
-                    v-if="isDragModeActive"
                     draggable="true"
-                    class="cursor-grab active:cursor-grabbing text-primary p-1 rounded hover:bg-base-300 transition-colors"
-                    title="Drag handle: Hold Alt to drag and swap pane order"
+                    class="cursor-grab active:cursor-grabbing text-base-content/70 hover:text-primary p-1 rounded hover:bg-base-300 transition-colors"
+                    title="Drag handle: Drag to swap whiteboard pane position"
                     @dragstart="startPaneSwapDrag('whiteboard')"
+                    @dragend="endPaneSwapDrag"
                 >
                     <MdDragIndicator class="size-4" />
                 </div>

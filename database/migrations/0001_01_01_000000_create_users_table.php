@@ -18,6 +18,9 @@ return new class extends Migration
             $table->string('nickname')->unique();
             $table->string('password')->nullable();
             $table->enum('status', array_column(UserStatus::cases(), 'value'))->default(UserStatus::Offline->value);
+            $table->text('about_me')->nullable();
+            $table->string('light_theme')->default('oxy');
+            $table->string('dark_theme')->default('dark');
 
             $table->rememberToken();
             $table->timestamps();
@@ -39,7 +42,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };

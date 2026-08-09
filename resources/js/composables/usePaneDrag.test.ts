@@ -1,11 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach } from 'vitest';
 import { usePaneDrag } from './usePaneDrag';
 
 describe('usePaneDrag Composable', () => {
-    it('initializes with default sidebar width and drag inactive', () => {
-        const { isDragModeActive, sidebarWidth } = usePaneDrag();
+    beforeEach(() => {
+        const { resetPreferences } = usePaneDrag();
+        resetPreferences();
+    });
+
+    it('initializes with default sidebar width and reactive state', () => {
+        const { sidebarWidth, paneOrder } = usePaneDrag();
         expect(sidebarWidth.value).toBe(240);
-        expect(isDragModeActive.value).toBe(false);
+        expect(paneOrder.value).toEqual(['sidebar', 'chat', 'whiteboard']);
     });
 
     it('toggles drag mode active state', () => {
@@ -17,30 +22,31 @@ describe('usePaneDrag Composable', () => {
         expect(isDragModeActive.value).toBe(initial);
     });
 
-    it('responds to keydown Alt key events', () => {
-        const { isDragModeActive } = usePaneDrag();
-        
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }));
-        expect(isDragModeActive.value).toBe(true);
+    it('swaps any pane order positions and saves to localStorage', () => {
+        const { paneOrder, swapPanes, startPaneSwapDrag, dropOnPane, getOrderedPanes } = usePaneDrag();
 
-        window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }));
-        expect(isDragModeActive.value).toBe(false);
-    });
+        // 1. Initial default order: sidebar | chat | whiteboard
+        expect(paneOrder.value).toEqual(['sidebar', 'chat', 'whiteboard']);
 
-    it('swaps pane order positions when dragging and dropping', () => {
-        const { isDragModeActive, paneOrder, swapPanes, startPaneSwapDrag, dropOnPane } = usePaneDrag();
-        
-        // Enable drag mode
-        isDragModeActive.value = true;
-        expect(paneOrder.value).toEqual(['sidebar', 'main', 'whiteboard']);
+        // 2. Swap sidebar and chat -> chat | sidebar | whiteboard
+        swapPanes('sidebar', 'chat');
+        expect(paneOrder.value).toEqual(['chat', 'sidebar', 'whiteboard']);
 
-        // Swap sidebar and main
-        swapPanes('sidebar', 'main');
-        expect(paneOrder.value).toEqual(['main', 'sidebar', 'whiteboard']);
+        // 3. Swap chat and whiteboard -> whiteboard | sidebar | chat
+        swapPanes('chat', 'whiteboard');
+        expect(paneOrder.value).toEqual(['whiteboard', 'sidebar', 'chat']);
 
-        // Test startPaneSwapDrag and dropOnPane
+        // 4. Test startPaneSwapDrag and dropOnPane: swap sidebar and chat -> whiteboard | chat | sidebar
         startPaneSwapDrag('sidebar');
-        dropOnPane('whiteboard');
-        expect(paneOrder.value).toEqual(['main', 'whiteboard', 'sidebar']);
+        dropOnPane('chat');
+        expect(paneOrder.value).toEqual(['whiteboard', 'chat', 'sidebar']);
+
+        // 5. Test getOrderedPanes with arbitrary available panes
+        expect(getOrderedPanes(['sidebar', 'chat'])).toEqual(['chat', 'sidebar']);
+        expect(getOrderedPanes(['whiteboard', 'chat', 'sidebar'])).toEqual(['whiteboard', 'chat', 'sidebar']);
+
+        // Check persistence in localStorage
+        const saved = JSON.parse(localStorage.getItem('oxy_layout_preferences_v2') || '{}');
+        expect(saved.paneOrder).toEqual(['whiteboard', 'chat', 'sidebar']);
     });
 });

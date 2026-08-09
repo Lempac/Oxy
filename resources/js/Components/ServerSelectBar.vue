@@ -17,6 +17,7 @@ import {MdMic, MdMicOff, MdHeadset, MdHeadsetOff, MdExitToApp} from 'vue-icons-p
 import {TbKeyboard, TbKeyboardOff} from 'vue-icons-plus/tb';
 import {useVoiceCallStateMachine} from '@/composables/useVoiceCallStateMachine';
 import {VoiceParticipantState} from '@/types';
+import ImageEditorModal from '@/Components/ImageEditorModal.vue';
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
@@ -35,6 +36,8 @@ const joinCodeInput = ref('');
 const serverInfo = ref<{ name: string; description: string; icon: string; members_count: number; online_count: number } | null>(null);
 const checkLoading = ref(false);
 const checkError = ref<string | null>(null);
+const isEditorOpen = ref(false);
+const editorImageSource = ref<File | null>(null);
 
 let checkDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -101,12 +104,27 @@ function leaveServer() {
 
 const icon = ref<string | null>(null);
 const inputFile = ref<File | null>();
+const isDraggingOver = ref(false);
 
-const updateIcon = (val: File) => {
-    inputFile.value = val;
-    form.icon = inputFile.value;
-    icon.value = URL.createObjectURL(inputFile.value);
-}
+const onFileSelected = (val: File) => {
+    if (!val) return;
+    editorImageSource.value = val;
+    isEditorOpen.value = true;
+};
+
+const onDropServerIcon = (e: DragEvent) => {
+    isDraggingOver.value = false;
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+        onFileSelected(file);
+    }
+};
+
+const handleEditorSave = (editedFile: File) => {
+    inputFile.value = editedFile;
+    form.icon = editedFile;
+    icon.value = URL.createObjectURL(editedFile);
+};
 </script>
 
 <template>
@@ -255,8 +273,14 @@ const updateIcon = (val: File) => {
                     <div v-if="activeTab === 'create'">
                         <!-- Create Server Form -->
                         <form @submit.prevent="createServer">
-                            <div class="form-control flex flex-row items-center gap-4 mb-4">
+                            <div
+                                class="form-control flex flex-row items-center gap-4 mb-4"
+                                @dragover.prevent="isDraggingOver = true"
+                                @dragleave.prevent="isDraggingOver = false"
+                                @drop.prevent="onDropServerIcon"
+                            >
                                 <label
+                                    :class="{'ring-2 ring-primary ring-offset-2 scale-105': isDraggingOver}"
                                     class="cursor-pointer rounded-full bg-base-300 transition-all duration-300 ease-in-out hover:bg-base-100 flex items-center justify-center size-16 shadow-inner"
                                     for="serverIcon">
                                     <img
@@ -264,19 +288,31 @@ v-if="icon !== null" :src="icon" alt=""
                                          class="size-16 rounded-full object-cover"/>
                                     <GoPlus v-else scale="2"/>
                                 </label>
-                                <label class="cursor-pointer font-medium" for="serverIcon">Upload server icon</label>
+                                <label class="cursor-pointer font-medium text-sm" for="serverIcon">
+                                    <span>Upload server icon</span>
+                                    <span class="block text-xs text-base-content/50">Click or drag image</span>
+                                </label>
                                 <input
                                     id="serverIcon"
                                     ref="inputFile"
-                                    accept="image/png, image/jpeg"
+                                    accept="image/png, image/jpeg, image/webp"
                                     autocomplete="off"
                                     class="hidden"
                                     data-bwignore="true"
                                     type="file"
-                                    @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
+                                    @input="onFileSelected((<HTMLInputElement>$event.target).files![0])"
                                 />
                             </div>
                             <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
+
+                            <ImageEditorModal
+                                v-model="isEditorOpen"
+                                :image-source="editorImageSource"
+                                title="Edit Server Icon"
+                                :aspect-ratio-lock="1"
+                                :circle-mask="true"
+                                @save="handleEditorSave"
+                            />
 
                             <fieldset class="fieldset w-full">
                                 <legend class="fieldset-legend">Server Name</legend>

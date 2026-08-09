@@ -19,7 +19,7 @@ import { useChannelEvents } from '@/composables/useChannelEvents';
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
 const page = usePage();
-const { isDragModeActive, sidebarWidth, startPaneSwapDrag, dropOnPane } = usePaneDrag();
+const { startPaneSwapDrag, endPaneSwapDrag } = usePaneDrag();
 
 const props = defineProps<{
     selectedServer?: Server;
@@ -32,6 +32,8 @@ const isChannelModalOpen = ref(false);
 const isEditing = ref(false);
 const editCurrent = ref<() => void>();
 const selectedProfileUser = ref<User | null>(null);
+const draggedChannelId = ref<string | null>(null);
+const hoverChannelId = ref<string | null>(null);
 
 const openUserProfile = (user: User) => {
     selectedProfileUser.value = {
@@ -44,6 +46,72 @@ const textChannels = computed(() => props.channels?.filter(c => c.type === Chann
 const voiceChannels = computed(() => props.channels?.filter(c => c.type === ChannelType.Voice) || []);
 const whiteboardChannels = computed(() => props.channels?.filter(c => c.type === ChannelType.Whiteboard) || []);
 const isWhiteboardEnabled = computed(() => props.selectedServer?.enable_whiteboard !== false);
+
+const onChannelDragStart = (e: DragEvent, channel: Channel) => {
+    draggedChannelId.value = channel.id;
+    if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', channel.id);
+    }
+};
+
+const onChannelDragEnter = (channel: Channel) => {
+    if (draggedChannelId.value && draggedChannelId.value !== channel.id) {
+        hoverChannelId.value = channel.id;
+    }
+};
+
+const onChannelDragOver = (channel: Channel) => {
+    if (draggedChannelId.value && draggedChannelId.value !== channel.id) {
+        hoverChannelId.value = channel.id;
+    }
+};
+
+const onChannelDragLeave = (e: DragEvent, channel: Channel) => {
+    const currentTarget = e.currentTarget as HTMLElement | null;
+    const relatedTarget = e.relatedTarget as Node | null;
+    if (!currentTarget || !relatedTarget || !currentTarget.contains(relatedTarget)) {
+        if (hoverChannelId.value === channel.id) {
+            hoverChannelId.value = null;
+        }
+    }
+};
+
+const onChannelDragEnd = () => {
+    draggedChannelId.value = null;
+    hoverChannelId.value = null;
+};
+
+const onChannelDrop = (e: DragEvent, targetChannel: Channel, typeList: Channel[]) => {
+    e.preventDefault();
+    if (!draggedChannelId.value || draggedChannelId.value === targetChannel.id) {
+        onChannelDragEnd();
+        return;
+    }
+
+    const fromIndex = typeList.findIndex(c => c.id === draggedChannelId.value);
+    const toIndex = typeList.findIndex(c => c.id === targetChannel.id);
+    if (fromIndex === -1 || toIndex === -1) {
+        onChannelDragEnd();
+        return;
+    }
+
+    const reordered = [...typeList];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+
+    const reorderedIds = reordered.map(c => c.id);
+    const otherIds = (props.channels || []).filter(c => c.type !== targetChannel.type).map(c => c.id);
+    const allChannelIds = [...reorderedIds, ...otherIds];
+
+    onChannelDragEnd();
+
+    if (props.selectedServer) {
+        router.post(`/api/channel/${props.selectedServer.route_key}/reorder`, {
+            channel_ids: allChannelIds,
+        }, { preserveScroll: true });
+    }
+};
 
 const form = useForm({
     type: ChannelType.Text as string,
@@ -155,10 +223,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
 <template>
     <aside
         v-if="selectedServer"
-        :style="{ width: `${sidebarWidth}px` }"
-        class="bg-base-100 border-r border-base-300 flex flex-col h-full shrink-0 select-none relative group"
-        @dragover.prevent
-        @drop="dropOnPane('sidebar')"
+        class="bg-base-100 flex flex-col h-full shrink-0 select-none relative group transition-[width] duration-75 w-full"
     >
         <!-- Top Drag Handle & Server Title Bar -->
         <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between bg-base-200/50">
@@ -175,13 +240,13 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                     <MdOutlineModeEdit />
                 </button>
                 
-                <!-- Window Swap Drag Handle (Twitch mod view style: Hold Alt to drag and swap window position) -->
+                <!-- Window Swap Drag Handle -->
                 <div
-                    v-if="isDragModeActive"
                     draggable="true"
-                    class="cursor-grab active:cursor-grabbing text-primary p-1 rounded hover:bg-base-300 transition-colors"
-                    title="Swap Window Position (Drag onto another window)"
+                    class="cursor-grab active:cursor-grabbing text-base-content/70 hover:text-primary p-1 rounded hover:bg-base-300 transition-colors"
+                    title="Drag to swap sidebar position"
                     @dragstart="startPaneSwapDrag('sidebar')"
+                    @dragend="endPaneSwapDrag"
                 >
                     <MdDragIndicator class="size-4" />
                 </div>
@@ -207,9 +272,30 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                     <div
                         v-for="channel in textChannels"
                         :key="channel.id"
-                        class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-colors"
-                        :class="page.url.includes(`/text/${channel.route_key}`) ? 'bg-primary text-primary-content font-semibold' : 'hover:bg-base-200 text-base-content/80'"
+                        class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-all duration-150 relative border-2"
+                        :class="[
+                            page.url.includes(`/text/${channel.route_key}`) ? 'bg-primary text-primary-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
+                            hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id
+                                ? 'border-dotted border-primary bg-primary/15'
+                                : 'border-transparent'
+                        ]"
+                        :draggable="isEditMode"
+                        @dragstart="onChannelDragStart($event, channel)"
+                        @dragenter.prevent="onChannelDragEnter(channel)"
+                        @dragover.prevent="onChannelDragOver(channel)"
+                        @dragleave="onChannelDragLeave($event, channel)"
+                        @dragend="onChannelDragEnd"
+                        @drop="onChannelDrop($event, channel, textChannels)"
                     >
+                        <!-- Channel Drag Handle (visible in Edit Mode) -->
+                        <div
+                            v-if="isEditMode"
+                            class="cursor-grab active:cursor-grabbing text-base-content/60 hover:text-primary mr-1 shrink-0"
+                            title="Drag to reorder channel"
+                        >
+                            <MdDragIndicator class="size-3.5" />
+                        </div>
+
                         <Link
                             v-if="!page.url.includes(`/text/${channel.route_key}`)"
                             :href="textChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
@@ -223,7 +309,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                         >
                             # {{ channel.name }}
                         </span>
-                        <div v-if="isEditMode" class="flex items-center gap-1">
+                        <div v-if="isEditMode" class="flex items-center gap-1 shrink-0">
                             <button
                                 v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
                                 class="btn btn-xs btn-circle btn-ghost text-warning p-0"
@@ -262,11 +348,33 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                     <div
                         v-for="channel in voiceChannels"
                         :key="channel.id"
-                        class="rounded-lg p-1.5 transition-colors cursor-pointer"
-                        :class="isChannelActive(channel) ? 'bg-success/15 text-success border border-success/30 font-medium' : (isChannelJoining(channel) ? 'bg-warning/15 text-warning border border-warning/30' : 'hover:bg-base-200 text-base-content/80')"
+                        class="rounded-lg p-1.5 transition-all duration-150 cursor-pointer border-2"
+                        :class="[
+                            isChannelActive(channel) ? 'bg-success/15 text-success border-success/30 font-medium' : (isChannelJoining(channel) ? 'bg-warning/15 text-warning border-warning/30' : 'hover:bg-base-200 text-base-content/80'),
+                            hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id
+                                ? 'border-dotted border-primary bg-primary/15'
+                                : (isChannelActive(channel) ? 'border-success/30' : 'border-transparent')
+                        ]"
+                        :draggable="isEditMode"
+                        @dragstart="onChannelDragStart($event, channel)"
+                        @dragenter.prevent="onChannelDragEnter(channel)"
+                        @dragover.prevent="onChannelDragOver(channel)"
+                        @dragleave="onChannelDragLeave($event, channel)"
+                        @dragend="onChannelDragEnd"
+                        @drop="onChannelDrop($event, channel, voiceChannels)"
                         @click="handleVoiceChannelClick(channel)"
                     >
                         <div class="flex items-center justify-between">
+                            <!-- Channel Drag Handle (visible in Edit Mode) -->
+                            <div
+                                v-if="isEditMode"
+                                class="cursor-grab active:cursor-grabbing text-base-content/60 hover:text-primary mr-1 shrink-0"
+                                title="Drag to reorder channel"
+                                @click.stop
+                            >
+                                <MdDragIndicator class="size-3.5" />
+                            </div>
+
                             <div class="flex-1 font-medium text-sm truncate flex items-center gap-1.5 min-w-0">
                                 <span v-if="isChannelJoining(channel)" class="loading loading-spinner loading-xs text-warning shrink-0"></span>
                                 <span v-else-if="isChannelActive(channel)" class="size-2 rounded-full bg-success shrink-0 animate-pulse"></span>
@@ -325,11 +433,9 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
 
                                 <!-- Status Icons: AFK (only AFK icon), Deafen, Mute, or Green dot -->
                                 <div class="shrink-0 flex items-center gap-1 pl-1">
-                                    <!-- If AFK: only show AFK icon -->
                                     <span v-if="isUserAfk(user)" class="text-warning flex items-center" title="AFK">
                                         <TbKeyboardOff class="size-3.5" />
                                     </span>
-                                    <!-- Else: show Mute and/or Deafen icons -->
                                     <template v-else-if="isUserMuted(user) || isUserDeafened(user)">
                                         <span v-if="isUserMuted(user)" class="text-error flex items-center" title="Muted">
                                             <MdMicOff class="size-3.5" />
@@ -338,7 +444,6 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                                             <MdHeadsetOff class="size-3.5" />
                                         </span>
                                     </template>
-                                    <!-- Default: Green dot -->
                                     <span v-else class="size-1.5 rounded-full bg-success shrink-0" title="Connected"></span>
                                 </div>
                             </div>
@@ -364,9 +469,30 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                     <div
                         v-for="channel in whiteboardChannels"
                         :key="channel.id"
-                        class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-colors"
-                        :class="page.url.includes(`/whiteboard/${channel.route_key}`) ? 'bg-accent text-accent-content font-semibold' : 'hover:bg-base-200 text-base-content/80'"
+                        class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-all duration-150 border-2"
+                        :class="[
+                            page.url.includes(`/whiteboard/${channel.route_key}`) ? 'bg-accent text-accent-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
+                            hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id
+                                ? 'border-dotted border-primary bg-primary/15'
+                                : 'border-transparent'
+                        ]"
+                        :draggable="isEditMode"
+                        @dragstart="onChannelDragStart($event, channel)"
+                        @dragenter.prevent="onChannelDragEnter(channel)"
+                        @dragover.prevent="onChannelDragOver(channel)"
+                        @dragleave="onChannelDragLeave($event, channel)"
+                        @dragend="onChannelDragEnd"
+                        @drop="onChannelDrop($event, channel, whiteboardChannels)"
                     >
+                        <!-- Channel Drag Handle (visible in Edit Mode) -->
+                        <div
+                            v-if="isEditMode"
+                            class="cursor-grab active:cursor-grabbing text-base-content/60 hover:text-primary mr-1 shrink-0"
+                            title="Drag to reorder channel"
+                        >
+                            <MdDragIndicator class="size-3.5" />
+                        </div>
+
                         <Link
                             v-if="!page.url.includes(`/whiteboard/${channel.route_key}`)"
                             :href="whiteboardChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
@@ -382,7 +508,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                             <span>🎨</span>
                             <span>{{ channel.name }}</span>
                         </span>
-                        <div v-if="isEditMode" class="flex items-center gap-1">
+                        <div v-if="isEditMode" class="flex items-center gap-1 shrink-0">
                             <button
                                 v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
                                 class="btn btn-xs btn-circle btn-ghost text-warning p-0"

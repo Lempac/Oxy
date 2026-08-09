@@ -68,7 +68,7 @@ Broadcast::channel('messages.{channel}', function (User $user, Channel $channel)
 | `App\Events\Servers\ServerJoined` | `servers.{serverId}` | `userId`, `serverId` | Member joined server |
 | `App\Events\Servers\ServerLeft` | `servers.{serverId}` | `userId`, `serverId` | Member left server |
 | `App\Events\Servers\ServerEdited` | `servers.{serverId}` | `serverId`, `name`, `description`, `icon` | Server profile updated |
-| `App\Events\Messages\MessageCreated` | `channels.{channelId}` | `Message` model with `sender` | New chat message |
+| `App\Events\Messages\MessageCreated` | `channels.{channelId}` | `Message` model with `sender` and `attachments` | New chat message |
 | `App\Events\Messages\MessageEdited` | `channels.{channelId}` | `Message` model | Message content edited |
 | `App\Events\Messages\MessageDeleted` | `channels.{channelId}` | `messageId` | Message deleted |
 | `App\Events\Users\UserStatusUpdated` | `presence.server.{serverId}` | `userId`, `status` | Presence status change |

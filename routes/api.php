@@ -30,6 +30,7 @@ Route::middleware(['web'])->group(function () {
 
     Route::controller(ChannelController::class)->prefix('channel')->name('channel')->group(function () {
         Route::post('/{server}', 'create')->name('.create');
+        Route::post('/{server}/reorder', 'reorder')->name('.reorder');
         Route::patch('/{server}/{channel}', 'edit')->name('.edit');
         Route::delete('/{server}/{channel}', 'delete')->name('.delete');
         Route::post('/{server}/{channel}/upload', 'upload')->name('.upload');

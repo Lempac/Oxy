@@ -22,6 +22,20 @@ class HomeController extends Controller
         });
     }
 
+    private function getChannelMessages(Channel $channel, Server $server)
+    {
+        return Message::where('channel_id', $channel->id)
+            ->with(['user', 'attachments'])
+            ->get()
+            ->each(function (Message $message) use ($server) {
+                if ($message->user) {
+                    setPermissionsTeamId($server->id);
+                    $message->user['rolesWithServer'] = $message->user->roles()->where('roles.server_id', $server->id)->get();
+                }
+                $message['sender'] = fn (): User => $message->user;
+            });
+    }
+
     public function home(Request $request): Response
     {
         return Inertia::render('Home')->with([
@@ -62,13 +76,7 @@ class HomeController extends Controller
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
             'channels' => $server->channels,
-            'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) use ($server) {
-                if ($message->user) {
-                    setPermissionsTeamId($server->id);
-                    $message->user['rolesWithServer'] = $message->user->roles()->where('roles.server_id', $server->id)->get();
-                }
-                $message['sender'] = fn (): User => $message->user;
-            }),
+            'messages' => $this->getChannelMessages($channel, $server),
             'inviteCode' => $server->getInviteCode(),
         ]);
     }
@@ -82,13 +90,7 @@ class HomeController extends Controller
             'selectedChannel' => $channel,
             'selectedMessage' => $message,
             'channels' => $server->channels,
-            'messages' => Message::where('channel_id', $channel->id)->with('user')->get()->each(function (Message $message) use ($server) {
-                if ($message->user) {
-                    setPermissionsTeamId($server->id);
-                    $message->user['rolesWithServer'] = $message->user->roles()->where('roles.server_id', $server->id)->get();
-                }
-                $message['sender'] = fn (): User => $message->user;
-            }),
+            'messages' => $this->getChannelMessages($channel, $server),
             'inviteCode' => $server->getInviteCode(),
         ]);
     }
@@ -119,6 +121,7 @@ class HomeController extends Controller
             'selectedServer.roles' => $server->roles,
             'selectedChannel' => $channel,
             'channels' => $server->channels,
+            'messages' => $this->getChannelMessages($channel, $server),
             'inviteCode' => $server->getInviteCode(),
         ]);
     }

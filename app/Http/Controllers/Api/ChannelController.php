@@ -70,6 +70,28 @@ class ChannelController
         return back()->with('message', 'Channel deleted successfully.');
     }
 
+    public function reorder(Request $request, Server $server)
+    {
+        $request->validate([
+            'channel_ids' => 'required|array',
+            'channel_ids.*' => 'required|string',
+        ]);
+
+        setPermissionsTeamId($server->id);
+        if (! Auth::user()->hasPermissionTo('CAN_EDIT_CHANNEL')) {
+            abort(403, 'Forbidden.');
+        }
+
+        $channelIds = $request->input('channel_ids');
+        foreach ($channelIds as $position => $id) {
+            Channel::where('id', $id)
+                ->where('server_id', $server->id)
+                ->update(['position' => $position]);
+        }
+
+        return back()->with('message', 'Channels reordered successfully.');
+    }
+
     public function upload(Request $request, Server $server, Channel $channel)
     {
         $request->validate(['audio' => 'required|file|mimes:webm,mp3,wav,ogg|mimetypes:audio/webm,audio/mpeg,audio/wav,audio/ogg']);

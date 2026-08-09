@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\MessageType;
-use App\Events\Messages\MessageCreated;
 use App\Models\Message;
 use Illuminate\Console\Command;
 
@@ -32,13 +30,10 @@ class SendMessageCommand extends Command
         $text = $this->ask('What is your message?');
 
         Message::create([
-            'type' => MessageType::Text->value,
-            'mdata' => $text,
+            'content' => $text,
             'channel_id' => $channelId,
             'user_id' => $userId,
         ]);
-
-        event(new MessageCreated($text, $userId, $channelId));
 
         $this->info('Message sent successfully!');
         $timezone = now()->getTimezone();

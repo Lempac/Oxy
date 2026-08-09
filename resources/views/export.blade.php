@@ -188,12 +188,12 @@
                                 <td>{{ $message->channel->server->name }}</td>
                             </tr>
                             <tr>
-                                <th>Type</th>
-                                <td>{{ $message->type }}</td>
+                                <th>Content</th>
+                                <td>{{ $message->content ?? 'None' }}</td>
                             </tr>
                             <tr>
-                                <th>Data</th>
-                                <td>{{ $message->type == \App\Enums\MessageType::Image->value ? (empty($message->mdata) ? 'None' : substr(asset(''), 0, -1).$message->icon) : $message->mdata }}</td>
+                                <th>Attachments</th>
+                                <td>{{ $message->attachments && $message->attachments->count() > 0 ? $message->attachments->pluck('filename')->join(', ') : 'None' }}</td>
                             </tr>
                             <tr>
                                 <th>Created at</th>

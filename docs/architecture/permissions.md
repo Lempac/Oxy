@@ -56,7 +56,7 @@ setPermissionsTeamId($server->id);
 
 $role = Role::create([
     'name' => 'Owner',
-    'color' => '#ffffff',
+    'color' => '#150f83',
     'importance' => 0,
     'server_id' => $server->id,
     'guard_name' => 'web',

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\MessageStatus;
-use App\Enums\MessageType;
 use App\Events\Messages\MessageCreated;
 use App\Events\Messages\MessageDeleted;
 use App\Events\Messages\MessageEdited;
@@ -12,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
 
 class Message extends Model
@@ -24,11 +24,14 @@ class Message extends Model
     public ?Closure $sender;
 
     protected $fillable = [
-        'type',
         'status',
-        'mdata',
+        'content',
         'user_id',
         'channel_id',
+    ];
+
+    protected $with = [
+        'attachments',
     ];
 
     protected $dispatchesEvents = [
@@ -40,7 +43,6 @@ class Message extends Model
     protected function casts(): array
     {
         return [
-            'type' => MessageType::class,
             'status' => MessageStatus::class,
         ];
     }
@@ -53,6 +55,11 @@ class Message extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(MessageAttachment::class);
     }
 
     /**
@@ -78,5 +85,12 @@ class Message extends Model
         }
 
         return true;
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Message $message) {
+            $message->attachments->each->delete();
+        });
     }
 }

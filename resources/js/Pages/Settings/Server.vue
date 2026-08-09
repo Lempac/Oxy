@@ -12,6 +12,7 @@ import { HiClipboardCopy } from 'vue-icons-plus/hi';
 import { BsCheckLg } from 'vue-icons-plus/bs';
 import { server } from '@/routes/home';
 import { Link } from '@inertiajs/vue3';
+import ImageEditorModal from '@/Components/ImageEditorModal.vue';
 
 const perms = usePerms();
 const {selectedServer, inviteCode} = defineProps<{
@@ -21,6 +22,9 @@ const {selectedServer, inviteCode} = defineProps<{
 
 const icon = ref<string | null>(selectedServer?.icon ? baseUrl + selectedServer?.icon : null);
 const inputFile = ref<File | null>(null);
+const isEditorOpen = ref(false);
+const editorImageSource = ref<File | null>(null);
+const isDraggingOver = ref(false);
 
 const form = useForm({
     name: selectedServer?.name,
@@ -32,11 +36,25 @@ const form = useForm({
 
 form.defaults();
 
-const updateIcon = (file: File | null) => {
+const onFileSelected = (file: File | null) => {
     if (!file) return;
-    inputFile.value = file;
-    form.icon = file;
-    icon.value = URL.createObjectURL(file);
+    editorImageSource.value = file;
+    isEditorOpen.value = true;
+};
+
+const onDropServerIcon = (e: DragEvent) => {
+    if (!perms.value?.has([PermType.CAN_EDIT_SERVER])) return;
+    isDraggingOver.value = false;
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+        onFileSelected(file);
+    }
+};
+
+const handleEditorSave = (editedFile: File) => {
+    inputFile.value = editedFile;
+    form.icon = editedFile;
+    icon.value = URL.createObjectURL(editedFile);
 };
 
 function handleSave() {
@@ -118,20 +136,26 @@ const generateInvite = async () => {
                         <div class="card-body">
                             <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">General Overview</h2>
                             <div class="flex flex-col md:flex-row gap-8">
-                                <div class="flex-shrink-0">
+                                <div
+                                    class="flex-shrink-0"
+                                    @dragover.prevent="isDraggingOver = true"
+                                    @dragleave.prevent="isDraggingOver = false"
+                                    @drop.prevent="onDropServerIcon"
+                                >
                                     <label class="label"><span class="label-text font-medium">Server Icon</span></label>
                                     <label class="relative cursor-pointer has-[:disabled]:cursor-not-allowed block mt-2" for="serverIcon">
                                         <input
                                             id="serverIcon"
                                             :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
-                                            accept="image/png, image/jpeg"
+                                            accept="image/png, image/jpeg, image/webp"
                                             autocomplete="off"
                                             class="hidden peer"
                                             data-bwignore="true"
                                             type="file"
-                                            @change="updateIcon((<HTMLInputElement>$event.target).files![0])"
+                                            @change="onFileSelected((<HTMLInputElement>$event.target).files![0])"
                                         />
                                         <div
+                                            :class="{'ring-2 ring-primary ring-offset-2 scale-105': isDraggingOver}"
                                             class="w-32 h-32 rounded-full bg-base-100 border border-base-300 flex justify-center items-center transition-all duration-300 ease-in-out peer-enabled:hover:border-primary peer-disabled:opacity-50 overflow-hidden">
                                             <img
                                                 v-if="icon" :src="icon" alt="Server Icon"
@@ -139,7 +163,17 @@ const generateInvite = async () => {
                                             <span v-else class="text-4xl text-base-content/30">+</span>
                                         </div>
                                     </label>
+                                    <span class="text-[11px] text-base-content/50 block mt-1">Click or drag image</span>
                                     <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
+
+                                    <ImageEditorModal
+                                        v-model="isEditorOpen"
+                                        :image-source="editorImageSource"
+                                        title="Edit Server Icon"
+                                        :aspect-ratio-lock="1"
+                                        :circle-mask="true"
+                                        @save="handleEditorSave"
+                                    />
                                 </div>
                                 <div class="flex-1 space-y-4">
                                     <div class="form-control w-full">

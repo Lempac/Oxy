@@ -10,7 +10,7 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {BsChatText, BsEasel} from 'vue-icons-plus/bs';
 import {RiChatVoiceLine, RiPencilFill} from 'vue-icons-plus/ri';
-import {MdOutlineDeleteForever, MdOutlineModeEdit} from 'vue-icons-plus/md';
+import {MdOutlineDeleteForever, MdOutlineModeEdit, MdDragIndicator} from 'vue-icons-plus/md';
 import {GoPlus} from 'vue-icons-plus/go';
 import {useChannelEvents} from "@/composables/useChannelEvents";
 import {useVoiceCallStateMachine} from "@/composables/useVoiceCallStateMachine";
@@ -21,6 +21,65 @@ const {selectedServer, channels} = defineProps<{
     selectedServer?: Server,
     channels?: Channel[]
 }>();
+
+const draggedChannelId = ref<string | null>(null);
+const hoverChannelId = ref<string | null>(null);
+
+const onChannelDragStart = (e: DragEvent, channel: Channel) => {
+    draggedChannelId.value = channel.id;
+    if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', channel.id);
+    }
+};
+
+const onChannelDragEnter = (channel: Channel) => {
+    if (draggedChannelId.value && draggedChannelId.value !== channel.id) {
+        hoverChannelId.value = channel.id;
+    }
+};
+
+const onChannelDragLeave = (channel: Channel) => {
+    if (hoverChannelId.value === channel.id) {
+        hoverChannelId.value = null;
+    }
+};
+
+const onChannelDragEnd = () => {
+    draggedChannelId.value = null;
+    hoverChannelId.value = null;
+};
+
+const onChannelDrop = (e: DragEvent, targetChannel: Channel, typeList: Channel[]) => {
+    e.preventDefault();
+    if (!draggedChannelId.value || draggedChannelId.value === targetChannel.id) {
+        onChannelDragEnd();
+        return;
+    }
+
+    const fromIndex = typeList.findIndex(c => c.id === draggedChannelId.value);
+    const toIndex = typeList.findIndex(c => c.id === targetChannel.id);
+    if (fromIndex === -1 || toIndex === -1) {
+        onChannelDragEnd();
+        return;
+    }
+
+    const reordered = [...typeList];
+    const [moved] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, moved);
+
+    const reorderedIds = reordered.map(c => c.id);
+    const otherIds = (channels || []).filter(c => c.type !== targetChannel.type).map(c => c.id);
+    const allChannelIds = [...reorderedIds, ...otherIds];
+
+    onChannelDragEnd();
+
+    if (selectedServer) {
+        router.post(`/api/channel/${selectedServer.route_key}/reorder`, {
+            channel_ids: allChannelIds,
+        }, { preserveScroll: true });
+    }
+};
 
 const activeExpanded = ref<'text' | 'voice' | 'whiteboard' | null>(null);
 const pinnedExpanded = ref<'text' | 'voice' | 'whiteboard' | null>(null);
@@ -113,9 +172,9 @@ useChannelEvents(selectedServer?.id, ['channels']);
 
 <template>
     <div
-v-if="selectedServer?.id"
-         class="navbar bg-base-100 flex flex-col justify-center items-center py-2 relative min-h-16">
-
+        v-if="selectedServer?.id"
+        class="navbar bg-base-100 flex flex-col justify-center items-center py-2 relative min-h-16"
+    >
         <div class="flex items-center justify-between w-full h-14 px-4 gap-2">
 
             <!-- Left Side: Text Channels (Expands leftwards) -->
@@ -134,11 +193,29 @@ v-if="selectedServer?.id"
                         <GoPlus/>
                     </button>
                     <div
-v-for="channel in textChannels" :key="channel.id"
-                         class="indicator relative group whitespace-nowrap shrink-0">
+                        v-for="channel in textChannels" :key="channel.id"
+                        class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
+                        :class="[
+                            hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id ? 'ring-2 ring-primary ring-offset-1 rounded-lg bg-primary/15' : ''
+                        ]"
+                        :draggable="isEditMode"
+                        @dragstart="onChannelDragStart($event, channel)"
+                        @dragenter.prevent="onChannelDragEnter(channel)"
+                        @dragleave="onChannelDragLeave(channel)"
+                        @dragover.prevent
+                        @dragend="onChannelDragEnd"
+                        @drop="onChannelDrop($event, channel, textChannels)"
+                    >
                         <div
-v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
-                             class="indicator-item indicator-top">
+                            v-if="isEditMode"
+                            class="indicator-item indicator-bottom indicator-center cursor-grab active:cursor-grabbing text-primary bg-base-300 rounded p-0.5"
+                            title="Drag to reorder"
+                        >
+                            <MdDragIndicator class="size-3" />
+                        </div>
+                        <div
+                            v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
+                            class="indicator-item indicator-top">
                             <ConfirmDialog
                                 :confirm="() => deleteChannel(channel)"
                                 :description="`Are you sure you want to delete ${channel.name}?`"
@@ -149,19 +226,19 @@ v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_
                             </ConfirmDialog>
                         </div>
                         <div
-v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
-                             class="indicator-item indicator-top indicator-start">
+                            v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
+                            class="indicator-item indicator-top indicator-start">
                             <button
-class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
-                                    @click.prevent="openModal(ChannelType.Text, channel)">
+                                class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
+                                @click.prevent="openModal(ChannelType.Text, channel)">
                                 <MdOutlineModeEdit/>
                             </button>
                         </div>
                         <Link
                             :href="textChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
                             <button
-:class="{'btn-primary': $page.url.includes(`/text/${channel.route_key}`)}"
-                                    class="btn btn-outline btn-sm">
+                                :class="{'btn-primary': $page.url.includes(`/text/${channel.route_key}`)}"
+                                class="btn btn-outline btn-sm">
                                 # {{ channel.name }}
                             </button>
                         </Link>
@@ -217,8 +294,25 @@ class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
                     <template v-if="displayMode === 'voice'">
                         <div
                             v-for="channel in voiceChannels" :key="channel.id"
-                            class="indicator relative group whitespace-nowrap shrink-0"
+                            class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
+                            :class="[
+                                hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id ? 'ring-2 ring-primary ring-offset-1 rounded-lg bg-primary/15' : ''
+                            ]"
+                            :draggable="isEditMode"
+                            @dragstart="onChannelDragStart($event, channel)"
+                            @dragenter.prevent="onChannelDragEnter(channel)"
+                            @dragleave="onChannelDragLeave(channel)"
+                            @dragover.prevent
+                            @dragend="onChannelDragEnd"
+                            @drop="onChannelDrop($event, channel, voiceChannels)"
                         >
+                            <div
+                                v-if="isEditMode"
+                                class="indicator-item indicator-bottom indicator-center cursor-grab active:cursor-grabbing text-secondary bg-base-300 rounded p-0.5"
+                                title="Drag to reorder"
+                            >
+                                <MdDragIndicator class="size-3" />
+                            </div>
                             <div
                                 v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
                                 class="indicator-item indicator-top">
@@ -258,8 +352,26 @@ class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
                     <!-- Whiteboard Channels -->
                     <template v-if="displayMode === 'whiteboard' && isWhiteboardEnabled">
                         <div
-v-for="channel in whiteboardChannels" :key="channel.id"
-                             class="indicator relative group whitespace-nowrap shrink-0">
+                            v-for="channel in whiteboardChannels" :key="channel.id"
+                            class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
+                            :class="[
+                                hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id ? 'ring-2 ring-primary ring-offset-1 rounded-lg bg-primary/15' : ''
+                            ]"
+                            :draggable="isEditMode"
+                            @dragstart="onChannelDragStart($event, channel)"
+                            @dragenter.prevent="onChannelDragEnter(channel)"
+                            @dragleave="onChannelDragLeave(channel)"
+                            @dragover.prevent
+                            @dragend="onChannelDragEnd"
+                            @drop="onChannelDrop($event, channel, whiteboardChannels)"
+                        >
+                            <div
+                                v-if="isEditMode"
+                                class="indicator-item indicator-bottom indicator-center cursor-grab active:cursor-grabbing text-accent bg-base-300 rounded p-0.5"
+                                title="Drag to reorder"
+                            >
+                                <MdDragIndicator class="size-3" />
+                            </div>
                             <div
                                 v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
                                 class="indicator-item indicator-top">
@@ -276,16 +388,16 @@ v-for="channel in whiteboardChannels" :key="channel.id"
                                 v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
                                 class="indicator-item indicator-top indicator-start">
                                 <button
-class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
-                                        @click.prevent="openModal(ChannelType.Whiteboard, channel)">
+                                    class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
+                                    @click.prevent="openModal(ChannelType.Whiteboard, channel)">
                                     <MdOutlineModeEdit/>
                                 </button>
                             </div>
                             <Link
                                 :href="whiteboardChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
                                 <button
-:class="{'btn-accent': $page.url.includes(`/whiteboard/${channel.route_key}`)}"
-                                        class="btn btn-outline btn-sm">
+                                    :class="{'btn-accent': $page.url.includes(`/whiteboard/${channel.route_key}`)}"
+                                    class="btn btn-outline btn-sm">
                                     🎨 {{ channel.name }}
                                 </button>
                             </Link>
@@ -302,8 +414,9 @@ class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
 
             <!-- Pencil Mode Toggle -->
             <div
-v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
-                 class="shrink-0 ml-2">
+                v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
+                class="shrink-0 ml-2"
+            >
                 <button
                     :class="isEditMode ? 'btn-warning' : 'btn-ghost'"
                     :data-tip="isEditMode ? 'Edit Mode ON' : 'Edit Mode OFF'"

@@ -7,6 +7,7 @@ import { baseUrl } from "@/bootstrap";
 import { Themes, ThemeType } from "@/types";
 import { Io5AddOutline } from 'vue-icons-plus/io5';
 import { RiUser3Line } from 'vue-icons-plus/ri';
+import ImageEditorModal from '@/Components/ImageEditorModal.vue';
 
 defineProps<{
     status?: string;
@@ -16,20 +17,50 @@ const user = usePage().props.user!;
 
 const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
 const inputFile = ref<File | null>();
+const isEditorOpen = ref(false);
+const editorImageSource = ref<File | null>(null);
+const isDraggingOver = ref(false);
 
 const form = useForm<{ nickname: string, about_me: string, icon: File | null, light_theme: ThemeType, dark_theme: ThemeType }>({
     nickname: user.nickname,
     about_me: user.about_me || '',
-    icon: inputFile.value!,
+    icon: null,
     light_theme: user.light_theme || Themes.OXY,
     dark_theme: user.dark_theme || Themes.DARK,
 });
 
-const updateIcon = (val: File) => {
-    inputFile.value = val;
-    form.icon = inputFile.value;
-    icon.value = URL.createObjectURL(inputFile.value);
-}
+form.defaults();
+
+const onFileSelected = (val: File) => {
+    if (!val) return;
+    editorImageSource.value = val;
+    isEditorOpen.value = true;
+};
+
+const onDropAvatar = (e: DragEvent) => {
+    isDraggingOver.value = false;
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+        onFileSelected(file);
+    }
+};
+
+const handleEditorSave = (editedFile: File) => {
+    inputFile.value = editedFile;
+    form.icon = editedFile;
+    icon.value = URL.createObjectURL(editedFile);
+    form.recentlySuccessful = false;
+};
+
+const submit = () => {
+    form.post(update.url(), {
+        method: 'put',
+        preserveScroll: true,
+        onSuccess: () => {
+            form.defaults();
+        },
+    });
+};
 
 </script>
 
@@ -39,28 +70,46 @@ const updateIcon = (val: File) => {
             Update your account's nickname and profile picture.
         </p>
 
-        <form class="mt-6 space-y-6" @submit.prevent="form.post(update.url(), {method: 'put'})">
+        <form class="mt-6 space-y-6" @submit.prevent="submit">
             <!-- Profile Picture Upload -->
-            <div class="form-control flex flex-row items-center gap-4 group">
+            <div
+                class="form-control flex flex-row items-center gap-4 group"
+                @dragover.prevent="isDraggingOver = true"
+                @dragleave.prevent="isDraggingOver = false"
+                @drop.prevent="onDropAvatar"
+            >
                 <label
+                    :class="{'ring-2 ring-primary ring-offset-2 scale-105': isDraggingOver}"
                     class="cursor-pointer rounded-full bg-base-200 transition-all duration-300 ease-in-out hover:bg-transparent group-hover:bg-transparent"
                     for="profilePicture">
-                    <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full"/>
+                    <img v-if="icon !== null" :src="icon" alt="" class="size-16 rounded-full object-cover"/>
                     <Io5AddOutline v-else scale="3.333"/>
                 </label>
-                <label class="cursor-pointer" for="profilePicture">Upload profile picture</label>
+                <label class="cursor-pointer text-sm font-medium" for="profilePicture">
+                    <span>Upload profile picture</span>
+                    <span class="block text-xs text-base-content/50">Click or drag & drop image</span>
+                </label>
                 <input
                     id="profilePicture"
                     ref="inputFile"
-                    accept="image/png, image/jpeg"
+                    accept="image/png, image/jpeg, image/webp"
                     autocomplete="off"
                     class="hidden"
                     data-bwignore="true"
                     type="file"
-                    @input="updateIcon((<HTMLInputElement>$event.target).files![0])"
+                    @input="onFileSelected((<HTMLInputElement>$event.target).files![0])"
                 />
             </div>
             <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
+
+            <ImageEditorModal
+                v-model="isEditorOpen"
+                :image-source="editorImageSource"
+                title="Edit Profile Picture"
+                :aspect-ratio-lock="1"
+                :circle-mask="true"
+                @save="handleEditorSave"
+            />
 
             <div class="form-control">
                 <label class="block font-medium text-sm text-base-content/90" for="nickname">Nickname</label>
@@ -131,7 +180,7 @@ const updateIcon = (val: File) => {
                     leave-active-class="transition ease-in-out"
                     leave-to-class="opacity-0"
                 >
-                    <p v-if="form.recentlySuccessful" class="text-sm text-base-content/70">Saved.</p>
+                    <p v-if="form.recentlySuccessful && !form.isDirty" class="text-sm text-base-content/70">Saved.</p>
                 </Transition>
             </div>
         </form>

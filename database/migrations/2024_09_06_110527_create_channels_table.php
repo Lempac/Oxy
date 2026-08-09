@@ -15,12 +15,16 @@ return new class extends Migration
         Schema::create('channels', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->string('slug');
             $table->enum('type', array_column(ChannelType::cases(), 'value'));
+            $table->integer('position')->default(0);
             $table->integer('can_see_channel')->nullable();
             $table->integer('can_create_message')->nullable();
             $table->integer('can_delete_message')->nullable();
             $table->timestamps();
             $table->foreignUuid('server_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+
+            $table->unique(['server_id', 'slug']);
         });
     }
 

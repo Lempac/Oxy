@@ -6,9 +6,22 @@ import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { MdMessage, MdCall, MdScreenShare } from 'vue-icons-plus/md';
 import { FaBook } from 'vue-icons-plus/fa';
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import ImageEditorModal from "@/Components/ImageEditorModal.vue";
 
 const loginModel = ref<HTMLDialogElement>();
 const registerModel = ref<HTMLDialogElement>();
+
+const isEditorOpen = ref(false);
+const editorImageSource = ref<File | null>(null);
+const isDraggingOver = ref(false);
+
+const onDropRegisterIcon = (e: DragEvent) => {
+    isDraggingOver.value = false;
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+        onRegisterIconSelected(file);
+    }
+};
 
 const loginForm = useForm({
     nickname: '',
@@ -54,11 +67,16 @@ const checkServerCode = async () => {
     }
 };
 
-const updateRegisterIcon = (file: File | undefined) => {
+const onRegisterIconSelected = (file: File | undefined) => {
     if (file) {
-        registerForm.icon = file;
-        iconPreview.value = URL.createObjectURL(file);
+        editorImageSource.value = file;
+        isEditorOpen.value = true;
     }
+};
+
+const handleEditorSave = (editedFile: File) => {
+    registerForm.icon = editedFile;
+    iconPreview.value = URL.createObjectURL(editedFile);
 };
 
 const submitLogin = () => {
@@ -263,8 +281,14 @@ const submitRegister = () => {
             </fieldset>
 
             <!-- Profile Icon Input -->
-            <fieldset class="fieldset">
-                <legend class="fieldset-legend">Profile Icon (Optional)</legend>
+            <fieldset
+                class="fieldset transition-all"
+                :class="{'ring-2 ring-primary ring-offset-2 rounded-xl p-1': isDraggingOver}"
+                @dragover.prevent="isDraggingOver = true"
+                @dragleave.prevent="isDraggingOver = false"
+                @drop.prevent="onDropRegisterIcon"
+            >
+                <legend class="fieldset-legend">Profile Icon (Optional - Click or Drag Image)</legend>
                 <div class="flex items-center gap-4">
                     <img v-if="iconPreview" :src="iconPreview" alt="Preview" class="size-12 rounded-full object-cover"/>
                     <input
@@ -273,11 +297,20 @@ const submitRegister = () => {
                         class="file-input file-input-bordered w-full"
                         name="icon"
                         type="file"
-                        @change="updateRegisterIcon((<HTMLInputElement>$event.target).files?.[0])"
+                        @change="onRegisterIconSelected((<HTMLInputElement>$event.target).files?.[0])"
                     />
                 </div>
                 <ErrorAlert v-if="registerForm.errors.icon" :message="registerForm.errors.icon" />
             </fieldset>
+
+            <ImageEditorModal
+                v-model="isEditorOpen"
+                :image-source="editorImageSource"
+                title="Edit Avatar"
+                :aspect-ratio-lock="1"
+                :circle-mask="true"
+                @save="handleEditorSave"
+            />
 
             <!-- Password Input -->
             <fieldset class="fieldset">

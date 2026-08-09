@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('servers', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->string('description')->nullable();
             $table->string('icon')->nullable();
+            $table->uuid('default_role_id')->nullable();
+            $table->boolean('enable_whiteboard')->default(true);
 
             $table->timestamps();
         });

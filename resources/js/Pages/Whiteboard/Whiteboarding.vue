@@ -1,30 +1,44 @@
 <script lang="ts" setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import {Channel, Message, MessageType, PermType, Server, Whiteboard} from "@/types";
+import ChannelSidebar from "@/Components/ChannelSidebar.vue";
+import {Channel, Message, PermType, Server, Whiteboard} from "@/types";
 import WhiteboardBoard from "./WhiteboardBoard.vue";
-import {ref} from "vue";
-import {router, useForm, usePage} from "@inertiajs/vue3";
+import {computed, onMounted, onUnmounted, ref} from "vue";
+import {router, useForm} from "@inertiajs/vue3";
 import {baseUrl, defaultIcon, getMemberRoleColor, usePerms} from "@/bootstrap";
 import {Filter} from 'bad-words';
-import {FaRegFile, FaRegPaperPlane} from 'vue-icons-plus/fa';
-import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator} from 'vue-icons-plus/md';
+import {FaRegPaperPlane} from 'vue-icons-plus/fa';
+import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator, MdClose} from 'vue-icons-plus/md';
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {create, deleteMethod, edit} from "@/routes/message";
 import {usePaneDrag} from "@/composables/usePaneDrag";
+import {useRecentUploads} from "@/composables/useRecentUploads";
+import FilePreviewCard from "@/Components/FilePreviewCard.vue";
+import FileAttachmentDisplay from "@/Components/FileAttachmentDisplay.vue";
+import RecentUploadsDropdown from "@/Components/RecentUploadsDropdown.vue";
+import ImageEditorModal from "@/Components/ImageEditorModal.vue";
+import {validateFilesBatch, validateMessageContent} from "@/utils/fileValidation";
 
 const filter = new Filter({placeHolder: '#'});
 filter.addWords();
 
 const perms = usePerms();
-const { isDragModeActive, paneOrder, chatPaneWidth, startPaneSwapDrag, dropOnPane, startSplitResize } = usePaneDrag();
-const isMaximized = ref(false);
-const splitContainer = ref<HTMLElement | null>(null);
+const {
+    draggedPaneId,
+    dragHoverPaneId,
+    getOrderedPanes,
+    getPaneStyle,
+    startPaneSwapDrag,
+    endPaneSwapDrag,
+    setDragHoverPane,
+    dropOnPane,
+    startGutterResize
+} = usePaneDrag();
+const { addRecentUpload } = useRecentUploads();
 
-const onSplitResizeStart = (e: PointerEvent) => {
-    if (splitContainer.value) {
-        startSplitResize(e, splitContainer.value.offsetWidth);
-    }
-};
+const isMaximized = ref(false);
+const isFileDragging = ref(false);
+let dragCounter = 0;
 
 const props = defineProps<{
     servers: Server[],
@@ -35,44 +49,253 @@ const props = defineProps<{
     inviteCode?: string,
 }>();
 
+const availablePanes = computed(() =>
+    isMaximized.value
+        ? ['whiteboard']
+        : (props.selectedServer ? ['sidebar', 'chat', 'whiteboard'] : ['chat', 'whiteboard'])
+);
+const activePanes = computed(() => getOrderedPanes(availablePanes.value));
+
 const fileInput = ref<HTMLInputElement | null>(null);
-const messageIdToEdit = ref<number | null>(null);
-const inputFile = ref<File | null>(null);
+const messageModal = ref<HTMLDialogElement>();
+const messageIdToEdit = ref<string | null>(null);
+const stagedFiles = ref<File[]>([]);
+const editingFileIndex = ref<number | null>(null);
+const isEditorOpen = ref(false);
+const editorImageSource = ref<File | null>(null);
+const validationError = ref<string | null>(null);
+const loading = ref(false);
 
-const clearFile = () => {
-    if (fileInput.value) fileInput.value.value = '';
-    inputFile.value = null;
-    form.mdata = null;
-    form.type = MessageType.Text;
-};
-
-const uploadFile = (val: File) => {
-    if (!val) return;
-    inputFile.value = val;
-    form.mdata = inputFile.value;
-    if (form.mdata.type.startsWith('image/')) {
-        form.type = MessageType.Image;
-    } else {
-        form.type = MessageType.File;
-    }
-};
-
-const form = useForm<{ type: typeof MessageType[keyof typeof MessageType], mdata: File | string | null }>({
-    type: MessageType.Text,
-    mdata: null
+const form = useForm<{ content: string; attachments: File[] }>({
+    content: '',
+    attachments: []
 });
 
-const createMessage = async () => {
-    if (!props.selectedChannel || !props.selectedServer) return;
-    if (typeof form.mdata === 'string') {
-        form.type = MessageType.Text;
+const editForm = useForm<{ content: string }>({
+    content: ''
+});
+
+const clearValidation = () => {
+    validationError.value = null;
+};
+
+const showValidationError = (msg: string) => {
+    validationError.value = msg;
+    setTimeout(() => {
+        if (validationError.value === msg) {
+            validationError.value = null;
+        }
+    }, 6000);
+};
+
+const clearAllFiles = () => {
+    if (fileInput.value) fileInput.value.value = '';
+    stagedFiles.value = [];
+    form.attachments = [];
+};
+
+const removeStagedFile = (index: number) => {
+    stagedFiles.value.splice(index, 1);
+    form.attachments = stagedFiles.value;
+    if (fileInput.value && stagedFiles.value.length === 0) {
+        fileInput.value.value = '';
     }
+};
+
+const stageFiles = (files: File[] | FileList | File) => {
+    const filesArray = files instanceof FileList ? Array.from(files) : Array.isArray(files) ? files : [files];
+    if (!filesArray.length) return;
+
+    if (!perms.value?.has([PermType.CAM_CREATE_ATTACHMENTS])) {
+        showValidationError('You do not have permission to attach files.');
+        return;
+    }
+
+    const result = validateFilesBatch(stagedFiles.value, filesArray);
+
+    if (result.errors.length > 0) {
+        showValidationError(result.errors.join(' '));
+    }
+
+    stagedFiles.value = result.validFiles;
+    form.attachments = result.validFiles;
+
+    for (const f of filesArray) {
+        if (result.validFiles.includes(f)) {
+            addRecentUpload(f);
+        }
+    }
+};
+
+const triggerFileInput = () => {
+    fileInput.value?.click();
+};
+
+const onFileInputChange = (e: Event) => {
+    const files = (e.target as HTMLInputElement).files;
+    if (files && files.length > 0) {
+        stageFiles(files);
+    }
+};
+
+const handlePaste = (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const pastedFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file') {
+            const file = item.getAsFile();
+            if (file) {
+                pastedFiles.push(file);
+            }
+        }
+    }
+    if (pastedFiles.length > 0) {
+        e.preventDefault();
+        stageFiles(pastedFiles);
+    }
+};
+
+const onDragEnter = (e: DragEvent) => {
+    if (e.dataTransfer?.types?.includes('Files')) {
+        e.preventDefault();
+        dragCounter++;
+        isFileDragging.value = true;
+    }
+};
+
+const onDragLeave = (e: DragEvent) => {
+    if (e.dataTransfer?.types?.includes('Files')) {
+        e.preventDefault();
+        dragCounter--;
+        if (dragCounter <= 0) {
+            dragCounter = 0;
+            isFileDragging.value = false;
+        }
+    }
+};
+
+const onDragOver = (e: DragEvent) => {
+    if (e.dataTransfer?.types?.includes('Files')) {
+        e.preventDefault();
+    }
+};
+
+const onDrop = (e: DragEvent) => {
+    if (draggedPaneId.value) {
+        dropOnPane('chat');
+        return;
+    }
+    if (e.dataTransfer?.types?.includes('Files')) {
+        e.preventDefault();
+        dragCounter = 0;
+        isFileDragging.value = false;
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            stageFiles(files);
+        }
+    }
+};
+
+const onPaneDragLeave = (e: DragEvent, paneId: string) => {
+    const currentTarget = e.currentTarget as HTMLElement | null;
+    const relatedTarget = e.relatedTarget as Node | null;
+    if (!currentTarget || !relatedTarget || !currentTarget.contains(relatedTarget)) {
+        if (dragHoverPaneId.value === paneId) {
+            setDragHoverPane(null);
+        }
+    }
+};
+
+const onChatDragLeave = (e: DragEvent) => {
+    onPaneDragLeave(e, 'chat');
+    onDragLeave(e);
+};
+
+onMounted(() => {
+    window.addEventListener('paste', handlePaste);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('paste', handlePaste);
+});
+
+const openImageEditor = (file: File, index: number) => {
+    editingFileIndex.value = index;
+    editorImageSource.value = file;
+    isEditorOpen.value = true;
+};
+
+const handleEditorSave = (editedFile: File) => {
+    if (editingFileIndex.value !== null && editingFileIndex.value < stagedFiles.value.length) {
+        stagedFiles.value[editingFileIndex.value] = editedFile;
+        form.attachments = stagedFiles.value;
+    } else {
+        stageFiles([editedFile]);
+    }
+};
+
+const createMessage = async () => {
+    if (!props.selectedChannel || !props.selectedServer || loading.value) return;
+
+    const validation = validateMessageContent(form.content, stagedFiles.value.length);
+    if (!validation.valid) {
+        showValidationError(validation.error || 'Please enter a message or attach a file.');
+        return;
+    }
+
+    if (form.content && !perms.value?.has([PermType.CAN_CREATE_MESSAGE])) {
+        showValidationError('You do not have permission to send messages.');
+        return;
+    }
+
+    if (stagedFiles.value.length > 0 && !perms.value?.has([PermType.CAM_CREATE_ATTACHMENTS])) {
+        showValidationError('You do not have permission to upload attachments.');
+        return;
+    }
+
+    loading.value = true;
+    form.attachments = stagedFiles.value;
+
     form.post(create.url({server: props.selectedServer.route_key, channel: props.selectedChannel.route_key}), {
         preserveScroll: true,
         onSuccess: () => {
-            clearFile();
+            clearAllFiles();
+            form.reset();
+            clearValidation();
+        },
+        onError: (errors) => {
+            const errList = Object.values(errors).join(' ');
+            showValidationError(errList);
+        },
+        onFinish: () => {
+            loading.value = false;
         }
     });
+};
+
+const deleteMessage = async (messageId: string) => {
+    router.delete(deleteMethod.url(messageId), {preserveScroll: true});
+};
+
+const editMessage = async () => {
+    if (messageIdToEdit.value !== null) {
+        editForm.patch(edit.url(messageIdToEdit.value), {
+            preserveScroll: true,
+            onSuccess: () => {
+                messageModal.value?.close();
+                editForm.reset();
+                messageIdToEdit.value = null;
+            }
+        });
+    }
+};
+
+const openEditModal = (messageId: string, currentContent: string | null) => {
+    messageIdToEdit.value = messageId;
+    editForm.content = currentContent || '';
+    messageModal.value?.showModal();
 };
 
 function formatDate(dateString: string): string {
@@ -88,30 +311,63 @@ function formatDate(dateString: string): string {
 
 <template>
     <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
-        <div
-            v-if="selectedChannel"
-            ref="splitContainer"
-            class="flex-grow flex w-full h-full overflow-hidden p-0"
-        >
-            <!-- Chat Pane (Split View - visible when not maximized) -->
+        <template v-for="(paneId, idx) in activePanes" :key="paneId">
+            <!-- 1. Sidebar Pane -->
             <div
-                v-if="!isMaximized"
-                :style="{ order: paneOrder.indexOf('chat'), flexBasis: chatPaneWidth + '%', flexGrow: 0, flexShrink: 0 }"
-                class="bg-base-100 flex flex-col overflow-hidden border-r border-base-300 min-w-[250px]"
-                @dragover.prevent
-                @drop="dropOnPane('chat')"
+                v-if="paneId === 'sidebar' && selectedServer"
+                :style="getPaneStyle('sidebar', activePanes)"
+                :class="[
+                    'flex flex-col overflow-hidden relative transition-all duration-75',
+                    dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'
+                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
+                        : ''
+                ]"
+                @dragenter.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
+                @dragover.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
+                @dragleave="onPaneDragLeave($event, 'sidebar')"
+                @drop="dropOnPane('sidebar')"
             >
+                <ChannelSidebar :channels="channels" :selected-server="selectedServer" />
+            </div>
+
+            <!-- 2. Chat Pane -->
+            <div
+                v-else-if="paneId === 'chat' && selectedChannel"
+                :style="getPaneStyle('chat', activePanes)"
+                :class="[
+                    'bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]',
+                    dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'
+                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
+                        : ''
+                ]"
+                @dragenter.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragEnter($event)"
+                @dragover.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragOver($event)"
+                @dragleave="onChatDragLeave"
+                @drop="onDrop"
+            >
+                <!-- File Drag & Drop Overlay -->
+                <div
+                    v-if="isFileDragging"
+                    class="absolute inset-0 bg-base-100/90 backdrop-blur-xs border-2 border-dashed border-primary z-40 flex flex-col items-center justify-center pointer-events-none m-2 rounded-2xl animate-fadeIn"
+                >
+                    <div class="p-4 bg-base-200/80 rounded-2xl shadow-xl flex flex-col items-center gap-2 border border-base-300 text-center">
+                        <MdOutlineFileUpload class="size-10 text-primary animate-bounce" />
+                        <p class="font-bold text-sm text-base-content">Drop files here</p>
+                        <p class="text-[11px] text-base-content/60">Images, docs, archives, media</p>
+                    </div>
+                </div>
+
                 <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
                     <div class="font-bold text-sm text-base-content flex items-center gap-1.5">
                         <span>#</span>
                         <span>{{ selectedChannel.name }}</span>
                     </div>
                     <div
-                        v-if="isDragModeActive"
                         draggable="true"
-                        class="cursor-grab active:cursor-grabbing text-primary p-1 rounded hover:bg-base-300 transition-colors"
-                        title="Drag handle: Hold Alt to swap pane positions"
+                        class="cursor-grab active:cursor-grabbing text-base-content/70 hover:text-primary p-1 rounded hover:bg-base-300 transition-colors"
+                        title="Drag handle: Drag to swap chat pane position"
                         @dragstart="startPaneSwapDrag('chat')"
+                        @dragend="endPaneSwapDrag"
                     >
                         <MdDragIndicator class="size-4" />
                     </div>
@@ -133,18 +389,40 @@ function formatDate(dateString: string): string {
                                 <span class="font-semibold" :style="{ color: getMemberRoleColor(message.sender, selectedServer?.roles) }">{{ message.sender?.nickname || message.sender?.name }}</span>
                                 <time class="opacity-50 ml-1">{{ formatDate(message.created_at) }}</time>
                             </div>
-                            <div class="chat-bubble bg-base-200 text-base-content text-xs">
-                                <div v-if="MessageType.Text === message.type" class="text-wrap break-all">
-                                    {{ message.mdata ? filter.clean(message.mdata) : '' }}
+                            <div class="chat-bubble group bg-base-200 text-base-content text-xs flex flex-col gap-1 relative">
+                                <!-- Message Text -->
+                                <div v-if="message.content" class="text-wrap break-words whitespace-pre-wrap">
+                                    {{ filter.clean(message.content) }}
                                 </div>
-                                <img
-                                    v-if="MessageType.Image === message.type" :src="message.mdata" alt="img"
-                                    class="max-w-[200px] h-auto rounded"/>
-                                <div v-if="MessageType.File === message.type" class="flex items-center gap-1">
-                                    <FaRegFile/>
-                                    <a :href="baseUrl + message.mdata.split('|*|')[1]" class="underline truncate max-w-[150px]" download>
-                                        {{ message.mdata.split('|*|')[0] }}
-                                    </a>
+
+                                <!-- Message Attachments -->
+                                <div v-if="message.attachments && message.attachments.length > 0" class="flex flex-col gap-1 mt-0.5">
+                                    <FileAttachmentDisplay
+                                        v-for="attachment in message.attachments"
+                                        :key="attachment.id"
+                                        :attachment="attachment"
+                                    />
+                                </div>
+
+                                <!-- Message Actions -->
+                                <div class="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-base-300/80 rounded-md p-0.5">
+                                    <button
+                                        v-if="message.user_id === $page.props.user?.id"
+                                        class="btn btn-ghost btn-xs btn-circle p-0"
+                                        title="Edit text"
+                                        @click="openEditModal(message.id, message.content)"
+                                    >
+                                        <MdOutlineModeEdit class="size-3 text-warning" />
+                                    </button>
+                                    <ConfirmDialog
+                                        v-if="message.user_id === $page.props.user?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
+                                        :confirm="() => deleteMessage(message.id)"
+                                        class-name="btn btn-ghost btn-xs btn-circle p-0"
+                                        description="Are you sure you want to delete this message?"
+                                        title="Delete Message"
+                                    >
+                                        <MdOutlineDeleteForever class="size-3 text-error" />
+                                    </ConfirmDialog>
                                 </div>
                             </div>
                         </div>
@@ -154,40 +432,56 @@ function formatDate(dateString: string): string {
                     </div>
                 </div>
 
+                <!-- Validation Error Toast -->
+                <div v-if="validationError" class="px-3 py-1.5 bg-error/15 text-error text-[11px] border-t border-error/30 flex items-center justify-between">
+                    <span>{{ validationError }}</span>
+                    <button class="btn btn-ghost btn-xs btn-circle" @click="clearValidation">
+                        <MdClose class="size-3" />
+                    </button>
+                </div>
+
+                <!-- Staged Attachments Container (Supports Multiple Files) -->
+                <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-1 bg-base-100 border-t border-base-300 flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                    <FilePreviewCard
+                        v-for="(file, index) in stagedFiles"
+                        :key="index + file.name"
+                        :file="file"
+                        @edit="openImageEditor(file, index)"
+                        @remove="removeStagedFile(index)"
+                    />
+                </div>
+
                 <!-- Chat Input Form -->
-                <form class="flex items-center gap-2 p-2 border-t border-base-300 bg-base-100" @submit.prevent="createMessage">
-                    <label
-                        :class="{'btn-disabled opacity-50': !perms.has([PermType.CAM_CREATE_ATTACHMENTS])}"
-                        class="btn btn-sm btn-square btn-ghost shrink-0"
-                        for="whiteboard-file-upload"
-                    >
-                        <MdOutlineFileUpload class="size-4" />
-                    </label>
+                <form
+                    :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
+                    class="flex items-center gap-2 p-2 bg-base-100"
+                    @submit.prevent="createMessage"
+                >
+                    <RecentUploadsDropdown
+                        :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
+                        @select-file="stageFiles"
+                        @open-file-picker="triggerFileInput"
+                    />
                     <input
-                        id="whiteboard-file-upload"
                         ref="fileInput"
                         :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
                         autocomplete="off"
                         class="hidden"
                         data-bwignore="true"
                         type="file"
-                        @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
+                        multiple
+                        @change="onFileInputChange"
                     />
-
-                    <div v-if="inputFile" class="badge badge-sm badge-primary gap-1 max-w-[120px] truncate shrink-0">
-                        <span class="truncate">{{ inputFile.name }}</span>
-                        <button class="btn btn-ghost btn-xs p-0 min-h-0 h-auto" @click.prevent="clearFile">✕</button>
-                    </div>
 
                     <input
-                        v-model="form.mdata"
+                        v-model="form.content"
                         class="input input-sm input-bordered flex-1 focus:outline-none"
-                        :placeholder="inputFile ? 'File ready to upload...' : 'Type message...'"
+                        :placeholder="stagedFiles.length > 0 ? `Message with ${stagedFiles.length} file${stagedFiles.length > 1 ? 's' : ''}...` : 'Type message...'"
                         type="text"
-                        @keydown.enter="createMessage"
+                        @keydown.enter.prevent="createMessage"
                     />
                     <button
-                        :disabled="!form.mdata && !inputFile"
+                        :disabled="loading || (!form.content.trim() && stagedFiles.length === 0)"
                         class="btn btn-sm btn-square btn-primary shrink-0"
                         type="submit"
                     >
@@ -196,19 +490,19 @@ function formatDate(dateString: string): string {
                 </form>
             </div>
 
-            <!-- Split Gutter Resizer (between chat and whiteboard) -->
+            <!-- 3. Whiteboard Canvas Pane -->
             <div
-                v-if="!isMaximized"
-                class="w-1 hover:w-1.5 cursor-col-resize bg-base-300/80 hover:bg-primary/50 active:bg-primary transition-all flex-shrink-0 self-stretch z-10 select-none"
-                title="Drag to resize chat/whiteboard split"
-                @pointerdown="onSplitResizeStart"
-            ></div>
-
-            <!-- Whiteboard Canvas Pane -->
-            <div
-                :style="{ order: paneOrder.indexOf('whiteboard') }"
-                class="flex-1 bg-base-100 flex flex-col overflow-hidden min-w-[300px]"
-                @dragover.prevent
+                v-else-if="paneId === 'whiteboard' && selectedChannel"
+                :style="getPaneStyle('whiteboard', activePanes)"
+                :class="[
+                    'bg-base-100 flex flex-col overflow-hidden min-w-[300px] transition-all duration-75',
+                    dragHoverPaneId === 'whiteboard' && draggedPaneId && draggedPaneId !== 'whiteboard'
+                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
+                        : ''
+                ]"
+                @dragenter.prevent="draggedPaneId ? setDragHoverPane('whiteboard') : null"
+                @dragover.prevent="draggedPaneId ? setDragHoverPane('whiteboard') : null"
+                @dragleave="onPaneDragLeave($event, 'whiteboard')"
                 @drop="dropOnPane('whiteboard')"
             >
                 <WhiteboardBoard
@@ -218,9 +512,51 @@ function formatDate(dateString: string): string {
                     @toggle-maximize="isMaximized = !isMaximized"
                 />
             </div>
-        </div>
-        <div v-else class="flex-grow flex items-center justify-center text-base-content/50 w-full h-full">
-            <p>Select a whiteboard channel to start drawing!</p>
-        </div>
+
+            <!-- Gutter between adjacent panes (strictly 1 gutter between each pair) -->
+            <div
+                v-if="idx < activePanes.length - 1"
+                class="w-1.5 hover:w-2 hover:bg-primary active:bg-primary cursor-col-resize z-30 transition-all bg-base-300/80 flex-shrink-0 self-stretch select-none"
+                :title="`Drag to resize`"
+                @pointerdown.prevent="startGutterResize($event, activePanes[idx], activePanes[idx + 1], activePanes)"
+            ></div>
+        </template>
     </AuthenticatedLayout>
+
+    <ImageEditorModal
+        v-model="isEditorOpen"
+        :image-source="editorImageSource"
+        title="Annotate & Edit Image"
+        @save="handleEditorSave"
+    />
+
+    <!-- Edit Message Modal -->
+    <dialog ref="messageModal" class="modal">
+        <div class="modal-box">
+            <form @submit.prevent="editMessage">
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text font-bold">Edit Message Content</span>
+                    </label>
+                    <textarea
+                        v-model="editForm.content"
+                        autocomplete="off"
+                        class="textarea textarea-bordered w-full h-28 focus:outline-none"
+                        data-bwignore="true"
+                        placeholder="Edit message..."
+                    ></textarea>
+                </div>
+                <div class="modal-action">
+                    <button class="btn btn-primary w-full" type="submit" :disabled="editForm.processing">
+                        Save Changes
+                    </button>
+                </div>
+                <button
+                    class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    type="button"
+                    @click="() => { messageModal?.close(); editForm.reset(); messageIdToEdit = null; }">✕
+                </button>
+            </form>
+        </div>
+    </dialog>
 </template>
