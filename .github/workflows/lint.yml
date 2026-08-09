@@ -3,6 +3,17 @@ name: Fix Code Style
 on:
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'app/**'
+      - 'bootstrap/**'
+      - 'config/**'
+      - 'database/**'
+      - 'routes/**'
+      - 'tests/**'
+      - '**.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - '.github/workflows/lint.yml'
 
 jobs:
   lint:

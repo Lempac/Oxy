@@ -3,8 +3,22 @@ name: Laravel
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'assets/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
   pull_request:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'assets/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
