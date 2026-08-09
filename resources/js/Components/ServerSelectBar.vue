@@ -13,8 +13,13 @@ import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {GoPlus} from 'vue-icons-plus/go';
 import {BsDoorOpen, BsGearFill} from 'vue-icons-plus/bs';
+import {MdMic, MdMicOff, MdHeadset, MdHeadsetOff, MdExitToApp} from 'vue-icons-plus/md';
+import {TbKeyboard, TbKeyboardOff} from 'vue-icons-plus/tb';
+import {useVoiceCallStateMachine} from '@/composables/useVoiceCallStateMachine';
+import {VoiceParticipantState} from '@/types';
 
 const perms = usePerms();
+const voiceState = useVoiceCallStateMachine();
 const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
 
 const {servers, selectedServer} = defineProps<{
@@ -105,23 +110,24 @@ const updateIcon = (val: File) => {
 </script>
 
 <template>
-    <div class="navbar bg-base-100">
-        <div class="navbar-start w-auto">
+    <div class="relative flex items-center justify-between h-16 bg-base-100 px-4 w-full select-none">
+        <!-- Left Side: Logo -->
+        <div class="flex items-center shrink-0 z-10">
             <Link href="/">
-                <ApplicationLogo class="block h-10 w-auto fill-current ml-5"/>
+                <ApplicationLogo class="block h-10 w-auto fill-current ml-1"/>
             </Link>
         </div>
-        <div class="navbar-center flex-1 overflow-x-auto overflow-y-hidden px-4 scrollbar-hide">
-            <div class="flex items-center gap-3 min-w-max h-full w-full">
-                <!-- Empty spacer to help center items if they don't overflow -->
-                <div class="grow"></div>
 
+        <!-- Center: Server Icons (Absolute Centered so it NEVER shifts when voice pill appears) -->
+        <div class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[calc(100%-480px)] overflow-x-auto overflow-y-hidden px-2 scrollbar-hide pointer-events-auto z-0">
+            <div class="flex items-center gap-3 min-w-max h-full">
                 <div v-for="server in servers" :key="server.id" class="shrink-0">
                     <Link :href="text.url(server.route_key)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div
-:class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}"
-                                 class="btn btn-ghost btn-circle avatar">
+                                :class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}"
+                                class="btn btn-ghost btn-circle avatar"
+                            >
                                 <div class="w-10 rounded-full">
                                     <img
                                         :src="server.icon ? `${baseUrl}${server.icon}` : defaultIcon"
@@ -135,14 +141,51 @@ const updateIcon = (val: File) => {
                 <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="serverModal?.showModal">
                     <GoPlus scale="1.5"/>
                 </button>
-
-                <!-- Empty spacer to help center items if they don't overflow -->
-                <div class="grow"></div>
             </div>
         </div>
 
         <!-- Right Side -->
-        <div class="navbar-end gap-2 pr-4 w-auto">
+        <div class="flex items-center justify-end gap-2 ml-auto shrink-0 z-10">
+            <!-- Active Voice Call Status Pill -->
+            <div v-if="!voiceState.isDisconnected.value" class="flex items-center gap-2 bg-base-200 border border-success/30 px-3 py-1 rounded-full shadow-xs mr-2">
+                <span class="size-2.5 rounded-full bg-success animate-pulse"></span>
+                <span class="text-xs font-semibold text-success">🔊 {{ voiceState.activeChannel.value?.name || 'Voice' }}</span>
+                
+                <!-- Voice Action Controls: Mute, Deafen, AFK, Disconnect -->
+                <div class="flex items-center gap-1 ml-2 border-l border-base-300 pl-2">
+                    <button
+                        :class="voiceState.isMuted.value ? 'btn-error' : 'btn-ghost'"
+                        class="btn btn-xs btn-square"
+                        title="Toggle Mic"
+                        @click="voiceState.toggleMute()">
+                        <MdMicOff v-if="voiceState.isMuted.value" />
+                        <MdMic v-else />
+                    </button>
+                    <button
+                        :class="voiceState.isDeafened.value ? 'btn-error' : 'btn-ghost'"
+                        class="btn btn-xs btn-square"
+                        title="Toggle Deafen"
+                        @click="voiceState.toggleDeafen()">
+                        <MdHeadsetOff v-if="voiceState.isDeafened.value" />
+                        <MdHeadset v-else />
+                    </button>
+                    <button
+                        :class="voiceState.isAfk.value ? 'btn-warning' : 'btn-ghost'"
+                        class="btn btn-xs btn-square"
+                        title="Toggle AFK"
+                        @click="voiceState.toggleAfk($page.props.user?.status)">
+                        <TbKeyboardOff v-if="voiceState.isAfk.value" />
+                        <TbKeyboard v-else />
+                    </button>
+                    <button
+                        class="btn btn-xs btn-square btn-error btn-outline ml-1"
+                        title="Disconnect Voice"
+                        @click="voiceState.leaveChannel()">
+                        <MdExitToApp />
+                    </button>
+                </div>
+            </div>
+
             <!-- Server Settings -->
             <Link
                 v-if="selectedServer && perms.hasAny([PermType.CAN_MANAGE_SERVER, PermType.CAN_MANAGE_ROLE, PermType.CAN_MANAGE_MEMBERS])"

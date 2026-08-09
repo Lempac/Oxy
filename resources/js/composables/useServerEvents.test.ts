@@ -55,6 +55,7 @@ describe('useServerEvents', () => {
         expect(mockListen).toHaveBeenCalledWith('.ServerJoined', expect.any(Function));
         expect(mockListen).toHaveBeenCalledWith('.ServerLeft', expect.any(Function));
         expect(mockListen).toHaveBeenCalledWith('.ServerEdited', expect.any(Function));
+        expect(mockListen).toHaveBeenCalledWith('.UserStatusUpdated', expect.any(Function));
         
         // Roles
         expect(mockListen).toHaveBeenCalledWith('.RoleDeleted', expect.any(Function));
@@ -69,6 +70,7 @@ describe('useServerEvents', () => {
         expect(mockStopListening).toHaveBeenCalledWith('.ServerJoined', expect.any(Function));
         expect(mockStopListening).toHaveBeenCalledWith('.ServerLeft', expect.any(Function));
         expect(mockStopListening).toHaveBeenCalledWith('.ServerEdited', expect.any(Function));
+        expect(mockStopListening).toHaveBeenCalledWith('.UserStatusUpdated', expect.any(Function));
         expect(mockStopListening).toHaveBeenCalledWith('.RoleDeleted', expect.any(Function));
         expect(mockStopListening).toHaveBeenCalledWith('.RoleEdited', expect.any(Function));
     });

@@ -37,3 +37,12 @@ Broadcast::channel('whiteboards.{channelId}', function (User $user, string $chan
 
     return $channel ? $user->servers()->where('servers.id', $channel->server_id)->exists() : false;
 });
+
+Broadcast::channel('presence', function (User $user): ?array {
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+        'nickname' => $user->nickname,
+        'status' => $user->status?->value ?? 'online',
+    ];
+});

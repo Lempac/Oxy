@@ -2,7 +2,6 @@
 import {usePerms} from '@/bootstrap';
 import {create, deleteMethod, edit} from '@/routes/channel';
 import {channel as textChannelRoute} from '@/routes/home/text';
-import {channel as voiceChannelRoute} from '@/routes/home/voice';
 import {channel as whiteboardChannelRoute} from '@/routes/home/whiteboard';
 import {Link, router, useForm} from "@inertiajs/vue3";
 import {computed, ref} from "vue";
@@ -14,8 +13,10 @@ import {RiChatVoiceLine, RiPencilFill} from 'vue-icons-plus/ri';
 import {MdOutlineDeleteForever, MdOutlineModeEdit} from 'vue-icons-plus/md';
 import {GoPlus} from 'vue-icons-plus/go';
 import {useChannelEvents} from "@/composables/useChannelEvents";
+import {useVoiceCallStateMachine} from "@/composables/useVoiceCallStateMachine";
 
 const perms = usePerms();
+const voiceState = useVoiceCallStateMachine();
 const {selectedServer, channels} = defineProps<{
     selectedServer?: Server,
     channels?: Channel[]
@@ -215,8 +216,9 @@ class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
                     <!-- Voice Channels -->
                     <template v-if="displayMode === 'voice'">
                         <div
-v-for="channel in voiceChannels" :key="channel.id"
-                             class="indicator relative group whitespace-nowrap shrink-0">
+                            v-for="channel in voiceChannels" :key="channel.id"
+                            class="indicator relative group whitespace-nowrap shrink-0"
+                        >
                             <div
                                 v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
                                 class="indicator-item indicator-top">
@@ -233,19 +235,17 @@ v-for="channel in voiceChannels" :key="channel.id"
                                 v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
                                 class="indicator-item indicator-top indicator-start">
                                 <button
-class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
-                                        @click.prevent="openModal(ChannelType.Voice, channel)">
+                                    class="badge badge-warning h-auto w-auto p-0.5 cursor-pointer"
+                                    @click.prevent="openModal(ChannelType.Voice, channel)">
                                     <MdOutlineModeEdit/>
                                 </button>
                             </div>
-                            <Link
-                                :href="voiceChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
-                                <button
-:class="{'btn-secondary': $page.url.includes(`/voice/${channel.route_key}`)}"
-                                        class="btn btn-outline btn-sm">
-                                    🔊 {{ channel.name }}
-                                </button>
-                            </Link>
+                            <button
+                                :class="voiceState.isConnected.value && voiceState.activeChannel.value?.id === channel.id ? 'btn-success' : 'btn-outline btn-secondary'"
+                                class="btn btn-sm"
+                                @click="voiceState.joinChannel(channel, selectedServer?.id)">
+                                🔊 {{ channel.name }}
+                            </button>
                         </div>
                         <button
                             v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"

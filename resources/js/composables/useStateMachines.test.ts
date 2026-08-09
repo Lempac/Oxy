@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { useVoiceCallStateMachine } from './useVoiceCallStateMachine';
 import { useApplicationStateMachine } from './useApplicationStateMachine';
 import { useWhiteboardSyncStateMachine } from './useWhiteboardSyncStateMachine';
-import { VoiceParticipantState, ApplicationState, WhiteboardSyncState } from '@/types';
+import { VoiceParticipantState, ApplicationState, WhiteboardSyncState, Channel, ChannelType } from '@/types';
 
 describe('Voice Call State Machine Composable', () => {
     it('initializes with Disconnected state by default', () => {
@@ -34,6 +34,51 @@ describe('Voice Call State Machine Composable', () => {
         expect(sm.currentState.value).toBe(VoiceParticipantState.Disconnected);
         expect(consoleSpy).toHaveBeenCalled();
         consoleSpy.mockRestore();
+    });
+
+    it('manages channel joining, leaving, and muting', async () => {
+        const sm = useVoiceCallStateMachine();
+        sm.resetState();
+
+        const mockChannel: Channel = {
+            id: 1,
+            name: 'Voice Lounge',
+            type: ChannelType.Voice,
+            route_key: 'voice-lounge',
+            server_id: 1,
+            update_at: '',
+        };
+
+        const joined = await sm.joinChannel(mockChannel, 1);
+        expect(joined).toBe(true);
+        expect(sm.isConnected.value).toBe(true);
+        expect(sm.activeChannel.value?.name).toBe('Voice Lounge');
+
+        expect(sm.toggleMute()).toBe(true);
+        expect(sm.isMuted.value).toBe(true);
+
+        expect(sm.toggleMute()).toBe(true);
+        expect(sm.isConnected.value).toBe(true);
+        expect(sm.isMuted.value).toBe(false);
+
+        expect(sm.toggleDeafen()).toBe(true);
+        expect(sm.isDeafened.value).toBe(true);
+        expect(sm.isMuted.value).toBe(true);
+
+        // Can be both muted and deafened simultaneously
+        expect(sm.isMuted.value).toBe(true);
+        expect(sm.isDeafened.value).toBe(true);
+
+        // Toggle AFK
+        await sm.toggleAfk('online');
+        expect(sm.isAfk.value).toBe(true);
+        await sm.toggleAfk('online');
+        expect(sm.isAfk.value).toBe(false);
+
+        const left = await sm.leaveChannel();
+        expect(left).toBe(true);
+        expect(sm.isDisconnected.value).toBe(true);
+        expect(sm.activeChannel.value).toBeNull();
     });
 });
 

@@ -10,8 +10,11 @@ import {nextTick, onMounted, onUpdated, ref, watch} from "vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
 import {FaRegFile, FaRegPaperPlane} from 'vue-icons-plus/fa';
-import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit} from 'vue-icons-plus/md';
+import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator} from 'vue-icons-plus/md';
 import {useMessageEvents} from "@/composables/useMessageEvents";
+import {usePaneDrag} from "@/composables/usePaneDrag";
+
+const { isDragModeActive, startPaneSwapDrag, dropOnPane } = usePaneDrag();
 
 const filter = new Filter({placeHolder: '#'})
 filter.addWords()
@@ -153,8 +156,26 @@ const uploadFile = (val: File) => {
 
         <div
             v-if="selectedChannel"
-            class="w-full max-w-5xl flex-1 bg-base-100 m-5 rounded-lg mx-auto mt-0 mb-0 flex flex-col overflow-hidden"
+            class="w-full flex-1 bg-base-100 flex flex-col overflow-hidden"
+            @dragover.prevent
+            @drop="dropOnPane('main')"
         >
+            <!-- Channel Header Bar with Drag Handle -->
+            <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
+                <div class="flex items-center gap-2 font-bold text-sm text-base-content">
+                    <span>#</span>
+                    <span>{{ selectedChannel.name }}</span>
+                </div>
+                <div
+                    v-if="isDragModeActive"
+                    draggable="true"
+                    class="cursor-grab active:cursor-grabbing text-primary p-1 rounded hover:bg-base-300 transition-colors"
+                    title="Drag handle: Hold Alt to drag and swap pane order"
+                    @dragstart="startPaneSwapDrag('main')"
+                >
+                    <MdDragIndicator class="size-4" />
+                </div>
+            </div>
             <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5">
                 <div v-if="messages && messages.length > 0">
                     <div
@@ -222,44 +243,47 @@ const uploadFile = (val: File) => {
                 </div>
             </div>
 
-            <form class="flex items-center mt-1" @submit.prevent="createMessage">
-                <label class="btn join-item ml-5 mb-5" for="file-upload">
-                    <MdOutlineFileUpload/>
+            <form class="flex items-center gap-2 p-2 border-t border-base-300 bg-base-100" @submit.prevent="createMessage">
+                <label
+                    :class="{'btn-disabled opacity-50': !perms.has([PermType.CAM_CREATE_ATTACHMENTS])}"
+                    class="btn btn-sm btn-square btn-ghost shrink-0"
+                    for="file-upload"
+                >
+                    <MdOutlineFileUpload class="size-4" />
                 </label>
-                <div class="items-center hidden">
-                    <input
-                        id="file-upload" ref="fileInput" :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
-                        autocomplete="off"
-                        class="file-input file-input-bordered ml-5 mb-5 focus:outline-none focus:ring-0"
-                        data-bwignore="true"
-                        type="file"
-                        @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
-                    />
-                    <button
-                        :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
-                        class="btn btn-sm btn-circle btn-ghost mr-3 mb-5 ml-1"
-                        @click.prevent="clearFile">✕
-                    </button>
+                <input
+                    id="file-upload"
+                    ref="fileInput"
+                    :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
+                    autocomplete="off"
+                    class="hidden"
+                    data-bwignore="true"
+                    type="file"
+                    @input="uploadFile((<HTMLInputElement>$event.target).files![0])"
+                />
+
+                <div v-if="inputFile" class="badge badge-sm badge-primary gap-1 max-w-[150px] truncate shrink-0">
+                    <span class="truncate">{{ inputFile.name }}</span>
+                    <button class="btn btn-ghost btn-xs p-0 min-h-0 h-auto" @click.prevent="clearFile">✕</button>
                 </div>
 
-                <div class="join w-full items-center">
-                    <input
-                        v-model="form.mdata"
-                        :class="`input input-bordered w-full join-item focus:outline-none focus:ring-0 mb-5 ${hasError ? 'input-error' : ''}`"
-                        :disabled="loading || isDisabled || !perms.has([PermType.CAN_CREATE_MESSAGE])"
-                        autocomplete="off"
-                        data-bwignore="true"
-                        placeholder="Type here"
-                        type="text"
-                        @keydown.enter="createMessage"
-                    />
-                    <button
-                        :disabled="!perms.hasAny([PermType.CAN_CREATE_MESSAGE, PermType.CAM_CREATE_ATTACHMENTS])"
-                        class="btn join-item mr-5 mb-5"
-                    >
-                        <FaRegPaperPlane/>
-                    </button>
-                </div>
+                <input
+                    v-model="form.mdata"
+                    :class="`input input-sm input-bordered flex-1 focus:outline-none ${hasError ? 'input-error' : ''}`"
+                    :disabled="loading || (isDisabled && !inputFile) || !perms.has([PermType.CAN_CREATE_MESSAGE])"
+                    autocomplete="off"
+                    data-bwignore="true"
+                    :placeholder="inputFile ? 'File ready to upload...' : 'Type message...'"
+                    type="text"
+                    @keydown.enter="createMessage"
+                />
+                <button
+                    :disabled="loading || (!form.mdata && !inputFile) || !perms.hasAny([PermType.CAN_CREATE_MESSAGE, PermType.CAM_CREATE_ATTACHMENTS])"
+                    class="btn btn-sm btn-square btn-primary shrink-0"
+                    type="submit"
+                >
+                    <FaRegPaperPlane class="size-3.5" />
+                </button>
             </form>
         </div>
     </AuthenticatedLayout>

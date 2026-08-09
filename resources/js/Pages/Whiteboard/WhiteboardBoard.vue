@@ -6,9 +6,18 @@ import {Whiteboard as WhiteboardType, WhiteboardSyncState, WhiteboardSyncStateTy
 import {save} from '@/routes/whiteboard';
 import { fetchJson } from '@/bootstrap';
 import { useWhiteboardSyncStateMachine } from '@/composables/useWhiteboardSyncStateMachine';
-import { MdAdsClick, MdHorizontalRule, MdOutlineCircle, MdOutlineDelete, MdOutlineFormatColorFill, MdOutlineRectangle, MdRedo, MdUndo, MdCloudDone, MdCloudUpload, MdSyncProblem, MdOutlineCloudQueue } from 'vue-icons-plus/md';
+import { MdAdsClick, MdHorizontalRule, MdOutlineCircle, MdOutlineDelete, MdOutlineFormatColorFill, MdOutlineRectangle, MdRedo, MdUndo, MdCloudDone, MdCloudUpload, MdSyncProblem, MdOutlineCloudQueue, MdFullscreen, MdFullscreenExit, MdDragIndicator } from 'vue-icons-plus/md';
 import { BsEraser } from 'vue-icons-plus/bs';
 import { HiPencil } from 'vue-icons-plus/hi';
+import { usePaneDrag } from '@/composables/usePaneDrag';
+
+const emit = defineEmits(['toggle-maximize']);
+const isMaximized = ref(false);
+const toggleMaximize = () => {
+    isMaximized.value = !isMaximized.value;
+    emit('toggle-maximize', isMaximized.value);
+};
+const { isDragModeActive, startPaneSwapDrag, dropOnPane } = usePaneDrag();
 
 const props = defineProps<{
     whiteboard: WhiteboardType;
@@ -136,14 +145,18 @@ onMounted(() => {
         }
     });
 
-    if (props.whiteboard.state && yshapes.size === 0) {
-        try {
-            const initialState = JSON.parse(props.whiteboard.state);
-            Object.entries(initialState).forEach(([id, shape]) => {
-                yshapes.set(id, shape as Shape);
-            });
-        } catch (e) {
-            console.error("Failed to parse initial state", e);
+    if (yshapes.size === 0) {
+        const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(`whiteboard_local_${props.whiteboard.id}`) : null;
+        const rawState = cached || props.whiteboard.state;
+        if (rawState) {
+            try {
+                const initialState = JSON.parse(rawState);
+                Object.entries(initialState).forEach(([id, shape]) => {
+                    yshapes.set(id, shape as Shape);
+                });
+            } catch (e) {
+                console.error("Failed to parse initial state", e);
+            }
         }
     }
 
@@ -157,7 +170,10 @@ onMounted(() => {
 
 onUnmounted(() => {
     if (heartbeatInterval) clearInterval(heartbeatInterval);
-    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+        saveState();
+    }
     provider.destroy();
     ydoc.destroy();
     window.removeEventListener('resize', handleResize);
@@ -409,7 +425,19 @@ const updateTransformer = () => {
 
 let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
+const persistLocalBackup = () => {
+    try {
+        if (typeof localStorage !== 'undefined') {
+            const state = JSON.stringify(Object.fromEntries(yshapes.entries()));
+            localStorage.setItem(`whiteboard_local_${props.whiteboard.id}`, state);
+        }
+    } catch {
+        // Ignore quota errors
+    }
+};
+
 const markDirty = () => {
+    persistLocalBackup();
     if (syncSM.canTransitionTo(WhiteboardSyncState.Dirty)) {
         syncSM.transitionTo(WhiteboardSyncState.Dirty);
     }
@@ -437,6 +465,9 @@ const saveState = async () => {
 
     const state = JSON.stringify(Object.fromEntries(yshapes.entries()));
     try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(`whiteboard_local_${props.whiteboard.id}`, state);
+        }
         await fetchJson(save.url(props.whiteboard.id), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -463,6 +494,13 @@ const redo = () => {
 };
 const clear = () => {
     yshapes.clear();
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(`whiteboard_local_${props.whiteboard.id}`);
+        }
+    } catch {
+        // Ignore
+    }
     markDirty();
     saveState();
 };
@@ -480,7 +518,11 @@ const deleteSelected = () => {
 </script>
 
 <template>
-    <div class="whiteboard-container flex flex-col h-full bg-base-100">
+    <div
+        class="whiteboard-container flex flex-col h-full bg-base-100"
+        @dragover.prevent
+        @drop="dropOnPane('whiteboard')"
+    >
         <!-- Toolbar -->
         <div
             class="toolbar flex items-center justify-center gap-2 px-4 border-b bg-base-200 overflow-visible text-base-content h-16">
@@ -626,6 +668,26 @@ const deleteSelected = () => {
             </div>
 
             <div class="ml-auto flex items-center gap-3 pr-2">
+                <div
+                    :data-tip="isMaximized ? 'Restore Split View' : 'Maximise Whiteboard'"
+                    class="tooltip tooltip-left flex items-center">
+                    <button
+                        :class="isMaximized ? 'btn-primary' : 'btn-ghost'"
+                        class="btn btn-sm btn-square"
+                        @click="toggleMaximize">
+                        <MdFullscreenExit v-if="isMaximized" />
+                        <MdFullscreen v-else />
+                    </button>
+                </div>
+                <div
+                    v-if="isDragModeActive"
+                    draggable="true"
+                    class="cursor-grab active:cursor-grabbing text-primary p-1 rounded hover:bg-base-300 transition-colors"
+                    title="Drag handle: Hold Alt to drag and swap pane order"
+                    @dragstart="startPaneSwapDrag('whiteboard')"
+                >
+                    <MdDragIndicator class="size-4" />
+                </div>
                 <div
                     :data-tip="`Sync State: ${syncSM.syncState.value}`"
                     class="tooltip tooltip-left flex items-center gap-1 text-xs">
