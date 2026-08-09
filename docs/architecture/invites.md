@@ -10,7 +10,7 @@ The Oxy invite system provides secure, shareable invitation links for joining se
 
 1. **High Entropy & Anti-Scraping**: 128 bits of entropy per invite code to mathematically prevent brute-force code enumeration and scraping attacks.
 2. **Zero DB Collision Loop Overhead**: High entropy guarantees unique codes without needing database check loops during code creation.
-3. **Fast Indexed Lookups**: Codes are stored in an indexed `code` column (`UNIQUE`) on `server_invites` table for $O(1)$ B-Tree database lookups.
+3. **Fast Indexed Lookups**: Codes are stored in an indexed `code` column (`UNIQUE`) on `server_invites` table for O(1) B-Tree database lookups.
 4. **Endpoint Rate Limiting**: Dedicated rate-limiting controls to mitigate automated scanning attempts.
 
 ---
@@ -28,7 +28,7 @@ public static function generateCode(): string
 ```
 
 * **Format**: 22 characters matching `^[A-Za-z0-9_-]{22}$` (e.g., `4fK9xL2pQ0wM8vR3tN1sZb`).
-* **Search Space**: $2^{128} \approx 3.4 \times 10^{38}$ possible combinations. At 1,000 requests/second, automated enumeration would take over $10^{27}$ years to find a single valid code.
+* **Search Space**: 2^128 (approx. 3.4 × 10^38) possible combinations. At 1,000 requests/second, automated enumeration would take over 10^27 years to find a single valid code.
 
 ---
 

@@ -50,14 +50,15 @@ Broadcast::channel('messages.{channel}', function (User $user, Channel $channel)
 
 *Note: Over the WebSocket wire, Laravel Echo automatically prepends `private-` or `presence-` (e.g., `private-servers.{serverId}`).*
 
-| Channel Name Pattern | Channel Type | Model Binding | Authorization Rule |
+| Channel Name Pattern | Channel Type | Parameter Binding | Authorization Rule |
 | :--- | :--- | :--- | :--- |
-| `servers.{server}` | Private | `Server $server` | User is a member of `$server->id` |
-| `channels.{server}` | Private | `Server $server` | User is a member of `$server->id` |
-| `roles.{server}` | Private | `Server $server` | User is a member of `$server->id` |
-| `messages.{channel}` | Private | `Channel $channel` | User is a member of `$channel->server` |
-| `whiteboards.{channel}` | Private | `Channel $channel` | User is a member of `$channel->server` |
-| `voices.{channel}` | Presence | `Channel $channel` | User is a member of `$channel->server` |
+| `servers.{serverId}` | Private | `string $serverId` | User is a member of `$serverId` |
+| `channels.{serverId}` | Private | `string $serverId` | User is a member of `$serverId` |
+| `roles.{serverId}` | Private | `string $serverId` | User is a member of `$serverId` |
+| `messages.{channelId}` | Private | `string $channelId` | User is a member of `$channel->server_id` |
+| `whiteboards.{channelId}` | Private | `string $channelId` | User is a member of `$channel->server_id` |
+| `voices.{channelId}` | Presence | `string $channelId` | User is a member of `$channel->server_id` (Returns user payload) |
+| `presence` | Presence | Authenticated `User` | Authenticated user presence pool |
 
 ---
 
@@ -68,10 +69,10 @@ Broadcast::channel('messages.{channel}', function (User $user, Channel $channel)
 | `App\Events\Servers\ServerJoined` | `servers.{serverId}` | `userId`, `serverId` | Member joined server |
 | `App\Events\Servers\ServerLeft` | `servers.{serverId}` | `userId`, `serverId` | Member left server |
 | `App\Events\Servers\ServerEdited` | `servers.{serverId}` | `serverId`, `name`, `description`, `icon` | Server profile updated |
-| `App\Events\Messages\MessageCreated` | `channels.{channelId}` | `Message` model with `sender` and `attachments` | New chat message |
-| `App\Events\Messages\MessageEdited` | `channels.{channelId}` | `Message` model | Message content edited |
-| `App\Events\Messages\MessageDeleted` | `channels.{channelId}` | `messageId` | Message deleted |
-| `App\Events\Users\UserStatusUpdated` | `presence.server.{serverId}` | `userId`, `status` | Presence status change |
+| `App\Events\Messages\MessageCreated` | `messages.{channelId}` | `Message` model with `user` and `attachments` | New chat message |
+| `App\Events\Messages\MessageEdited` | `messages.{channelId}` | `Message` model | Message content edited |
+| `App\Events\Messages\MessageDeleted` | `messages.{channelId}` | `Message` model | Message deleted |
+| `App\Events\Users\UserStatusUpdated` | `presence` & `servers.{serverId}` | `user`, `old_status`, `new_status` | Presence status change |
 | `App\Events\Whiteboards\WhiteboardStateUpdated` | `whiteboards.{channelId}` | `Whiteboard` model | Canvas CRDT state sync |
 
 ---

@@ -31,6 +31,8 @@ Welcome to the technical documentation for Oxy. This reference provides core mai
 - [Permissions & Team Roles System](architecture/permissions.md)
 - [Real-Time WebSockets & Broadcasting Architecture](architecture/broadcasting.md)
 - [Authentication & User System Architecture](architecture/authentication.md)
+- [Message Attachments & Upload Architecture](architecture/attachments.md)
+- [Theming & PDF Data Export Architecture](architecture/theming-and-export.md)
 
 ---
 

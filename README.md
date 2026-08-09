@@ -1,107 +1,175 @@
 # Oxy
-## About
-This is a project for learning the development of social team collaboration tool,
-that lets you create, manage groups with roles in company or group of people with goal. 
-![UI](/assets/ui.png)
 
-### The groups have the ability to chat or voice call.
-![Group](/assets/group.png)
-![Group Chat](/assets/group_chat.png)
-![Group Voice Chat](/assets/group_voice_chat.png)
+A modern, real-time social team collaboration platform designed for seamless communication, organization, and creative brainstorming. Oxy brings together chat, voice, collaborative whiteboards, and granular team management into a fast, reactive single-page experience.
 
-### And collaborate on whiteboard.
+![UI](assets/ui.png)
 
-### Settings for managing groups and whiteboards.
-![Settings](/assets/group_settings.png)
+---
 
-## Technologies Used
+## ✨ Features
 
-This project is built using the modern **VILT** stack alongside powerful real-time collaboration libraries:
+- **💬 Real-Time Chat & Rich Media**: Instant messaging powered by Laravel Reverb WebSockets. Supports rich message attachments (images, audio, video, documents, code), recent uploads history, inline media previews, and an integrated image editor (crop, rotate, and flip).
+- **🎨 Synchronized Whiteboards**: Multi-user real-time collaborative canvas powered by **Konva** and **Yjs** (CRDT synchronization with conflict-free merging, offline saving, and export).
+- **🎙️ Voice Channels**: Real-time voice rooms with presence tracking and deterministic state machine transitions.
+- **🎛️ Modular Multi-Pane Layout**: Draggable and resizable split panes with gutter drag controls, pane swapping, and full-screen maximization modes.
+- **🛡️ Team Roles & Granular Permissions**: Role-Based Access Control (RBAC) backed by **Spatie Laravel Permission**, customizable role colors, and fine-grained server-level permissions.
+- **🔗 Anti-Scraping Server Invites**: High-entropy 128-bit Base64-URL invite tokens with configurable usage caps, expiration dates, and anti-abuse rate limiting.
+- **🟢 User Presence Tracking**: Live user status tracking (Online, Idle, Do Not Disturb, Invisible, Offline) enforced by backend and frontend state machines.
+- **🌗 Dual-Theme Customization**: Independent light and dark theme selection powered by DaisyUI, custom profile avatars, "About Me" bios, and downloadable PDF profile summaries.
+- **🌐 Internationalization (i18n)**: Multi-language support (English and Latvian).
 
-### Core Stack
-* **Laravel 11:** The robust PHP framework powering the backend, authentication, and background processing.
-* **Vue 3:** A progressive JavaScript framework used for building the reactive user interfaces.
-* **Inertia.js:** Glues Laravel and Vue together, allowing the creation of a modern single-page app without building complex APIs.
-* **Tailwind CSS & DaisyUI:** Utility-first CSS framework and component library for rapid and beautiful UI development.
+---
 
-### Real-Time & Collaboration
-* **Laravel Reverb & Echo:** First-party WebSocket server and client for real-time broadcasting (used for live chat, voice calls, and notifications).
-* **Yjs & y-websocket:** A CRDT framework and WebSocket server used to handle conflict-free, real-time synchronization for the collaborative whiteboard.
-* **Konva (vue-konva):** 2D HTML5 Canvas framework used to draw and interact with elements on the whiteboard.
+## 📸 Screenshots
 
-### Infrastructure
-* **Docker & FrankenPHP:** Containerized setup for easy deployments, utilizing the high-performance FrankenPHP server and Supervisor to manage workers.
+| Feature | Preview |
+| :--- | :--- |
+| **Server Overview** | ![Group](assets/group.png) |
+| **Real-Time Chat** | ![Group Chat](assets/group_chat.png) |
+| **Voice Channels** | ![Group Voice Chat](assets/group_voice_chat.png) |
+| **Server & Role Settings** | ![Settings](assets/group_settings.png) |
 
-## Getting Started
+---
 
-### Using Nix & devenv (Recommended for Nix users)
-This project comes with a built-in Nix developer environment powered by [devenv.sh](https://devenv.sh). It automatically provides the correct versions of PHP, Node.js, pnpm, and SQLite, and allows you to run all services at once.
+## 🛠️ Technology Stack
 
-1. Ensure you have Nix and `devenv` installed.
-2. Enter the development shell (or rely on `direnv`):
+Oxy is built on a modern **VILT** (Vue, Inertia, Laravel, Tailwind) stack with real-time and CRDT capabilities:
+
+### Backend
+- **[Laravel 12](https://laravel.com/)**: PHP 8.5+ enterprise framework powering the core API, authentication, and queues.
+- **[Laravel Octane & FrankenPHP](https://frankenphp.dev/)**: High-performance application server with worker mode execution.
+- **[Laravel Reverb](https://laravel.com/docs/reverb)**: Blazing-fast first-party WebSocket broadcasting server.
+- **[Spatie Laravel Permission](https://spatie.be/docs/laravel-permission)**: Flexible team role and permission management.
+- **[Intervention Image](https://image.intervention.io/) & [DomPDF](https://github.com/barryvdh/laravel-dompdf)**: Media processing and PDF report generation.
+
+### Frontend
+- **[Vue 3](https://vuejs.org/)**: Modern reactive single-page frontend using the Composition API (`<script setup>`) and TypeScript.
+- **[Inertia.js 3](https://inertiajs.com/)**: Monolithic routing and state synchronization without separate REST APIs.
+- **[Tailwind CSS v4](https://tailwindcss.com/) & [DaisyUI 5](https://daisyui.com/)**: Utility-first CSS framework and extensive component theming.
+- **[Yjs](https://yjs.dev/) & [y-websocket](https://github.com/yjs/y-websocket)**: High-performance CRDT framework for conflict-free whiteboard collaboration.
+- **[Konva (vue-konva)](https://konvajs.org/)**: 2D HTML5 canvas library for reactive, multi-layer whiteboard rendering.
+
+---
+
+## 🚀 Getting Started
+
+### Option 1: Nix & devenv (Recommended for Nix users)
+
+This project provides a fully automated developer environment via [devenv.sh](https://devenv.sh). It bundles PHP 8.5, Node.js 24, pnpm, and SQLite, and starts all background workers simultaneously.
+
+1. Ensure [Nix](https://nixos.org/) and `devenv` are installed on your machine.
+2. Enter the development shell:
    ```bash
    devenv shell
    ```
-3. Install dependencies and set up the project:
+3. Set up the environment and database:
    ```bash
+   cp .env.example .env
    composer install
    pnpm install
-   cp .env.example .env
    php artisan key:generate
    php artisan migrate
    php artisan storage:link
    ```
-4. Start all required background processes in one go:
+4. Start all services (Vite, Yjs server, Laravel serve, Queue worker, Reverb WebSockets) concurrently:
    ```bash
    devenv up
    ```
 
-### Using Docker (Recommended)
-The easiest way to get the application running is by using Docker Compose, which seamlessly sets up the web server, WebSockets, background queues, and the Yjs collaboration server.
+---
 
-1. Copy the example environment file:
+### Option 2: Docker Compose (Recommended for Containerized Deployments)
+
+Run the full container stack (FrankenPHP server, Laravel Octane, Reverb, Queue worker, and Yjs collaboration server):
+
+1. Copy the environment configuration:
    ```bash
    cp .env.example .env
    ```
-2. Build and start the containers:
+2. Build and launch containers:
    ```bash
    docker compose up --build
    ```
-*(Note: If you are relying on SQLite, ensure `DB_CONNECTION=sqlite` is set in your `.env` and the SQLite file exists, or configure your database credentials accordingly).*
+3. Access the web interface at `http://localhost:8000` (and WebSocket server at port `9000` / Yjs at `1234`).
 
-### Manual Local Setup
-If you prefer running the application without Docker, ensure you have PHP, Composer, Node.js, and a database server (like MySQL/MariaDB or SQLite) installed.
+---
 
+### Option 3: Manual Local Setup
+
+If you prefer installing dependencies locally:
+
+#### Prerequisites
+- PHP 8.5+ with `pdo`, `sqlite` / `pdo_mysql`, `pcntl`, and `zip` extensions
+- Composer
+- Node.js 24+ & pnpm (or npm)
+- SQLite or MySQL / MariaDB
+
+#### Installation Steps
 1. Install backend and frontend dependencies:
    ```bash
    composer install
-   npm install
+   pnpm install
    ```
-2. Set up the environment file and generate the application key:
+2. Configure environment:
    ```bash
    cp .env.example .env
    php artisan key:generate
    ```
-3. Run the database migrations and create the storage symlink:
+3. Initialize the database and storage:
    ```bash
    php artisan migrate
    php artisan storage:link
    ```
+4. Run the development services in separate terminals (or with a process runner):
+   ```bash
+   # Terminal 1: HTTP application server
+   php artisan serve
 
-## Running the Application (Local)
+   # Terminal 2: Vite asset dev server
+   pnpm run dev
 
-If you are running the project manually locally, you will need to start the following services to ensure all features (including the real-time chat, queues, and whiteboard) function correctly:
+   # Terminal 3: Laravel Reverb WebSocket server
+   php artisan reverb:start
+
+   # Terminal 4: Background queue worker
+   php artisan queue:work
+
+   # Terminal 5: Yjs collaboration WebSocket server
+   pnpm run yjs
+   ```
+
+---
+
+## 🧪 Testing & Code Quality
+
+Run the automated test suites and linters:
 
 ```bash
-php artisan serve
-npm run dev
-php artisan reverb:start
-php artisan queue:work
-npm run yjs
+# Run backend Pest feature & unit tests
+php artisan test
+
+# Run frontend Vitest suite
+pnpm run test
+
+# Run Laravel Pint code formatter
+php artisan pint
 ```
 
-### Note on Email Verification
-If you don't have an email server configured for local development and are having trouble registering, go to `app/Models/User.php` and remove this interface implementation:
-```php
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-```
+---
+
+## 📖 Architecture & Documentation
+
+Comprehensive technical documentation, state machine specifications, and system references are available in the [`docs/`](docs/) directory:
+
+- [Architectural Reference Overview](docs/index.md)
+- [Authentication & User System](docs/architecture/authentication.md)
+- [Server Invites & Anti-Scraping System](docs/architecture/invites.md)
+- [Permissions & Team Roles System](docs/architecture/permissions.md)
+- [Real-Time WebSockets & Broadcasting Architecture](docs/architecture/broadcasting.md)
+- [State Machines Reference](docs/state-machines/domain-entities.md)
+
+---
+
+## 📄 License
+
+This project is open-source software licensed under the [MIT License](LICENSE).

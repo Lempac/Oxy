@@ -53,5 +53,5 @@ sequenceDiagram
 
 ## 4. User Profile & Export
 
-- **Profile Customization**: Users can update their nickname, upload a custom profile avatar/icon (validated to max $1920 \times 1080$ dimensions and 2MB file size), and set theme preference (`Oxy`, `Dark`, `Light`, etc.).
-- **Data Export**: `PDFExportController@exportPDF` provides a downloadable PDF summary of the user's profile and active server memberships.
+- **Profile Customization**: Users can update their nickname, "About Me" bio, presence status, upload a custom profile avatar/icon (validated to max 1920 × 1080 dimensions and 2MB file size), and configure independent light and dark theme preferences (`light_theme` and `dark_theme` from DaisyUI themes).
+- **Data Export**: `PDFExportController@exportPDF` provides a downloadable PDF summary of the user's profile and active server memberships. See [Theming & PDF Data Export Architecture](theming-and-export.md).

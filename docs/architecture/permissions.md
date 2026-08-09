@@ -28,21 +28,25 @@ The following granular permissions are registered across Oxy:
 
 | Permission Name | Category | Description |
 | :--- | :--- | :--- |
-| `CAN_INVITE` | Server | Generate server invite codes |
-| `CAN_EDIT_SERVER` | Server | Modify server name, icon, description |
-| `CAN_MANAGE_SERVER` | Server | Access server settings dashboard |
-| `CAN_DELETE_SERVER` | Server | Delete server workspace |
-| `CAN_KICK` | Members | Remove members from server |
-| `CAN_CREATE_CHANNEL` | Channels | Create text/voice/whiteboard channels |
-| `CAN_EDIT_CHANNEL` | Channels | Rename or edit channel settings |
-| `CAN_DELETE_CHANNEL` | Channels | Delete channels |
-| `CAN_CREATE_MESSAGE` | Chat | Send messages in channels |
-| `CAN_DELETE_MESSAGE` | Chat | Delete any user's message in chat |
-| `CAN_CREATE_ROLE` | Roles | Create custom server roles |
-| `CAN_EDIT_ROLE` | Roles | Edit role permissions/color/importance |
-| `CAN_DELETE_ROLE` | Roles | Delete custom roles |
-| `CAN_EDIT_MEMBER_ROLES`| Roles | Assign or remove roles from members |
-| `CAN_MANAGE_ROLE` | Roles | Manage role assignments |
+| `CAN_INVITE` | Member Settings | Generate server invite codes |
+| `CAN_EDIT_SERVER` | Server Settings | Modify server name, icon, description |
+| `CAN_MANAGE_SERVER` | Server Settings | Access server settings dashboard |
+| `CAN_DELETE_SERVER` | Server Settings | Delete server workspace |
+| `CAN_KICK` | Member Settings | Remove members from server |
+| `CAN_MANAGE_MEMBERS` | Member Settings | Manage member nicknames and settings |
+| `CAN_CREATE_CHANNEL` | Channel Settings | Create text/voice/whiteboard channels |
+| `CAN_EDIT_CHANNEL` | Channel Settings | Rename or edit channel settings |
+| `CAN_DELETE_CHANNEL` | Channel Settings | Delete channels |
+| `CAN_MANAGE_CHANNEL` | Channel Settings | Full control over channel settings |
+| `CAN_SEE_CHANNEL` | Channel Settings | View and read channels |
+| `CAN_CREATE_MESSAGE` | Message Settings | Send messages in channels |
+| `CAM_CREATE_ATTACHMENTS` | Message Settings | Upload images, media, and file attachments |
+| `CAN_DELETE_MESSAGE` | Message Settings | Delete messages in chat |
+| `CAN_CREATE_ROLE` | Role Settings | Create custom server roles |
+| `CAN_EDIT_ROLE` | Role Settings | Edit role permissions/color/importance |
+| `CAN_DELETE_ROLE` | Role Settings | Delete custom roles |
+| `CAN_EDIT_MEMBER_ROLES`| Member Settings | Assign or remove roles from members |
+| `CAN_MANAGE_ROLE` | Role Settings | Manage role assignments |
 
 ---
 
