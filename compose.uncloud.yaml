@@ -39,6 +39,11 @@ services:
     volumes:
       - oxy-database:/var/www/database
       - oxy-storage:/var/www/storage/app
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 512M
     # Publish HTTP app and Reverb WebSocket through Caddy with auto HTTPS
     x-ports:
       - ${OXY_DOMAIN:-oxy.example.com}:8000/https
@@ -57,6 +62,11 @@ services:
     environment:
       HOST: "0.0.0.0"
       PORT: "1234"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
     # Publish Yjs WebSocket through Caddy with auto HTTPS
     x-ports:
       - ${OXY_YJS_DOMAIN:-yjs.oxy.example.com}:1234/https

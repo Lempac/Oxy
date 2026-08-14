@@ -50,6 +50,11 @@ services:
     volumes:
       - oxy-database-pr-${PR_NUMBER}:/var/www/database
       - oxy-storage-pr-${PR_NUMBER}:/var/www/storage/app
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 512M
     # Custom subdomain routing via Caddy
     x-ports:
       - pr-${PR_NUMBER}.${OXY_BASE_DOMAIN}:8000/https
@@ -67,6 +72,11 @@ services:
     environment:
       HOST: "0.0.0.0"
       PORT: "1234"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
     # Custom subdomain routing via Caddy
     x-ports:
       - pr-${PR_NUMBER}-yjs.${OXY_BASE_DOMAIN}:1234/https
