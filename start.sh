@@ -14,6 +14,10 @@ if command -v sqlite3 >/dev/null 2>&1; then
     sqlite3 database/database.sqlite 'PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=5000;' 2>/dev/null || true
 fi
 
+if [ $# -gt 0 ]; then
+    exec "$@"
+fi
+
 php artisan migrate --force
 php artisan optimize
 

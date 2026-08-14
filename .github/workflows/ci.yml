@@ -353,7 +353,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
         run: |
-          uc rm "oxy-app-pr-${PR_NUMBER}" "oxy-yjs-pr-${PR_NUMBER}" -y --connect "${UNCLOUD_CONNECT}" || true
+          uc rm "oxy-app-pr-${PR_NUMBER}" "oxy-yjs-pr-${PR_NUMBER}" --connect "${UNCLOUD_CONNECT}" || true
 
       - name: Update PR Comment (Torn Down)
         uses: actions/github-script@v7
