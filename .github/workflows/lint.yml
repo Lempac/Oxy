@@ -15,34 +15,37 @@ on:
       - 'composer.lock'
       - '.github/workflows/lint.yml'
 
+concurrency:
+  group: lint-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
-    # Required by git-auto-commit-action to be able to push the code formatting changes
     permissions:
       contents: write
     strategy:
       fail-fast: true
       matrix:
-        php: [ 8.5 ]
+        php: [ '8.5' ]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Use GH_PAT if available so the pushed commit can trigger other workflows (like the test suite).
-          # Fallback to the default token otherwise.
           token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
 
-      - name: Setup PHP
+      - name: Setup PHP with Pint
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: json, dom, curl, libxml, mbstring
           coverage: none
-
-      - name: Install Pint
-        run: composer global require laravel/pint
+          tools: pint
 
       - name: Run Pint
         run: pint

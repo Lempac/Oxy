@@ -1,0 +1,203 @@
+name: PR Preview Deployment
+
+on:
+  pull_request:
+    types: [labeled, unlabeled, synchronize, reopened, closed]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  deploy-preview:
+    name: Deploy Preview
+    if: |
+      github.event.pull_request.state == 'open' &&
+      contains(github.event.pull_request.labels.*.name, 'preview') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'preview') &&
+      github.event.action != 'unlabeled'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lowercase repository image name
+        id: image-meta
+        env:
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          REPO_LOWER=$(echo "${GH_REPO}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${REPO_LOWER}"
+          TAG="pr-${PR_NUMBER}"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "full_image=${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.image-meta.outputs.full_image }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Setup SSH Agent for Uncloud
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.UNCLOUD_SSH_KEY }}
+
+      - name: Install Uncloud CLI
+        run: |
+          curl -fsS https://get.uncloud.run/install.sh | sh
+          echo "$HOME/.uncloud/bin" >> "$GITHUB_PATH"
+
+      - name: Render Preview Compose File
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          OXY_IMAGE: ${{ steps.image-meta.outputs.full_image }}
+          OXY_BASE_DOMAIN: ${{ vars.OXY_BASE_DOMAIN || 'oxy.lempac.dev' }}
+          APP_KEY: ${{ secrets.PREVIEW_APP_KEY || 'base64:6nyWaSCYTO9JxQAPNAFiatnfO350PhSU/F1p56U6QuM=' }}
+        run: |
+          export PR_NUMBER OXY_IMAGE OXY_BASE_DOMAIN APP_KEY
+          envsubst < compose.preview.yaml > compose.preview.rendered.yaml
+
+      - name: Deploy Preview to Uncloud
+        env:
+          UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
+        run: |
+          uc deploy -f compose.preview.rendered.yaml -y --connect "${UNCLOUD_CONNECT}"
+
+      - name: Update PR with Preview URL
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_DOMAIN: ${{ vars.OXY_BASE_DOMAIN || 'oxy.lempac.dev' }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const baseDomain = process.env.BASE_DOMAIN;
+            const commitSha = (process.env.COMMIT_SHA || '').substring(0, 7);
+            const appUrl = `https://pr-${prNumber}.${baseDomain}`;
+            const wsDomain = `pr-${prNumber}-ws.${baseDomain}`;
+            const yjsWs = `wss://pr-${prNumber}-yjs.${baseDomain}`;
+
+            const commentHeader = `### 🚀 PR Preview Deployment`;
+            const commentBody = [
+              commentHeader,
+              ``,
+              `Preview environment is live on **rpi-2**!`,
+              ``,
+              `| Service | URL |`,
+              `| :--- | :--- |`,
+              `| **Web App** | [${appUrl}](${appUrl}) |`,
+              `| **Reverb WebSockets** | \`${wsDomain}:443\` |`,
+              `| **Yjs Whiteboard** | \`${yjsWs}\` |`,
+              ``,
+              `*Deployed commit: \`${commitSha}\`*`
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(prNumber)
+            });
+
+            const botComment = comments.find(comment => comment.body.includes(commentHeader));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: Number(prNumber),
+                body: commentBody
+              });
+            }
+
+  teardown-preview:
+    name: Teardown Preview
+    if: |
+      github.event.action == 'closed' ||
+      (github.event.action == 'unlabeled' && github.event.label.name == 'preview')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Setup SSH Agent for Uncloud
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.UNCLOUD_SSH_KEY }}
+
+      - name: Install Uncloud CLI
+        run: |
+          curl -fsS https://get.uncloud.run/install.sh | sh
+          echo "$HOME/.uncloud/bin" >> "$GITHUB_PATH"
+
+      - name: Destroy Uncloud Preview Services
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
+        run: |
+          uc rm "oxy-app-pr-${PR_NUMBER}" "oxy-yjs-pr-${PR_NUMBER}" -y --connect "${UNCLOUD_CONNECT}" || true
+
+      - name: Update PR Comment (Torn Down)
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const commentHeader = `### 🚀 PR Preview Deployment`;
+            const commentBody = [
+              commentHeader,
+              ``,
+              `🛑 **Preview environment has been destroyed.**`
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(prNumber)
+            });
+
+            const botComment = comments.find(comment => comment.body.includes(commentHeader));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            }

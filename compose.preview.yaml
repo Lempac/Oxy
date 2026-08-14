@@ -1,0 +1,78 @@
+# Uncloud Preview Environment Compose File
+# ─────────────────────────────────────────────────────────────────────
+# This template is rendered per pull-request with dynamic PR_NUMBER.
+# Deploy with:
+#   envsubst < compose.preview.yaml > compose.preview.rendered.yaml
+#   uc deploy -f compose.preview.rendered.yaml -y --connect "$UNCLOUD_CONNECT"
+# ─────────────────────────────────────────────────────────────────────
+
+services:
+  oxy-app-pr-${PR_NUMBER}:
+    image: ${OXY_IMAGE}
+    environment:
+      APP_NAME: "Oxy (PR #${PR_NUMBER})"
+      APP_ENV: preview
+      APP_DEBUG: "true"
+      APP_KEY: "${APP_KEY}"
+      APP_URL: "https://pr-${PR_NUMBER}.${OXY_BASE_DOMAIN}"
+      APP_TIMEZONE: Europe/Riga
+      APP_LOCALE: en
+      APP_FALLBACK_LOCALE: en
+      BCRYPT_ROUNDS: "10"
+      LOG_CHANNEL: stack
+      LOG_STACK: single
+      LOG_LEVEL: debug
+      DB_CONNECTION: sqlite
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: "120"
+      SESSION_ENCRYPT: "false"
+      BROADCAST_CONNECTION: reverb
+      FILESYSTEM_DISK: local
+      QUEUE_CONNECTION: database
+      CACHE_STORE: database
+      OCTANE_SERVER: frankenphp
+      # Reverb Config
+      REVERB_APP_ID: "${REVERB_APP_ID:-470744}"
+      REVERB_APP_KEY: "${REVERB_APP_KEY:-oxy-preview-key}"
+      REVERB_APP_SECRET: "${REVERB_APP_SECRET:-oxy-preview-secret}"
+      REVERB_HOST: "0.0.0.0"
+      REVERB_PORT: "9000"
+      REVERB_SCHEME: https
+      # Frontend meta/Vite values
+      VITE_REVERB_APP_KEY: "${REVERB_APP_KEY:-oxy-preview-key}"
+      VITE_REVERB_HOST: "pr-${PR_NUMBER}-ws.${OXY_BASE_DOMAIN}"
+      VITE_REVERB_PORT: "443"
+      VITE_REVERB_SCHEME: https
+      VITE_YJS_WS_URL: "wss://pr-${PR_NUMBER}-yjs.${OXY_BASE_DOMAIN}"
+      OXY_DOMAIN: "pr-${PR_NUMBER}.${OXY_BASE_DOMAIN}"
+      OXY_WS_DOMAIN: "pr-${PR_NUMBER}-ws.${OXY_BASE_DOMAIN}"
+      OXY_YJS_DOMAIN: "pr-${PR_NUMBER}-yjs.${OXY_BASE_DOMAIN}"
+    volumes:
+      - oxy-database-pr-${PR_NUMBER}:/var/www/database
+      - oxy-storage-pr-${PR_NUMBER}:/var/www/storage/app
+    # Custom subdomain routing via Caddy
+    x-ports:
+      - pr-${PR_NUMBER}.${OXY_BASE_DOMAIN}:8000/https
+      - pr-${PR_NUMBER}-ws.${OXY_BASE_DOMAIN}:9000/https
+    x-pre_deploy:
+      command: php artisan migrate --force
+      timeout: 2m
+    x-machine:
+      - rpi-2
+
+  oxy-yjs-pr-${PR_NUMBER}:
+    image: node:24-alpine
+    working_dir: /app
+    command: npx --yes y-websocket@2.1.0
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "1234"
+    # Custom subdomain routing via Caddy
+    x-ports:
+      - pr-${PR_NUMBER}-yjs.${OXY_BASE_DOMAIN}:1234/https
+    x-machine:
+      - rpi-2
+
+volumes:
+  oxy-database-pr-${PR_NUMBER}:
+  oxy-storage-pr-${PR_NUMBER}:

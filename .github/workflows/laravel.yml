@@ -24,6 +24,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   laravel-tests:
     if: |
@@ -31,21 +34,35 @@ jobs:
       github.event.head_commit.message != 'Fixes coding style'
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: shivammathur/setup-php@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-      - uses: actions/checkout@v4
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, zip, pcntl
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # Use latest LTS to avoid hardcoding exact major versions
-          node-version: 'lts/*'
-          # Cache npm dependencies to speed up the 'npm run build' step later
-          cache: 'npm'
+          node-version: '24'
+          cache: 'pnpm'
+
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
       - name: Cache Composer packages
         id: composer-cache
         uses: actions/cache@v4
@@ -54,31 +71,41 @@ jobs:
           key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-php-
-      - name: Install Dependencies
+
+      - name: Install Composer dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Install NPM dependencies
-        run: npm install
+
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Generate key
         run: php artisan key:generate
+
       - name: Generate routes
         run: php artisan wayfinder:generate
+
       - name: Compile assets
-        run: npm run build
+        run: pnpm run build
+
       - name: Linking storage
         run: php artisan storage:link
+
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
+
       - name: Create Database
         run: |
           mkdir -p database
           touch database/database.sqlite
-      - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
+
+      - name: Execute tests (Unit and Feature tests) via Pest/PHPUnit
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         run: php artisan test
+
       - name: Execute frontend tests via Vitest
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
           VITE_REVERB_APP_KEY: 'test-reverb-key'
-        run: npm run test
+        run: pnpm run test
