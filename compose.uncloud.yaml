@@ -48,10 +48,6 @@ services:
     x-ports:
       - ${OXY_DOMAIN:-oxy.example.com}:8000/https
       - ${OXY_WS_DOMAIN:-ws.oxy.example.com}:9000/https
-    # Run migrations before rolling out new containers
-    x-pre_deploy:
-      command: php artisan migrate --force
-      timeout: 2m
     x-machines: 
       - rpi-2
 
