@@ -241,8 +241,13 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
         run: |
-          MAGIC_URL=$(uc exec -T "oxy-app-pr-${PR_NUMBER}" php artisan auth:magic-link testuser || echo "")
-          echo "magic_url=${MAGIC_URL}" >> "$GITHUB_OUTPUT"
+          RAW_OUTPUT=$(uc exec -T "oxy-app-pr-${PR_NUMBER}" php artisan auth:magic-link testuser --connect "${UNCLOUD_CONNECT}" 2>&1 || echo "")
+          MAGIC_URL=$(echo "${RAW_OUTPUT}" | grep -E '^https?://' | tail -n 1 || echo "")
+          {
+            echo "magic_url<<EOF"
+            echo "${MAGIC_URL}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Respond to PR with Preview URL
         uses: actions/github-script@v7
