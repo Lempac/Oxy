@@ -24,6 +24,7 @@ jobs:
       packages: write
       pull-requests: write
       issues: write
+      deployments: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -101,7 +102,7 @@ jobs:
         run: |
           uc deploy -f compose.preview.rendered.yaml -y --connect "${UNCLOUD_CONNECT}"
 
-      - name: Update PR with Preview URL
+      - name: Respond to PR with Preview URL
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -155,6 +156,31 @@ jobs:
               });
             }
 
+            try {
+              const deployment = await github.rest.repos.createDeployment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: process.env.COMMIT_SHA,
+                environment: `preview-pr-${prNumber}`,
+                description: `Preview environment for PR #${prNumber}`,
+                auto_merge: false,
+                required_contexts: []
+              });
+
+              if (deployment.data && deployment.data.id) {
+                await github.rest.repos.createDeploymentStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.data.id,
+                  state: 'success',
+                  environment_url: appUrl,
+                  description: 'Preview deployment live'
+                });
+              }
+            } catch (e) {
+              console.log('Deployment status creation skipped:', e.message);
+            }
+
   teardown-preview:
     name: Teardown Preview
     if: |
@@ -165,6 +191,7 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      deployments: write
     steps:
       - name: Setup SSH Agent for Uncloud
         uses: webfactory/ssh-agent@v0.9.0
@@ -222,4 +249,23 @@ jobs:
                 comment_id: botComment.id,
                 body: commentBody
               });
+            }
+
+            try {
+              const deployments = await github.rest.repos.listDeployments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                environment: `preview-pr-${prNumber}`
+              });
+              for (const dep of deployments.data) {
+                await github.rest.repos.createDeploymentStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: dep.id,
+                  state: 'inactive',
+                  description: 'Preview environment dismantled'
+                });
+              }
+            } catch (e) {
+              console.log('Deployment status teardown skipped:', e.message);
             }
