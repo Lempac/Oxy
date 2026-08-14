@@ -23,7 +23,7 @@ on:
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions: {}
 
@@ -242,7 +242,7 @@ jobs:
           UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
         run: |
           RAW_OUTPUT=$(uc exec -T "oxy-app-pr-${PR_NUMBER}" php artisan auth:magic-link testuser --connect "${UNCLOUD_CONNECT}" 2>&1 || echo "")
-          MAGIC_URL=$(echo "${RAW_OUTPUT}" | grep -E '^https?://' | tail -n 1 || echo "")
+          MAGIC_URL=$(echo "${RAW_OUTPUT}" | tr -d '\r' | grep -oE 'https?://[^ "]+' | head -n 1 || echo "")
           {
             echo "magic_url<<EOF"
             echo "${MAGIC_URL}"
