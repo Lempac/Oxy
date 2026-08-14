@@ -235,34 +235,57 @@ jobs:
         run: |
           uc deploy -f compose.preview.rendered.yaml -y --connect "${UNCLOUD_CONNECT}"
 
+      - name: Generate 1-Click Magic Login URL
+        id: magic-login
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
+        run: |
+          MAGIC_URL=$(uc exec -T "oxy-app-pr-${PR_NUMBER}" php artisan auth:magic-link testuser || echo "")
+          echo "magic_url=${MAGIC_URL}" >> "$GITHUB_OUTPUT"
+
       - name: Respond to PR with Preview URL
         uses: actions/github-script@v7
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           BASE_DOMAIN: ${{ vars.OXY_BASE_DOMAIN || 'oxy.lempac.dev' }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          MAGIC_URL: ${{ steps.magic-login.outputs.magic_url }}
         with:
           script: |
             const prNumber = process.env.PR_NUMBER;
             const baseDomain = process.env.BASE_DOMAIN;
             const commitSha = (process.env.COMMIT_SHA || '').substring(0, 7);
+            const magicUrl = process.env.MAGIC_URL;
             const appUrl = `https://pr-${prNumber}.${baseDomain}`;
             const wsDomain = `pr-${prNumber}-ws.${baseDomain}`;
             const yjsWs = `wss://pr-${prNumber}-yjs.${baseDomain}`;
 
             const commentHeader = `### 🚀 PR Preview Deployment`;
+            const tableRows = [
+              `| Service | URL |`,
+              `| :--- | :--- |`,
+              `| **Web App** | [${appUrl}](${appUrl}) |`,
+            ];
+
+            if (magicUrl) {
+              tableRows.push(`| **1-Click Quick Login** | [🔑 Open test session (testuser)](${magicUrl}) |`);
+            }
+
+            tableRows.push(
+              `| **Reverb WebSockets** | \`${wsDomain}:443\` |`,
+              `| **Yjs Whiteboard** | \`${yjsWs}\` |`
+            );
+
             const commentBody = [
               commentHeader,
               ``,
               `Preview environment is live on **rpi-2**!`,
               ``,
-              `| Service | URL |`,
-              `| :--- | :--- |`,
-              `| **Web App** | [${appUrl}](${appUrl}) |`,
-              `| **Reverb WebSockets** | \`${wsDomain}:443\` |`,
-              `| **Yjs Whiteboard** | \`${yjsWs}\` |`,
+              ...tableRows,
               ``,
-              `*Deployed commit: \`${commitSha}\`*`
+              `*Default test account:* \`testuser\` / \`password\``,
+              `*Deployed commit:* \`${commitSha}\``
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -348,12 +371,13 @@ jobs:
           sudo install -m 755 uc /usr/local/bin/uc
           rm -f uc uc_linux_amd64.tar.gz checksums.txt
 
-      - name: Destroy Uncloud Preview Services
+      - name: Destroy Uncloud Preview Services & Volumes
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
         run: |
           uc rm "oxy-app-pr-${PR_NUMBER}" "oxy-yjs-pr-${PR_NUMBER}" --connect "${UNCLOUD_CONNECT}" || true
+          uc volume rm "oxy-database-pr-${PR_NUMBER}" "oxy-storage-pr-${PR_NUMBER}" --connect "${UNCLOUD_CONNECT}" || true
 
       - name: Update PR Comment (Torn Down)
         uses: actions/github-script@v7

@@ -33,3 +33,37 @@ test('users can logout', function () {
     $this->assertGuest();
     $response->assertRedirect('/');
 });
+
+test('users can authenticate using magic login signed route', function () {
+    $user = User::factory()->create();
+
+    $signedUrl = URL::temporarySignedRoute(
+        'magic-login',
+        now()->addMinutes(30),
+        ['user' => $user->id]
+    );
+
+    $response = $this->get($signedUrl);
+
+    $this->assertAuthenticatedAs($user);
+    $response->assertRedirect(route('home', absolute: false));
+});
+
+test('magic login fails with invalid or expired signature', function () {
+    $user = User::factory()->create();
+
+    $invalidUrl = route('magic-login', ['user' => $user->id]).'?signature=invalid';
+
+    $response = $this->get($invalidUrl);
+
+    $response->assertStatus(401);
+    $this->assertGuest();
+});
+
+test('artisan auth:magic-link outputs valid signed url', function () {
+    $this->artisan('auth:magic-link testuser')
+        ->assertSuccessful();
+
+    $user = User::where('nickname', 'testuser')->first();
+    expect($user)->not->toBeNull();
+});
