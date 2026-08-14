@@ -19,6 +19,7 @@
 services:
   oxy-app:
     image: ${OXY_IMAGE:-ghcr.io/lempac/oxy:latest}
+    pull_policy: always
     build: .
     env_file: .production.env
     environment:

@@ -9,6 +9,7 @@
 services:
   oxy-app-pr-${PR_NUMBER}:
     image: ${OXY_IMAGE}
+    pull_policy: always
     environment:
       APP_NAME: "Oxy (PR #${PR_NUMBER})"
       APP_ENV: preview
