@@ -4,7 +4,20 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+Route::get('magic-login/{user}', function (Request $request, User $user) {
+    if (! $request->hasValidSignature()) {
+        abort(401, 'Invalid or expired magic link.');
+    }
+    Auth::login($user, remember: true);
+    $request->session()->regenerate();
+
+    return redirect()->route('home');
+})->name('magic-login');
 
 Route::middleware('guest')->group(function () {
     Route::post('register', [RegisteredUserController::class, 'store'])

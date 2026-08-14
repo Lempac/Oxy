@@ -1,17 +1,19 @@
 FROM dunglas/frankenphp:1.12.4-php8.5.7-alpine AS base
 
 # ── Stage 1: Composer deps ─────────────────────────────────────────────────
-FROM composer:latest AS composer-deps
+FROM --platform=$BUILDPLATFORM composer:latest AS composer-deps
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --no-scripts
+RUN --mount=type=cache,id=composer,target=/root/.composer/cache \
+    composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --no-scripts
 
 # ── Stage 2: Node deps + Vite asset build ──────────────────────────────────
-FROM dunglas/frankenphp:1.12.4-php8.5.7-alpine AS node-build
+FROM --platform=$BUILDPLATFORM dunglas/frankenphp:1.12.4-php8.5.7-alpine AS node-build
 WORKDIR /app
-RUN apk add --no-cache sqlite nodejs npm && npm install -g pnpm
+RUN apk add --no-cache sqlite nodejs npm && npm install -g pnpm@11.18.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 COPY . .
 COPY --from=composer-deps /app/vendor vendor/
 RUN pnpm run build
@@ -39,6 +41,7 @@ COPY . .
 # Overlay with pre-built artifacts (overrides anything copied above)
 COPY --from=composer-deps /app/vendor vendor/
 COPY --from=node-build /app/public/build public/build/
+COPY --from=node-build /app/bootstrap/ssr bootstrap/ssr/
 
 RUN php artisan storage:link && \
     php artisan vendor:publish --tag=laravel-assets --force

@@ -1,0 +1,436 @@
+name: CI & Preview Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'assets/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, closed]
+    branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'assets/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  lint:
+    name: Fix Code Style
+    if: |
+      github.actor != 'github-actions[bot]' &&
+      github.event.head_commit.message != 'Fixes coding style' &&
+      (github.event.action == null || (github.event.action != 'closed' && github.event.action != 'unlabeled' && github.event.action != 'labeled'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [ '8.5' ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Setup PHP with Pint
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, dom, curl, libxml, mbstring
+          coverage: none
+          tools: pint
+
+      - name: Run Pint
+        run: pint
+
+      - name: Commit linted files
+        if: github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Fixes coding style"
+          commit_author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+
+  test:
+    name: Test Suite
+    needs: [lint]
+    if: |
+      always() &&
+      (needs.lint.result == 'success' || needs.lint.result == 'skipped') &&
+      (github.event.action == null || (github.event.action != 'closed' && github.event.action != 'unlabeled' && (github.event.action != 'labeled' || github.event.label.name == 'preview')))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, zip, pcntl
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install Composer dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate key and routes
+        run: |
+          php artisan key:generate
+          php artisan wayfinder:generate
+          pnpm run build
+          php artisan storage:link
+          chmod -R 777 storage bootstrap/cache
+          mkdir -p database
+          touch database/database.sqlite
+
+      - name: Execute Backend Tests (Pest/PHPUnit)
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php artisan test
+
+      - name: Execute Frontend Tests (Vitest)
+        env:
+          LARAVEL_BYPASS_ENV_CHECK: 1
+          VITE_REVERB_APP_KEY: 'test-reverb-key'
+        run: pnpm run test
+
+  deploy-preview:
+    name: Deploy Preview
+    needs: [test]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.state == 'open' &&
+      contains(github.event.pull_request.labels.*.name, 'preview') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'preview') &&
+      github.event.action != 'unlabeled' &&
+      github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+      issues: write
+      deployments: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lowercase repository image name
+        id: image-meta
+        env:
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          REPO_LOWER=$(echo "${GH_REPO}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${REPO_LOWER}"
+          TAG="pr-${PR_NUMBER}"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "full_image=${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.image-meta.outputs.full_image }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Setup SSH Agent for Uncloud
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.UNCLOUD_SSH_KEY }}
+          log-public-key: false
+
+      - name: Install Uncloud CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UNCLOUD_VERSION: ${{ vars.UNCLOUD_VERSION || 'v0.20.0' }}
+        run: |
+          LATEST_UC=$(gh release view --repo psviderski/uncloud --json tagName -q .tagName 2>/dev/null || echo "")
+          if [ -n "${LATEST_UC}" ] && [ "${LATEST_UC}" != "${UNCLOUD_VERSION}" ]; then
+            echo "::warning title=Newer Uncloud Version Available::A newer upstream Uncloud version (${LATEST_UC}) is available. Current workflow uses ${UNCLOUD_VERSION}."
+          fi
+
+          gh release download "${UNCLOUD_VERSION}" --repo psviderski/uncloud --pattern "uc_linux_amd64.tar.gz" --pattern "checksums.txt"
+          sha256sum --ignore-missing -c checksums.txt
+          tar -xzf uc_linux_amd64.tar.gz
+          sudo install -m 755 uc /usr/local/bin/uc
+          rm -f uc uc_linux_amd64.tar.gz checksums.txt
+
+      - name: Render Preview Compose File
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          OXY_IMAGE: ${{ steps.image-meta.outputs.full_image }}
+          OXY_BASE_DOMAIN: ${{ vars.OXY_BASE_DOMAIN || 'oxy.lempac.dev' }}
+          APP_KEY: ${{ secrets.PREVIEW_APP_KEY || 'base64:6nyWaSCYTO9JxQAPNAFiatnfO350PhSU/F1p56U6QuM=' }}
+        run: |
+          export PR_NUMBER OXY_IMAGE OXY_BASE_DOMAIN APP_KEY
+          envsubst < compose.preview.yaml > compose.preview.rendered.yaml
+
+      - name: Deploy Preview to Uncloud
+        env:
+          UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
+        run: |
+          uc deploy -f compose.preview.rendered.yaml -y --connect "${UNCLOUD_CONNECT}"
+
+      - name: Generate 1-Click Magic Login URL
+        id: magic-login
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
+        run: |
+          RAW_OUTPUT=$(uc exec -T --connect "${UNCLOUD_CONNECT}" "oxy-app-pr-${PR_NUMBER}" php artisan auth:magic-link testuser 2>&1 || echo "")
+          MAGIC_URL=$(echo "${RAW_OUTPUT}" | tr -d '\r' | grep -oE 'https?://[^ "]+' | head -n 1 || echo "")
+          {
+            echo "magic_url<<EOF"
+            echo "${MAGIC_URL}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Respond to PR with Preview URL
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_DOMAIN: ${{ vars.OXY_BASE_DOMAIN || 'oxy.lempac.dev' }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          MAGIC_URL: ${{ steps.magic-login.outputs.magic_url }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const baseDomain = process.env.BASE_DOMAIN;
+            const commitSha = (process.env.COMMIT_SHA || '').substring(0, 7);
+            const magicUrl = process.env.MAGIC_URL;
+            const appUrl = `https://pr-${prNumber}.${baseDomain}`;
+            const wsDomain = `pr-${prNumber}-ws.${baseDomain}`;
+            const yjsWs = `wss://pr-${prNumber}-yjs.${baseDomain}`;
+
+            const commentHeader = `### 🚀 PR Preview Deployment`;
+            const tableRows = [
+              `| Service | URL |`,
+              `| :--- | :--- |`,
+              `| **Web App** | [${appUrl}](${appUrl}) |`,
+            ];
+
+            if (magicUrl) {
+              tableRows.push(`| **1-Click Quick Login** | [🔑 Open test session (testuser)](${magicUrl}) |`);
+            }
+
+            tableRows.push(
+              `| **Reverb WebSockets** | \`${wsDomain}:443\` |`,
+              `| **Yjs Whiteboard** | \`${yjsWs}\` |`
+            );
+
+            const commentBody = [
+              commentHeader,
+              ``,
+              `Preview environment is live on **rpi-2**!`,
+              ``,
+              ...tableRows,
+              ``,
+              `*Default test account:* \`testuser\` / \`password\``,
+              `*Deployed commit:* \`${commitSha}\``
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(prNumber)
+            });
+
+            const botComment = comments.find(comment => comment.body.includes(commentHeader));
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: Number(prNumber),
+                body: commentBody
+              });
+            }
+
+            try {
+              const deployment = await github.rest.repos.createDeployment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: process.env.COMMIT_SHA,
+                environment: `preview-pr-${prNumber}`,
+                description: `Preview environment for PR #${prNumber}`,
+                auto_merge: false,
+                required_contexts: []
+              });
+
+              if (deployment.data && deployment.data.id) {
+                await github.rest.repos.createDeploymentStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.data.id,
+                  state: 'success',
+                  environment_url: appUrl,
+                  description: 'Preview deployment live'
+                });
+              }
+            } catch (e) {
+              console.log('Deployment status creation skipped:', e.message);
+            }
+
+  teardown-preview:
+    name: Teardown Preview
+    if: |
+      always() &&
+      github.event_name == 'pull_request' &&
+      (github.event.action == 'closed' || (github.event.action == 'unlabeled' && github.event.label.name == 'preview'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      deployments: write
+    steps:
+      - name: Setup SSH Agent for Uncloud
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.UNCLOUD_SSH_KEY }}
+          log-public-key: false
+
+      - name: Install Uncloud CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UNCLOUD_VERSION: ${{ vars.UNCLOUD_VERSION || 'v0.20.0' }}
+        run: |
+          LATEST_UC=$(gh release view --repo psviderski/uncloud --json tagName -q .tagName 2>/dev/null || echo "")
+          if [ -n "${LATEST_UC}" ] && [ "${LATEST_UC}" != "${UNCLOUD_VERSION}" ]; then
+            echo "::warning title=Newer Uncloud Version Available::A newer upstream Uncloud version (${LATEST_UC}) is available. Current workflow uses ${UNCLOUD_VERSION}."
+          fi
+
+          gh release download "${UNCLOUD_VERSION}" --repo psviderski/uncloud --pattern "uc_linux_amd64.tar.gz" --pattern "checksums.txt"
+          sha256sum --ignore-missing -c checksums.txt
+          tar -xzf uc_linux_amd64.tar.gz
+          sudo install -m 755 uc /usr/local/bin/uc
+          rm -f uc uc_linux_amd64.tar.gz checksums.txt
+
+      - name: Destroy Uncloud Preview Services & Volumes
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          UNCLOUD_CONNECT: ${{ secrets.UNCLOUD_CONNECT }}
+        run: |
+          uc rm "oxy-app-pr-${PR_NUMBER}" "oxy-yjs-pr-${PR_NUMBER}" --connect "${UNCLOUD_CONNECT}" || true
+          uc volume rm "oxy-database-pr-${PR_NUMBER}" "oxy-storage-pr-${PR_NUMBER}" --connect "${UNCLOUD_CONNECT}" || true
+
+      - name: Update PR Comment (Torn Down)
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const commentHeader = `### 🚀 PR Preview Deployment`;
+            const commentBody = [
+              commentHeader,
+              ``,
+              `🛑 **Preview environment has been destroyed.**`
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(prNumber)
+            });
+
+            const botComment = comments.find(comment => comment.body.includes(commentHeader));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            }
+
+            try {
+              const deployments = await github.rest.repos.listDeployments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                environment: `preview-pr-${prNumber}`
+              });
+              for (const dep of deployments.data) {
+                await github.rest.repos.createDeploymentStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: dep.id,
+                  state: 'inactive',
+                  description: 'Preview environment dismantled'
+                });
+              }
+            } catch (e) {
+              console.log('Deployment status teardown skipped:', e.message);
+            }

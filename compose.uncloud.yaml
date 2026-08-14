@@ -18,6 +18,8 @@
 
 services:
   oxy-app:
+    image: ${OXY_IMAGE:-ghcr.io/lempac/oxy:latest}
+    pull_policy: always
     build: .
     env_file: .production.env
     environment:
@@ -25,9 +27,12 @@ services:
       APP_DEBUG: "false"
       APP_URL: https://${OXY_DOMAIN:-oxy.example.com}
       # Reverb server-side config (still listens on :9000 inside the container)
-      REVERB_HOST: "0.0.0.0"
-      REVERB_PORT: "9000"
-      REVERB_SCHEME: https
+      REVERB_SERVER_HOST: "127.0.0.1"
+      REVERB_SERVER_PORT: "9000"
+      REVERB_SERVER_SCHEME: "http"
+      REVERB_HOST: ${OXY_WS_DOMAIN:-ws.oxy.example.com}
+      REVERB_PORT: "443"
+      REVERB_SCHEME: "https"
       # Frontend connects to Reverb via Caddy HTTPS reverse proxy
       VITE_REVERB_APP_KEY: "${REVERB_APP_KEY}"
       VITE_REVERB_HOST: ${OXY_WS_DOMAIN:-ws.oxy.example.com}
@@ -38,15 +43,16 @@ services:
     volumes:
       - oxy-database:/var/www/database
       - oxy-storage:/var/www/storage/app
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 512M
     # Publish HTTP app and Reverb WebSocket through Caddy with auto HTTPS
     x-ports:
       - ${OXY_DOMAIN:-oxy.example.com}:8000/https
       - ${OXY_WS_DOMAIN:-ws.oxy.example.com}:9000/https
-    # Run migrations before rolling out new containers
-    x-pre_deploy:
-      command: php artisan migrate --force
-      timeout: 2m
-    x-machine: 
+    x-machines: 
       - rpi-2
 
   oxy-yjs:
@@ -56,10 +62,15 @@ services:
     environment:
       HOST: "0.0.0.0"
       PORT: "1234"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
     # Publish Yjs WebSocket through Caddy with auto HTTPS
     x-ports:
       - ${OXY_YJS_DOMAIN:-yjs.oxy.example.com}:1234/https
-    x-machine: 
+    x-machines: 
       - rpi-2
 
 volumes:
