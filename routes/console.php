@@ -8,4 +8,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-Artisan::registerCommand(new GenerateMagicLinkCommand());
+Artisan::registerCommand(new GenerateMagicLinkCommand);
