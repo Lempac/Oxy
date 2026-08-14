@@ -47,7 +47,7 @@ services:
     x-pre_deploy:
       command: php artisan migrate --force
       timeout: 2m
-    x-machine: 
+    x-machines: 
       - rpi-2
 
   oxy-yjs:
@@ -60,7 +60,7 @@ services:
     # Publish Yjs WebSocket through Caddy with auto HTTPS
     x-ports:
       - ${OXY_YJS_DOMAIN:-yjs.oxy.example.com}:1234/https
-    x-machine: 
+    x-machines: 
       - rpi-2
 
 volumes:

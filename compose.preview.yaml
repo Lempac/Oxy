@@ -57,7 +57,7 @@ services:
     x-pre_deploy:
       command: php artisan migrate --force
       timeout: 2m
-    x-machine:
+    x-machines:
       - rpi-2
 
   oxy-yjs-pr-${PR_NUMBER}:
@@ -70,7 +70,7 @@ services:
     # Custom subdomain routing via Caddy
     x-ports:
       - pr-${PR_NUMBER}-yjs.${OXY_BASE_DOMAIN}:1234/https
-    x-machine:
+    x-machines:
       - rpi-2
 
 volumes:
