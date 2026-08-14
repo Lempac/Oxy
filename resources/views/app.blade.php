@@ -9,11 +9,11 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Reverb Config for Runtime -->
+    <!-- Reverb Config for Runtime (Browser Echo WebSockets) -->
     <meta name="reverb-app-key" content="{{ config('broadcasting.connections.reverb.key') }}">
-    <meta name="reverb-host" content="{{ config('broadcasting.connections.reverb.options.host') }}">
-    <meta name="reverb-port" content="{{ config('broadcasting.connections.reverb.options.port') }}">
-    <meta name="reverb-scheme" content="{{ config('broadcasting.connections.reverb.options.scheme') }}">
+    <meta name="reverb-host" content="{{ env('VITE_REVERB_HOST', env('REVERB_HOST', 'localhost')) }}">
+    <meta name="reverb-port" content="{{ env('VITE_REVERB_PORT', env('REVERB_PORT', 443)) }}">
+    <meta name="reverb-scheme" content="{{ env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'https')) }}">
     <meta name="yjs-ws-url" content="{{ env('VITE_YJS_WS_URL', 'ws://localhost:1234') }}">
     <!-- Fonts -->
     {{--    <link rel="preconnect" href="https://fonts.bunny.net">--}}

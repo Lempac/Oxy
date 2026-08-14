@@ -36,11 +36,12 @@ services:
       REVERB_APP_ID: "${REVERB_APP_ID:-470744}"
       REVERB_APP_KEY: "${REVERB_APP_KEY:-oxy-preview-key}"
       REVERB_APP_SECRET: "${REVERB_APP_SECRET:-oxy-preview-secret}"
-      REVERB_SERVER_HOST: "0.0.0.0"
+      REVERB_SERVER_HOST: "127.0.0.1"
       REVERB_SERVER_PORT: "9000"
+      REVERB_SERVER_SCHEME: "http"
       REVERB_HOST: "pr-${PR_NUMBER}-ws.${OXY_BASE_DOMAIN}"
       REVERB_PORT: "443"
-      REVERB_SCHEME: https
+      REVERB_SCHEME: "https"
       # Frontend meta/Vite values
       VITE_REVERB_APP_KEY: "${REVERB_APP_KEY:-oxy-preview-key}"
       VITE_REVERB_HOST: "pr-${PR_NUMBER}-ws.${OXY_BASE_DOMAIN}"
