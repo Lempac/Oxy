@@ -30,6 +30,11 @@ if [ $# -gt 0 ]; then
 fi
 
 php artisan migrate --force
+
+if [ "$APP_ENV" = "preview" ] || [ "$SEED_DATABASE" = "true" ]; then
+    php artisan db:seed --force
+fi
+
 php artisan optimize
 
 exec supervisord -c /etc/supervisor/conf.d/oxy.conf
