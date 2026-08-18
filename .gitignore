@@ -37,6 +37,7 @@ devenv.local.nix
 /resources/js/ziggy.d.ts
 /resources/js/ziggy.js
 /logs.txt
+.pnpm-store/
 
 **/caddy
 frankenphp

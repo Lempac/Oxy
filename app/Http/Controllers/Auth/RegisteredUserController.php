@@ -51,7 +51,7 @@ class RegisteredUserController extends Controller
                 }
             }
 
-            $path = $file->store('uploads', 'public');
+            $path = $file->store('uploads', config('filesystems.default'));
             $iconPath = Storage::url($path);
         }
 

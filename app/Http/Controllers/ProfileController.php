@@ -46,7 +46,7 @@ class ProfileController extends Controller
                 }
             }
 
-            $path = $file->store('uploads', 'public');
+            $path = $file->store('uploads', config('filesystems.default'));
         }
 
         if (! empty($path) && $path != $val['icon']) {

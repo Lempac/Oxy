@@ -42,14 +42,14 @@ class MessageAttachment extends Model
 
     public function getUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->path);
+        return Storage::url($this->path);
     }
 
     protected static function booted(): void
     {
         static::deleted(function (MessageAttachment $attachment) {
-            if ($attachment->path && Storage::disk('public')->exists($attachment->path)) {
-                Storage::disk('public')->delete($attachment->path);
+            if ($attachment->path && Storage::exists($attachment->path)) {
+                Storage::delete($attachment->path);
             }
         });
     }

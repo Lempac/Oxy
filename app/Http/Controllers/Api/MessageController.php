@@ -89,7 +89,7 @@ class MessageController
                 }
             }
 
-            $path = $file->store('uploads', 'public');
+            $path = $file->store('uploads', config('filesystems.default'));
 
             $attachmentDataList[] = [
                 'filename' => $originalName,

@@ -86,7 +86,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, zip, pcntl
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, zip, pcntl, gd
           coverage: none
           tools: composer:v2
 
@@ -220,14 +220,29 @@ jobs:
           sudo install -m 755 uc /usr/local/bin/uc
           rm -f uc uc_linux_amd64.tar.gz checksums.txt
 
+      - name: Ensure Preview S3 Bucket Exists
+        if: env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          aws s3api create-bucket \
+            --bucket "oxy-pr-${PR_NUMBER}" \
+            --endpoint-url "https://void.lempac.dev" || true
+
       - name: Render Preview Compose File
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           OXY_IMAGE: ${{ steps.image-meta.outputs.full_image }}
           OXY_BASE_DOMAIN: ${{ vars.OXY_BASE_DOMAIN || 'oxy.lempac.dev' }}
           APP_KEY: ${{ secrets.PREVIEW_APP_KEY || 'base64:6nyWaSCYTO9JxQAPNAFiatnfO350PhSU/F1p56U6QuM=' }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_BUCKET: ${{ vars.AWS_BUCKET_PREVIEW || vars.AWS_BUCKET || secrets.AWS_BUCKET || 'oxy' }}
         run: |
-          export PR_NUMBER OXY_IMAGE OXY_BASE_DOMAIN APP_KEY
+          export PR_NUMBER OXY_IMAGE OXY_BASE_DOMAIN APP_KEY AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_BUCKET
           envsubst < compose.preview.yaml > compose.preview.rendered.yaml
 
       - name: Deploy Preview to Uncloud
@@ -385,6 +400,16 @@ jobs:
         run: |
           uc rm "oxy-app-pr-${PR_NUMBER}" "oxy-yjs-pr-${PR_NUMBER}" --connect "${UNCLOUD_CONNECT}" || true
           uc volume rm "oxy-database-pr-${PR_NUMBER}" "oxy-storage-pr-${PR_NUMBER}" -y --connect "${UNCLOUD_CONNECT}" || true
+
+      - name: Delete Preview S3 Bucket
+        if: env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          aws s3 rb "s3://oxy-pr-${PR_NUMBER}" --force --endpoint-url "https://void.lempac.dev" || true
 
       - name: Update PR Comment (Torn Down)
         uses: actions/github-script@v7

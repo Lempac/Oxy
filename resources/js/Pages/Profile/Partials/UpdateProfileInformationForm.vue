@@ -3,7 +3,7 @@ import { update } from '@/routes/profile';
 import { useForm, usePage } from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { ref } from "vue";
-import { baseUrl } from "@/bootstrap";
+import { resolveUrl } from "@/bootstrap";
 import { Themes, ThemeType } from "@/types";
 import { Io5AddOutline } from 'vue-icons-plus/io5';
 import { RiUser3Line } from 'vue-icons-plus/ri';
@@ -15,7 +15,7 @@ defineProps<{
 
 const user = usePage().props.user!;
 
-const icon = ref<string | null>(user.icon ? baseUrl + user.icon : null);
+const icon = ref<string | null>(user.icon ? resolveUrl(user.icon) : null);
 const inputFile = ref<File | null>();
 const isEditorOpen = ref(false);
 const editorImageSource = ref<File | null>(null);

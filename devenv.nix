@@ -5,7 +5,7 @@
     php = {
       enable = true;
       version = "8.5";
-      extensions = [ "xdebug" "pdo_mysql" ];
+      extensions = [ "xdebug" "pdo_mysql" "gd" ];
       ini = ''
         xdebug.mode = debug
         xdebug.discover_client_host = 1

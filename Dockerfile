@@ -24,8 +24,9 @@ LABEL authors="lempac"
 
 WORKDIR /var/www/
 
-RUN apk add --no-cache sqlite libzip-dev supervisor && \
-    docker-php-ext-install zip pcntl
+RUN apk add --no-cache sqlite libzip-dev supervisor freetype-dev libjpeg-turbo-dev libpng-dev && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install zip pcntl gd
 
 ENV PHP_UPLOAD_MAX_FILESIZE=200M \
     PHP_POST_MAX_SIZE=200M
