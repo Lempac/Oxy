@@ -307,8 +307,8 @@ const getScrollStorageKey = (): string => {
     return `oxy_scroll_${ch?.id || ch?.slug || 'default'}`;
 };
 
-const handleScroll = () => {
-    const el = messageContainer.value;
+const handleScroll = (e?: Event) => {
+    const el = (e?.target as HTMLElement) || messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
     if (!el) return;
     const { scrollTop, scrollHeight, clientHeight } = el;
     const maxScroll = scrollHeight - clientHeight;
@@ -334,18 +334,19 @@ const handleScroll = () => {
     if (typeof localStorage !== 'undefined') {
         if (atBottom) {
             localStorage.setItem(key, 'BOTTOM');
-        } else if (!isNaN(scrollTop) && scrollTop > 0) {
+        } else if (!isNaN(scrollTop)) {
             localStorage.setItem(key, String(scrollTop));
         }
     }
 };
 
 const scrollToBottomSmooth = () => {
-    if (messageContainer.value) {
+    const el = messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
+    if (el) {
         isPinnedToBottom = true;
         isScrolledUp.value = false;
-        messageContainer.value.scrollTo({
-            top: messageContainer.value.scrollHeight,
+        el.scrollTo({
+            top: el.scrollHeight,
             behavior: 'smooth'
         });
         const key = getScrollStorageKey();
@@ -356,32 +357,34 @@ const scrollToBottomSmooth = () => {
 };
 
 const scrollToBottom = () => {
-    if (messageContainer.value) {
-        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+    const el = messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
+    if (el) {
+        el.scrollTop = el.scrollHeight;
         isPinnedToBottom = true;
         isScrolledUp.value = false;
     }
 };
 
 const restoreScrollOrBottom = () => {
-    const el = messageContainer.value;
+    const el = messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
     if (!el) return;
     const key = getScrollStorageKey();
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
 
     if (saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null') {
         const savedTop = parseFloat(saved);
-        if (!isNaN(savedTop) && savedTop > 0) {
+        if (!isNaN(savedTop)) {
             isPinnedToBottom = false;
-            isScrolledUp.value = true;
             el.scrollTop = savedTop;
+            const maxScroll = el.scrollHeight - el.clientHeight;
+            isScrolledUp.value = maxScroll - el.scrollTop > 50;
             return;
         }
     }
 
     isPinnedToBottom = true;
     isScrolledUp.value = false;
-    scrollToBottom();
+    el.scrollTop = el.scrollHeight;
 };
 
 onMounted(() => {
@@ -390,6 +393,10 @@ onMounted(() => {
     nextTick(() => {
         restoreScrollOrBottom();
     });
+
+    setTimeout(() => {
+        restoreScrollOrBottom();
+    }, 250);
 
     window.addEventListener('paste', handlePaste);
 });
