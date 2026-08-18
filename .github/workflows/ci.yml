@@ -222,16 +222,17 @@ jobs:
           rm -f uc uc_linux_amd64.tar.gz checksums.txt
 
       - name: Ensure Preview S3 Bucket Exists
-        if: env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != ''
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          aws s3api create-bucket \
-            --bucket "oxy-pr-${PR_NUMBER}" \
-            --endpoint-url "https://void.lempac.dev" || true
+          if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+            aws s3api create-bucket \
+              --bucket "oxy-pr-${PR_NUMBER}" \
+              --endpoint-url "https://void.lempac.dev" || true
+          fi
 
       - name: Render Preview Compose File
         env:
@@ -403,14 +404,15 @@ jobs:
           uc volume rm "oxy-database-pr-${PR_NUMBER}" "oxy-storage-pr-${PR_NUMBER}" -y --connect "${UNCLOUD_CONNECT}" || true
 
       - name: Delete Preview S3 Bucket
-        if: env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != ''
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          aws s3 rb "s3://oxy-pr-${PR_NUMBER}" --force --endpoint-url "https://void.lempac.dev" || true
+          if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+            aws s3 rb "s3://oxy-pr-${PR_NUMBER}" --force --endpoint-url "https://void.lempac.dev" || true
+          fi
 
       - name: Update PR Comment (Torn Down)
         uses: actions/github-script@v7
