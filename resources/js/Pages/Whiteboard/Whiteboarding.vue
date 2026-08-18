@@ -334,35 +334,36 @@ function formatDate(dateString: string): string {
             <div
                 v-if="paneId === 'sidebar' && selectedServer"
                 :style="getPaneStyle('sidebar', activePanes)"
-                :class="[
-                    'flex flex-col overflow-hidden relative transition-all duration-75',
-                    dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="flex flex-col overflow-hidden relative transition-all duration-75"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
                 @dragleave="onPaneDragLeave($event, 'sidebar')"
                 @drop="dropOnPane('sidebar')"
             >
                 <ChannelSidebar :channels="channels" :selected-server="selectedServer" />
+
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
             </div>
 
             <!-- 2. Chat Pane -->
             <div
                 v-else-if="paneId === 'chat' && selectedChannel"
                 :style="getPaneStyle('chat', activePanes)"
-                :class="[
-                    'bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]',
-                    dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragEnter($event)"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragOver($event)"
                 @dragleave="onChatDragLeave"
                 @drop="onDrop"
             >
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
                 <!-- File Drag & Drop Overlay -->
                 <div
                     v-if="isFileDragging"
@@ -375,7 +376,7 @@ function formatDate(dateString: string): string {
                     </div>
                 </div>
 
-                <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
+                <div class="h-12 px-4 bg-base-200/50 border-b border-base-300 flex items-center justify-between shrink-0">
                     <div class="font-bold text-sm text-base-content flex items-center gap-1.5">
                         <span>#</span>
                         <span>{{ selectedChannel.name }}</span>
@@ -513,12 +514,7 @@ function formatDate(dateString: string): string {
             <div
                 v-else-if="paneId === 'whiteboard' && selectedChannel"
                 :style="getPaneStyle('whiteboard', activePanes)"
-                :class="[
-                    'bg-base-100 flex flex-col overflow-hidden min-w-[300px] transition-all duration-75',
-                    dragHoverPaneId === 'whiteboard' && draggedPaneId && draggedPaneId !== 'whiteboard'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="bg-base-100 flex flex-col overflow-hidden min-w-[300px] transition-all duration-75 relative"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('whiteboard') : null"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('whiteboard') : null"
                 @dragleave="onPaneDragLeave($event, 'whiteboard')"
@@ -529,6 +525,12 @@ function formatDate(dateString: string): string {
                     :selected-server="selectedServer"
                     :whiteboard="selectedChannel.whiteboard"
                     @toggle-maximize="isMaximized = !isMaximized"
+                />
+
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'whiteboard' && draggedPaneId && draggedPaneId !== 'whiteboard'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
                 />
             </div>
 

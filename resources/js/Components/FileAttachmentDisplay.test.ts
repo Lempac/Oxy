@@ -57,4 +57,50 @@ describe('FileAttachmentDisplay', () => {
         expect(downloadLink.exists()).toBe(true);
         expect(downloadLink.attributes('download')).toBe('screenshot.png');
     });
+
+    it('opens and closes fullscreen image lightbox modal', async () => {
+        const attachment: MessageAttachment = {
+            id: 'att-3',
+            message_id: 'msg-1',
+            filename: 'photo.jpg',
+            path: 'uploads/photo.jpg',
+            mime_type: 'image/jpeg',
+            size: 524288,
+            width: 800,
+            height: 600,
+            url: '/storage/uploads/photo.jpg',
+        };
+
+        const wrapper = mount(FileAttachmentDisplay, {
+            props: {
+                attachment,
+            },
+            attachTo: document.body,
+        });
+
+        // Initially lightbox modal should not be visible
+        expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+
+        // Click fullscreen button
+        const fullscreenBtn = wrapper.find('button[title="Fullscreen"]');
+        expect(fullscreenBtn.exists()).toBe(true);
+        await fullscreenBtn.trigger('click');
+
+        // Modal should now be in the DOM
+        let modal = document.body.querySelector('[role="dialog"]');
+        expect(modal).not.toBeNull();
+        expect(modal?.textContent).toContain('photo.jpg');
+        expect(modal?.textContent).toContain('800×600px');
+
+        // Click close button
+        const closeBtn = modal?.querySelector('button[title="Close (Esc)"]') as HTMLButtonElement;
+        expect(closeBtn).not.toBeNull();
+        closeBtn.click();
+        await wrapper.vm.$nextTick();
+
+        modal = document.body.querySelector('[role="dialog"]');
+        expect(modal).toBeNull();
+
+        wrapper.unmount();
+    });
 });

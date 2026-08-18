@@ -222,14 +222,18 @@ const onDrop = (e: DragEvent) => {
     }
 };
 
-const onChatDragLeave = (e: DragEvent) => {
+const onPaneDragLeave = (e: DragEvent, paneId: string) => {
     const currentTarget = e.currentTarget as HTMLElement | null;
     const relatedTarget = e.relatedTarget as Node | null;
     if (!currentTarget || !relatedTarget || !currentTarget.contains(relatedTarget)) {
-        if (dragHoverPaneId.value === 'chat') {
+        if (dragHoverPaneId.value === paneId) {
             setDragHoverPane(null);
         }
     }
+};
+
+const onChatDragLeave = (e: DragEvent) => {
+    onPaneDragLeave(e, 'chat');
     onDragLeave(e);
 };
 
@@ -348,36 +352,37 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
             <div
                 v-if="paneId === 'sidebar' && selectedServer"
                 :style="getPaneStyle('sidebar', activePanes)"
-                :class="[
-                    'flex flex-col overflow-hidden relative transition-all duration-75',
-                    dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="flex flex-col overflow-hidden relative transition-all duration-75"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
-                @dragleave="dragHoverPaneId === 'sidebar' ? setDragHoverPane(null) : null"
+                @dragleave="onPaneDragLeave($event, 'sidebar')"
                 @drop="dropOnPane('sidebar')"
             >
                 <ChannelSidebar :channels="channels" :selected-server="selectedServer" />
+
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
             </div>
 
             <!-- Chat Stream & Input Pane -->
             <div
                 v-else-if="paneId === 'chat' || paneId === 'main'"
                 :style="getPaneStyle('chat', activePanes)"
-                :class="[
-                    'bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]',
-                    dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat' && draggedPaneId !== 'sidebar'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragEnter($event)"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragOver($event)"
                 @dragleave="onChatDragLeave"
                 @drop="onDrop"
                 @paste="handlePaste"
             >
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
                 <template v-if="selectedChannel">
                     <!-- File Drag & Drop Overlay -->
                     <div
@@ -392,7 +397,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Channel Header Bar with Drag Handle -->
-                    <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
+                    <div class="h-12 px-4 bg-base-200/50 border-b border-base-300 flex items-center justify-between shrink-0">
                         <div class="flex items-center gap-2 font-bold text-sm text-base-content">
                             <span>#</span>
                             <span>{{ selectedChannel.name }}</span>

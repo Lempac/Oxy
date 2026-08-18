@@ -226,7 +226,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
         class="bg-base-100 flex flex-col h-full shrink-0 select-none relative group transition-[width] duration-75 w-full"
     >
         <!-- Top Drag Handle & Server Title Bar -->
-        <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between bg-base-200/50">
+        <div class="h-12 px-4 border-b border-base-300 flex items-center justify-between bg-base-200/50 shrink-0">
             <span class="font-bold text-sm truncate text-base-content max-w-[140px]">{{ selectedServer.name }}</span>
             <div class="flex items-center gap-1">
                 <!-- Pencil Mode Toggle -->

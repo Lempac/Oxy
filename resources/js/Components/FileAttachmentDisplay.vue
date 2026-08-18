@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { MessageAttachment } from '@/types';
 import { baseUrl } from '@/bootstrap';
 import { formatFileSize, getFileExtension, isImageFile } from '@/utils/fileValidation';
@@ -17,11 +17,42 @@ import {
     FaWindows,
 } from 'vue-icons-plus/fa';
 import { SiAndroid, SiApple, SiLinux } from 'vue-icons-plus/si';
-import { MdOutlineFileDownload, MdOutlineOpenInNew } from 'vue-icons-plus/md';
+import { MdClose, MdFullscreen, MdOutlineFileDownload, MdOutlineOpenInNew } from 'vue-icons-plus/md';
 
 const props = defineProps<{
     attachment: MessageAttachment;
 }>();
+
+const isFullscreenOpen = ref(false);
+
+const openFullscreen = () => {
+    isFullscreenOpen.value = true;
+};
+
+const closeFullscreen = () => {
+    isFullscreenOpen.value = false;
+};
+
+const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && isFullscreenOpen.value) {
+        closeFullscreen();
+    }
+};
+
+watch(isFullscreenOpen, (open) => {
+    if (typeof window === 'undefined') return;
+    if (open) {
+        window.addEventListener('keydown', onKeyDown);
+    } else {
+        window.removeEventListener('keydown', onKeyDown);
+    }
+});
+
+onUnmounted(() => {
+    if (typeof window !== 'undefined') {
+        window.removeEventListener('keydown', onKeyDown);
+    }
+});
 
 const ext = computed(() => getFileExtension(props.attachment.filename));
 
@@ -78,15 +109,24 @@ const fileIconColorClass = computed(() => {
         <img
             :src="resolvedUrl"
             :alt="attachment.filename"
-            class="max-w-full max-h-72 object-contain rounded-xl block"
+            class="max-w-full max-h-72 object-contain rounded-xl block cursor-pointer hover:opacity-95 transition-opacity"
             loading="lazy"
+            @click="openFullscreen"
         />
-        <!-- Image Hover Overlay with Action Buttons -->
-        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-between p-3">
-            <span class="text-white text-xs font-medium truncate max-w-[180px]" :title="attachment.filename">
+        <!-- Image Hover Overlay with Action Buttons at Bottom -->
+        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-between p-2.5 pt-6 pointer-events-none">
+            <span class="text-white text-xs font-medium truncate max-w-[150px]" :title="attachment.filename">
                 {{ attachment.filename }}
             </span>
-            <div class="flex items-center gap-1.5 shrink-0">
+            <div class="flex items-center gap-1.5 shrink-0 pointer-events-auto">
+                <button
+                    type="button"
+                    class="btn btn-xs btn-circle btn-ghost text-white hover:bg-white/20"
+                    title="Fullscreen"
+                    @click.stop="openFullscreen"
+                >
+                    <MdFullscreen class="size-4" />
+                </button>
                 <a
                     :href="resolvedUrl"
                     target="_blank"
@@ -138,4 +178,78 @@ const fileIconColorClass = computed(() => {
             <MdOutlineFileDownload class="size-4" />
         </a>
     </div>
+
+    <!-- Fullscreen Image Lightbox Modal -->
+    <Teleport to="body">
+        <Transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isImage && isFullscreenOpen"
+                class="fixed inset-0 z-50 flex flex-col items-center justify-between bg-black/90 backdrop-blur-xs p-4 select-none"
+                role="dialog"
+                aria-modal="true"
+                :aria-label="attachment.filename"
+                @click.self="closeFullscreen"
+            >
+                <!-- Top Action Header -->
+                <div class="w-full flex items-center justify-between text-white px-2 py-1 max-w-7xl">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-sm font-semibold truncate" :title="attachment.filename">
+                            {{ attachment.filename }}
+                        </span>
+                        <span class="text-xs text-white/60 font-mono shrink-0">
+                            ({{ formatFileSize(attachment.size) }}<span v-if="attachment.width && attachment.height">, {{ attachment.width }}×{{ attachment.height }}px</span>)
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <a
+                            :href="resolvedUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn btn-sm btn-circle btn-ghost text-white hover:bg-white/20"
+                            title="Open original in new tab"
+                        >
+                            <MdOutlineOpenInNew class="size-5" />
+                        </a>
+                        <a
+                            :href="resolvedUrl"
+                            :download="attachment.filename"
+                            class="btn btn-sm btn-circle btn-ghost text-white hover:bg-white/20"
+                            :title="`Download ${attachment.filename}`"
+                        >
+                            <MdOutlineFileDownload class="size-5" />
+                        </a>
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-circle btn-ghost text-white hover:bg-white/20"
+                            title="Close (Esc)"
+                            @click="closeFullscreen"
+                        >
+                            <MdClose class="size-5" />
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fullscreen Image Viewer Container -->
+                <div class="flex-1 flex items-center justify-center w-full max-w-7xl overflow-hidden p-2" @click.self="closeFullscreen">
+                    <img
+                        :src="resolvedUrl"
+                        :alt="attachment.filename"
+                        class="max-w-full max-h-[82vh] object-contain rounded-lg shadow-2xl transition-transform"
+                    />
+                </div>
+
+                <!-- Footer Hint -->
+                <div class="text-[11px] text-white/50 text-center pb-1">
+                    Press <kbd class="kbd kbd-xs bg-white/20 text-white border-0">Esc</kbd> or click outside to close
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 </template>

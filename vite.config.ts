@@ -1,4 +1,4 @@
-import {defineConfig} from 'vite';
+import {defineConfig} from 'vitest/config';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
@@ -23,6 +23,13 @@ export default defineConfig({
             },
         }),
     ],
+    server: {
+        cors: true,
+        host: '0.0.0.0',
+        hmr: {
+            host: 'localhost',
+        },
+    },
     resolve: {
         alias: {
             "@/types": path.resolve(import.meta.dirname, './resources/js/types/index.d.ts')
