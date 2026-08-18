@@ -60,13 +60,15 @@ class Channel extends Model
         if ($serverParam instanceof Server) {
             $serverId = $serverParam->id;
         } elseif (is_string($serverParam)) {
-            $server = Server::where('slug', $serverParam)->first();
+            $server = Server::where('slug', $serverParam)->orWhere('id', $serverParam)->first();
             if ($server) {
                 $serverId = $server->id;
             }
         }
 
-        return $this->where('slug', $value)
+        return $this->where(function ($query) use ($value) {
+                $query->where('slug', $value)->orWhere('id', $value);
+            })
             ->when($serverId, function ($query, $serverId) {
                 return $query->where('server_id', $serverId);
             })

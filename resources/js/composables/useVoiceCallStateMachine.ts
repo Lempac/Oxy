@@ -460,9 +460,11 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                     });
             }
 
-            if (serverId) {
+            const serverKey = serverId;
+            const channelKey = (channel as any).route_key || channel.id;
+            if (serverKey && channelKey) {
                 try {
-                    await fetchJson(`/api/channel/${serverId}/${channel.id}/voice-join`, {
+                    await fetchJson(`/api/channel/${serverKey}/${channelKey}/voice-join`, {
                         method: 'POST',
                     });
                 } catch {
@@ -512,9 +514,10 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
             }
         }
 
-        if (sId && chId) {
+        const channelKey = (activeChannel.value as any)?.route_key || chId;
+        if (sId && channelKey) {
             try {
-                await fetchJson(`/api/channel/${sId}/${chId}/voice-leave`, {
+                await fetchJson(`/api/channel/${sId}/${channelKey}/voice-leave`, {
                     method: 'POST',
                 });
             } catch {}

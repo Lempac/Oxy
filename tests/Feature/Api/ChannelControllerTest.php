@@ -96,4 +96,13 @@ test('authenticated user can join and leave voice channel broadcasting state', f
     $leaveResponse = $this->postJson("/api/channel/{$server->slug}/{$channel->slug}/voice-leave");
     $leaveResponse->assertStatus(200);
     $leaveResponse->assertJson(['status' => 'ok']);
+
+    // Test with UUIDs
+    $joinUuidResponse = $this->postJson("/api/channel/{$server->id}/{$channel->id}/voice-join");
+    $joinUuidResponse->assertStatus(200);
+    $joinUuidResponse->assertJson(['status' => 'ok']);
+
+    $leaveUuidResponse = $this->postJson("/api/channel/{$server->id}/{$channel->id}/voice-leave");
+    $leaveUuidResponse->assertStatus(200);
+    $leaveUuidResponse->assertJson(['status' => 'ok']);
 });

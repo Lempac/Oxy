@@ -282,6 +282,11 @@ const createMessage = async () => {
             clearAllFiles();
             form.reset();
             clearValidation();
+            const key = getScrollStorageKey();
+            if (key && typeof sessionStorage !== 'undefined') {
+                sessionStorage.removeItem(key);
+            }
+            nextTick(() => scrollToBottom());
         },
         onError: (errors) => {
             const errList = Object.values(errors).join(' ');
@@ -294,11 +299,29 @@ const createMessage = async () => {
 };
 
 const isScrolledUp = ref(false);
+let scrollSaveTimeout: number | null = null;
+
+const getScrollStorageKey = (): string | null => {
+    return props.selectedChannel?.id ? `oxy_scroll_${props.selectedChannel.id}` : null;
+};
 
 const handleScroll = () => {
     if (!messageContainer.value) return;
     const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-    isScrolledUp.value = scrollHeight - scrollTop - clientHeight > 150;
+    const atBottom = scrollHeight - scrollTop - clientHeight < 50;
+    isScrolledUp.value = !atBottom;
+
+    const key = getScrollStorageKey();
+    if (key && typeof sessionStorage !== 'undefined') {
+        if (atBottom) {
+            sessionStorage.removeItem(key);
+        } else {
+            if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
+            scrollSaveTimeout = window.setTimeout(() => {
+                sessionStorage.setItem(key, String(scrollTop));
+            }, 100);
+        }
+    }
 };
 
 const scrollToBottomSmooth = () => {
@@ -308,6 +331,10 @@ const scrollToBottomSmooth = () => {
             behavior: 'smooth'
         });
         isScrolledUp.value = false;
+        const key = getScrollStorageKey();
+        if (key && typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(key);
+        }
     }
 };
 
@@ -318,25 +345,64 @@ const scrollToBottom = () => {
     }
 };
 
-onMounted(() => {
+const restoreScrollOrBottom = () => {
+    if (!messageContainer.value) return;
+    const key = getScrollStorageKey();
+    const saved = key && typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(key) : null;
+    if (saved !== null) {
+        const savedTop = Number(saved);
+        if (!isNaN(savedTop)) {
+            messageContainer.value.scrollTop = savedTop;
+            const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
+            isScrolledUp.value = scrollHeight - scrollTop - clientHeight > 50;
+            return;
+        }
+    }
     scrollToBottom();
+};
+
+onMounted(() => {
+    nextTick(() => {
+        restoreScrollOrBottom();
+    });
     window.addEventListener('paste', handlePaste);
 });
 
 onUnmounted(() => {
     window.removeEventListener('paste', handlePaste);
+    if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
 });
 
-onUpdated(() => nextTick(() => scrollToBottom()));
-
 watch(
-    [() => props.messages, () => stagedFiles.value.length],
+    () => props.selectedChannel?.id,
     () => {
         nextTick(() => {
-            scrollToBottom();
+            restoreScrollOrBottom();
         });
+    }
+);
+
+watch(
+    () => props.messages,
+    () => {
+        if (!isScrolledUp.value) {
+            nextTick(() => {
+                scrollToBottom();
+            });
+        }
     },
     { deep: true }
+);
+
+watch(
+    () => stagedFiles.value.length,
+    () => {
+        if (!isScrolledUp.value) {
+            nextTick(() => {
+                scrollToBottom();
+            });
+        }
+    }
 );
 
 const deleteMessage = async (messageId: string) => {
