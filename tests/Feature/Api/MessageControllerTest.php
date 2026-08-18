@@ -181,4 +181,3 @@ test('deleting a message removes its attachments from storage', function () {
     $this->assertDatabaseMissing('message_attachments', ['id' => $message->attachments[0]->id]);
     Storage::disk(config('filesystems.default'))->assertMissing($attachmentPath);
 });
-
