@@ -245,7 +245,7 @@ const getScrollStorageKey = (): string | null => {
 const handleScroll = () => {
     if (!messageContainer.value || isRestoringScroll) return;
     const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-    const isOverflowing = scrollHeight > clientHeight + 40;
+    const isOverflowing = scrollHeight > clientHeight + 30;
 
     if (!isOverflowing) {
         isScrolledUp.value = false;
@@ -254,13 +254,13 @@ const handleScroll = () => {
     }
 
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    const atBottom = distanceFromBottom <= 50;
+    const atBottom = distanceFromBottom <= 40;
 
     if (atBottom) {
         isScrolledUp.value = false;
         isPinnedToBottom = true;
     } else {
-        isScrolledUp.value = distanceFromBottom > 100;
+        isScrolledUp.value = distanceFromBottom > 60;
         isPinnedToBottom = false;
     }
 
@@ -268,10 +268,12 @@ const handleScroll = () => {
     if (key && typeof sessionStorage !== 'undefined') {
         if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
         scrollSaveTimeout = window.setTimeout(() => {
-            if (atBottom) {
-                sessionStorage.setItem(key, 'BOTTOM');
-            } else {
-                sessionStorage.setItem(key, String(scrollTop));
+            if (!isRestoringScroll) {
+                if (atBottom) {
+                    sessionStorage.setItem(key, 'BOTTOM');
+                } else {
+                    sessionStorage.setItem(key, String(scrollTop));
+                }
             }
         }, 150);
     }
@@ -307,37 +309,40 @@ const restoreScrollOrBottom = () => {
 
     if (saved && saved !== 'BOTTOM') {
         const savedTop = Number(saved);
-        if (!isNaN(savedTop)) {
+        if (!isNaN(savedTop) && savedTop > 0) {
             isRestoringScroll = true;
             isPinnedToBottom = false;
             messageContainer.value.scrollTop = savedTop;
             const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
             const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-            isScrolledUp.value = distanceFromBottom > 100;
+            isScrolledUp.value = distanceFromBottom > 60;
             setTimeout(() => {
                 isRestoringScroll = false;
-            }, 100);
+            }, 300);
             return;
         }
     }
 
     isPinnedToBottom = true;
+    isScrolledUp.value = false;
     scrollToBottom();
 };
 
 onMounted(() => {
+    restoreScrollOrBottom();
+
     nextTick(() => {
         restoreScrollOrBottom();
-    });
 
-    if (typeof ResizeObserver !== 'undefined' && messageContainer.value) {
-        resizeObserver = new ResizeObserver(() => {
-            if (isPinnedToBottom && !isRestoringScroll) {
-                scrollToBottom();
-            }
-        });
-        resizeObserver.observe(messageContainer.value);
-    }
+        if (typeof ResizeObserver !== 'undefined' && messageContainer.value) {
+            resizeObserver = new ResizeObserver(() => {
+                if (isPinnedToBottom && !isRestoringScroll) {
+                    scrollToBottom();
+                }
+            });
+            resizeObserver.observe(messageContainer.value);
+        }
+    });
 
     window.addEventListener('paste', handlePaste);
 });
@@ -630,11 +635,11 @@ function formatDate(dateString: string): string {
                     <button
                         v-if="isScrolledUp"
                         type="button"
-                        class="btn btn-xs btn-circle btn-primary absolute bottom-14 right-4 shadow-lg z-30 opacity-90 hover:opacity-100"
+                        class="btn btn-sm btn-circle btn-primary absolute bottom-20 right-6 shadow-2xl z-50 hover:scale-110 transition-transform"
                         title="Jump to bottom"
                         @click="scrollToBottomSmooth"
                     >
-                        <MdArrowDownward class="size-3.5" />
+                        <MdArrowDownward class="size-4" />
                     </button>
                 </Transition>
 

@@ -311,7 +311,7 @@ const getScrollStorageKey = (): string | null => {
 const handleScroll = () => {
     if (!messageContainer.value || isRestoringScroll) return;
     const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-    const isOverflowing = scrollHeight > clientHeight + 40;
+    const isOverflowing = scrollHeight > clientHeight + 30;
 
     if (!isOverflowing) {
         isScrolledUp.value = false;
@@ -320,13 +320,13 @@ const handleScroll = () => {
     }
 
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    const atBottom = distanceFromBottom <= 50;
+    const atBottom = distanceFromBottom <= 40;
 
     if (atBottom) {
         isScrolledUp.value = false;
         isPinnedToBottom = true;
     } else {
-        isScrolledUp.value = distanceFromBottom > 100;
+        isScrolledUp.value = distanceFromBottom > 60;
         isPinnedToBottom = false;
     }
 
@@ -334,10 +334,12 @@ const handleScroll = () => {
     if (key && typeof sessionStorage !== 'undefined') {
         if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
         scrollSaveTimeout = window.setTimeout(() => {
-            if (atBottom) {
-                sessionStorage.setItem(key, 'BOTTOM');
-            } else {
-                sessionStorage.setItem(key, String(scrollTop));
+            if (!isRestoringScroll) {
+                if (atBottom) {
+                    sessionStorage.setItem(key, 'BOTTOM');
+                } else {
+                    sessionStorage.setItem(key, String(scrollTop));
+                }
             }
         }, 150);
     }
@@ -360,9 +362,9 @@ const scrollToBottomSmooth = () => {
 
 const scrollToBottom = () => {
     if (messageContainer.value) {
+        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
         isPinnedToBottom = true;
         isScrolledUp.value = false;
-        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
     }
 };
 
@@ -373,37 +375,40 @@ const restoreScrollOrBottom = () => {
 
     if (saved && saved !== 'BOTTOM') {
         const savedTop = Number(saved);
-        if (!isNaN(savedTop)) {
+        if (!isNaN(savedTop) && savedTop > 0) {
             isRestoringScroll = true;
             isPinnedToBottom = false;
             messageContainer.value.scrollTop = savedTop;
             const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
             const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-            isScrolledUp.value = distanceFromBottom > 100;
+            isScrolledUp.value = distanceFromBottom > 60;
             setTimeout(() => {
                 isRestoringScroll = false;
-            }, 100);
+            }, 300);
             return;
         }
     }
 
     isPinnedToBottom = true;
+    isScrolledUp.value = false;
     scrollToBottom();
 };
 
 onMounted(() => {
+    restoreScrollOrBottom();
+
     nextTick(() => {
         restoreScrollOrBottom();
-    });
 
-    if (typeof ResizeObserver !== 'undefined' && messageContainer.value) {
-        resizeObserver = new ResizeObserver(() => {
-            if (isPinnedToBottom && !isRestoringScroll) {
-                scrollToBottom();
-            }
-        });
-        resizeObserver.observe(messageContainer.value);
-    }
+        if (typeof ResizeObserver !== 'undefined' && messageContainer.value) {
+            resizeObserver = new ResizeObserver(() => {
+                if (isPinnedToBottom && !isRestoringScroll) {
+                    scrollToBottom();
+                }
+            });
+            resizeObserver.observe(messageContainer.value);
+        }
+    });
 
     window.addEventListener('paste', handlePaste);
 });
@@ -616,20 +621,20 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     <!-- Floating Scroll to Bottom Button -->
                     <Transition
                         enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="opacity-0 translate-y-2"
-                        enter-to-class="opacity-100 translate-y-0"
+                        enter-from-class="opacity-0 translate-y-3 scale-90"
+                        enter-to-class="opacity-100 translate-y-0 scale-100"
                         leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="opacity-100 translate-y-0"
-                        leave-to-class="opacity-0 translate-y-2"
+                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                        leave-to-class="opacity-0 translate-y-3 scale-90"
                     >
                         <button
                             v-if="isScrolledUp"
                             type="button"
-                            class="btn btn-sm btn-circle btn-primary absolute bottom-16 right-6 shadow-lg z-30 opacity-90 hover:opacity-100"
+                            class="btn btn-sm btn-circle btn-primary absolute bottom-20 right-8 shadow-2xl z-50 hover:scale-110 transition-transform"
                             title="Jump to bottom"
                             @click="scrollToBottomSmooth"
                         >
-                            <MdArrowDownward class="size-4" />
+                            <MdArrowDownward class="size-5" />
                         </button>
                     </Transition>
 
