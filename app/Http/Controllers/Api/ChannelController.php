@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\ChannelType;
 use App\Events\Voices\Status;
+use App\Events\Voices\VoiceStateChanged;
 use App\Models\Channel;
 use App\Models\Server;
 use Auth;
@@ -123,7 +124,7 @@ class ChannelController
             'rolesWithServer' => $user->allRoles,
         ];
 
-        broadcast(new \App\Events\Voices\VoiceStateChanged($server->id, $channel->id, $userPayload, 'joined'))->toOthers();
+        broadcast(new VoiceStateChanged($server->id, $channel->id, $userPayload, 'joined'))->toOthers();
 
         return response()->json(['status' => 'ok']);
     }
@@ -139,7 +140,7 @@ class ChannelController
             'id' => $user->id,
         ];
 
-        broadcast(new \App\Events\Voices\VoiceStateChanged($server->id, $channel->id, $userPayload, 'left'))->toOthers();
+        broadcast(new VoiceStateChanged($server->id, $channel->id, $userPayload, 'left'))->toOthers();
 
         return response()->json(['status' => 'ok']);
     }

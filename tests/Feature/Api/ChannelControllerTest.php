@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ChannelType;
 use App\Models\Channel;
 use App\Models\Role;
 use App\Models\Server;
@@ -83,7 +84,7 @@ test('user with CAN_EDIT_CHANNEL permission can reorder channels', function () {
 test('authenticated user can join and leave voice channel broadcasting state', function () {
     $user = User::factory()->create();
     $server = Server::factory()->create();
-    $channel = Channel::factory()->create(['server_id' => $server->id, 'type' => \App\Enums\ChannelType::Voice->value]);
+    $channel = Channel::factory()->create(['server_id' => $server->id, 'type' => ChannelType::Voice->value]);
 
     $server->users()->attach($user->id);
     $this->actingAs($user);
