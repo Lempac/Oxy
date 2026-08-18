@@ -303,12 +303,14 @@ let isPinnedToBottom = true;
 let resizeObserver: ResizeObserver | null = null;
 
 const getScrollStorageKey = (): string => {
-    return `oxy_scroll_${props.selectedChannel?.id || props.selectedChannel?.slug || 'default'}`;
+    const ch = props.selectedChannel;
+    return `oxy_scroll_${ch?.id || ch?.slug || 'default'}`;
 };
 
 const handleScroll = () => {
-    if (!messageContainer.value) return;
-    const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
+    const el = messageContainer.value;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
     const maxScroll = scrollHeight - clientHeight;
 
     if (maxScroll <= 30) {
@@ -332,7 +334,7 @@ const handleScroll = () => {
     if (typeof localStorage !== 'undefined') {
         if (atBottom) {
             localStorage.setItem(key, 'BOTTOM');
-        } else {
+        } else if (!isNaN(scrollTop) && scrollTop > 0) {
             localStorage.setItem(key, String(scrollTop));
         }
     }
@@ -362,18 +364,17 @@ const scrollToBottom = () => {
 };
 
 const restoreScrollOrBottom = () => {
-    if (!messageContainer.value) return;
+    const el = messageContainer.value;
+    if (!el) return;
     const key = getScrollStorageKey();
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
 
-    if (saved && saved !== 'BOTTOM') {
-        const savedTop = Number(saved);
+    if (saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null') {
+        const savedTop = parseFloat(saved);
         if (!isNaN(savedTop) && savedTop > 0) {
             isPinnedToBottom = false;
-            messageContainer.value.scrollTop = savedTop;
-            const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-            const maxScroll = scrollHeight - clientHeight;
-            isScrolledUp.value = maxScroll - scrollTop > 50;
+            isScrolledUp.value = true;
+            el.scrollTop = savedTop;
             return;
         }
     }
@@ -388,20 +389,6 @@ onMounted(() => {
 
     nextTick(() => {
         restoreScrollOrBottom();
-
-        if (messageContainer.value instanceof Element) {
-            messageContainer.value.addEventListener('scroll', handleScroll, { passive: true });
-
-            if (typeof ResizeObserver !== 'undefined') {
-                if (resizeObserver) resizeObserver.disconnect();
-                resizeObserver = new ResizeObserver(() => {
-                    if (isPinnedToBottom && messageContainer.value) {
-                        scrollToBottom();
-                    }
-                });
-                resizeObserver.observe(messageContainer.value);
-            }
-        }
     });
 
     window.addEventListener('paste', handlePaste);
@@ -409,13 +396,6 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('paste', handlePaste);
-    if (messageContainer.value instanceof Element) {
-        messageContainer.value.removeEventListener('scroll', handleScroll);
-    }
-    if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
-    }
 });
 
 watch(
@@ -423,19 +403,6 @@ watch(
     () => {
         nextTick(() => {
             restoreScrollOrBottom();
-            if (messageContainer.value instanceof Element) {
-                messageContainer.value.removeEventListener('scroll', handleScroll);
-                messageContainer.value.addEventListener('scroll', handleScroll, { passive: true });
-                if (typeof ResizeObserver !== 'undefined') {
-                    if (resizeObserver) resizeObserver.disconnect();
-                    resizeObserver = new ResizeObserver(() => {
-                        if (isPinnedToBottom && messageContainer.value) {
-                            scrollToBottom();
-                        }
-                    });
-                    resizeObserver.observe(messageContainer.value);
-                }
-            }
         });
     }
 );
