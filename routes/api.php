@@ -34,6 +34,8 @@ Route::middleware(['web'])->group(function () {
         Route::patch('/{server}/{channel}', 'edit')->name('.edit');
         Route::delete('/{server}/{channel}', 'delete')->name('.delete');
         Route::post('/{server}/{channel}/upload', 'upload')->name('.upload');
+        Route::post('/{server}/{channel}/voice-join', 'voiceJoin')->name('.voice-join');
+        Route::post('/{server}/{channel}/voice-leave', 'voiceLeave')->name('.voice-leave');
     });
 
     Route::controller(RoleController::class)->prefix('roles')->name('roles')->group(function () {

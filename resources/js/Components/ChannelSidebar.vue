@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { Channel, ChannelType, PermType, Server, User } from '@/types';
 import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
@@ -218,6 +218,10 @@ const handleVoiceChannelClick = async (channel: Channel) => {
     await voiceState.joinChannel(channel, props.selectedServer?.id, page.props.user as any);
 };
 
+onMounted(() => {
+    voiceState.restoreSession(page.props.user as any);
+});
+
 useChannelEvents(props.selectedServer?.id, ['channels']);
 </script>
 
@@ -424,7 +428,10 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                                 @click.stop="openUserProfile(user)"
                             >
                                 <div class="flex items-center gap-2 truncate min-w-0">
-                                    <div class="avatar size-5 rounded-full overflow-hidden shrink-0">
+                                    <div
+                                        class="avatar size-5 rounded-full overflow-hidden shrink-0 transition-all"
+                                        :class="{ 'ring-2 ring-primary ring-offset-1 ring-offset-base-100 animate-pulse': voiceState.isUserSpeaking(user.id) }"
+                                    >
                                         <img :src="resolveUrl(user.icon) || defaultIcon" :alt="user.nickname" @error="(e) => (e.target as HTMLImageElement).src = defaultIcon" />
                                     </div>
                                     <span class="truncate font-medium text-base-content" :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }">

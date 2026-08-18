@@ -40,8 +40,12 @@ const previousStatusBeforeAfk = ref<string | null>(null);
 
 const peerConnections: Record<string, RTCPeerConnection> = {};
 const remoteAudioElements: Record<string, HTMLAudioElement> = {};
+const speakingUsers = ref<Record<string, boolean>>({});
 let activePresenceChannel: any = null;
 let currentUserId: string | number | null = null;
+let audioContext: any = null;
+let analyserNode: any = null;
+let speakingCheckInterval: number | null = null;
 
 const RTC_CONFIG: RTCConfiguration = {
     iceServers: [
@@ -50,6 +54,76 @@ const RTC_CONFIG: RTCConfiguration = {
         { urls: 'stun:stun2.l.google.com:19302' },
     ],
 };
+
+function startSpeakingDetection(): void {
+    if (typeof window === 'undefined' || !activeStream.value) return;
+    try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioCtx) return;
+        audioContext = new AudioCtx();
+        const source = audioContext.createMediaStreamSource(activeStream.value);
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 256;
+        source.connect(analyserNode);
+
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        let lastSpeaking = false;
+
+        speakingCheckInterval = window.setInterval(() => {
+            if (!analyserNode || isMutedExplicit.value || currentState.value === VoiceParticipantState.Muted) {
+                if (lastSpeaking && currentUserId) {
+                    lastSpeaking = false;
+                    speakingUsers.value[String(currentUserId)] = false;
+                    if (activePresenceChannel) {
+                        try {
+                            activePresenceChannel.whisper('voice-speaking', { user_id: currentUserId, speaking: false });
+                        } catch {}
+                    }
+                }
+                return;
+            }
+
+            analyserNode.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
+            }
+            const average = sum / bufferLength;
+            const isSpeakingNow = average > 18;
+
+            if (isSpeakingNow !== lastSpeaking && currentUserId) {
+                lastSpeaking = isSpeakingNow;
+                speakingUsers.value[String(currentUserId)] = isSpeakingNow;
+                if (activePresenceChannel) {
+                    try {
+                        activePresenceChannel.whisper('voice-speaking', { user_id: currentUserId, speaking: isSpeakingNow });
+                    } catch {}
+                }
+            }
+        }, 100);
+    } catch (e) {
+        console.warn('AudioContext speaking detection not initialized:', e);
+    }
+}
+
+function stopSpeakingDetection(): void {
+    if (speakingCheckInterval) {
+        clearInterval(speakingCheckInterval);
+        speakingCheckInterval = null;
+    }
+    if (audioContext) {
+        try {
+            audioContext.close();
+        } catch {}
+        audioContext = null;
+    }
+    analyserNode = null;
+    if (currentUserId) {
+        speakingUsers.value[String(currentUserId)] = false;
+    }
+}
 
 function createPeerConnection(peerId: string): RTCPeerConnection {
     if (peerConnections[peerId]) {
@@ -378,13 +452,39 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                                 (target as any).is_afk = Boolean(data.is_afk);
                             }
                         }
+                    })
+                    .listenForWhisper('voice-speaking', (data: any) => {
+                        if (data && data.user_id) {
+                            speakingUsers.value[String(data.user_id)] = Boolean(data.speaking);
+                        }
                     });
             }
 
+            if (serverId) {
+                try {
+                    await fetchJson(`/api/channel/${serverId}/${channel.id}/voice-join`, {
+                        method: 'POST',
+                    });
+                } catch {
+                    // Ignore broadcast error
+                }
+            }
+
+            if (typeof sessionStorage !== 'undefined') {
+                try {
+                    sessionStorage.setItem('oxy_active_voice_session', JSON.stringify({
+                        channel,
+                        serverId,
+                    }));
+                } catch {}
+            }
+
             transitionTo(VoiceParticipantState.Connected);
+            startSpeakingDetection();
             return true;
         } catch (error) {
             console.error('Error joining voice channel:', error);
+            stopSpeakingDetection();
             activeStream.value = null;
             mediaRecorder.value = null;
             activeChannel.value = null;
@@ -395,7 +495,9 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
     }
 
     async function leaveChannel(): Promise<boolean> {
+        stopSpeakingDetection();
         const chId = activeChannel.value?.id;
+        const sId = activeServerId.value;
         const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
 
         for (const peerId of Object.keys(peerConnections)) {
@@ -409,6 +511,21 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                 // Ignore leave error
             }
         }
+
+        if (sId && chId) {
+            try {
+                await fetchJson(`/api/channel/${sId}/${chId}/voice-leave`, {
+                    method: 'POST',
+                });
+            } catch {}
+        }
+
+        if (typeof sessionStorage !== 'undefined') {
+            try {
+                sessionStorage.removeItem('oxy_active_voice_session');
+            } catch {}
+        }
+
         activePresenceChannel = null;
         currentUserId = null;
 
@@ -514,9 +631,34 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         }
     }
 
+    function isUserSpeaking(userId: string | number): boolean {
+        return Boolean(speakingUsers.value[String(userId)]);
+    }
+
+    async function restoreSession(currentUser?: User | null) {
+        if (typeof sessionStorage === 'undefined' || isConnected.value || isJoining.value) return;
+        try {
+            const saved = sessionStorage.getItem('oxy_active_voice_session');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && parsed.channel) {
+                    await joinChannel(parsed.channel, parsed.serverId, currentUser || parsed.currentUser);
+                }
+            }
+        } catch {
+            // Ignore restore error
+        }
+    }
+
     function resetState(): void {
+        stopSpeakingDetection();
         for (const peerId of Object.keys(peerConnections)) {
             cleanupPeer(peerId);
+        }
+        if (typeof sessionStorage !== 'undefined') {
+            try {
+                sessionStorage.removeItem('oxy_active_voice_session');
+            } catch {}
         }
         activePresenceChannel = null;
         currentUserId = null;
@@ -541,6 +683,7 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         activeChannel,
         activeServerId,
         connectedUsers,
+        speakingUsers,
         isAfk,
         isDisconnected,
         isJoining,
@@ -553,6 +696,8 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         toggleAfk,
         getChannelUsers,
         setChannelUsers,
+        isUserSpeaking,
+        restoreSession,
         joinChannel,
         leaveChannel,
         toggleMute,

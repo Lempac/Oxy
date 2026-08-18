@@ -79,3 +79,20 @@ test('user with CAN_EDIT_CHANNEL permission can reorder channels', function () {
     expect($channel2->fresh()->position)->toBe(0);
     expect($channel1->fresh()->position)->toBe(1);
 });
+
+test('authenticated user can join and leave voice channel broadcasting state', function () {
+    $user = User::factory()->create();
+    $server = Server::factory()->create();
+    $channel = Channel::factory()->create(['server_id' => $server->id, 'type' => \App\Enums\ChannelType::Voice->value]);
+
+    $server->users()->attach($user->id);
+    $this->actingAs($user);
+
+    $joinResponse = $this->postJson("/api/channel/{$server->slug}/{$channel->slug}/voice-join");
+    $joinResponse->assertStatus(200);
+    $joinResponse->assertJson(['status' => 'ok']);
+
+    $leaveResponse = $this->postJson("/api/channel/{$server->slug}/{$channel->slug}/voice-leave");
+    $leaveResponse->assertStatus(200);
+    $leaveResponse->assertJson(['status' => 'ok']);
+});

@@ -49,7 +49,7 @@ useUserPresence();
         <div
             :class="[
                 isTopPinned ? 'pt-[4rem]' : 'pt-[1rem]',
-                isBottomPinned ? 'pb-[5rem]' : 'pb-[1rem]'
+                isBottomPinned ? 'pb-[5rem]' : (selectedServer ? 'pb-[2rem]' : 'pb-[0.5rem]')
             ]"
             class="flex-1 flex overflow-hidden transition-[padding] duration-300 ease-in-out w-full h-full relative"
         >
@@ -59,15 +59,15 @@ useUserPresence();
         <!-- Bottom Bar Container -->
         <footer
             v-if="selectedServer"
-            :class="(isBottomPinned || isBottomHovered) ? 'translate-y-0' : 'translate-y-[calc(100%-1rem)]'"
+            :class="(isBottomPinned || isBottomHovered) ? 'translate-y-0' : 'translate-y-[calc(100%-1.25rem)]'"
             class="fixed bottom-0 inset-x-0 z-50 transition-transform duration-300 ease-in-out"
-            @mouseenter="isBottomHovered = true"
             @mouseleave="isBottomHovered = false"
         >
             <!-- Pin Button -->
             <button
                 class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-base-300 hover:bg-base-200 rounded-t-lg px-6 py-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] cursor-pointer border border-b-0 border-base-300 text-base-content text-xs"
                 @click="isBottomPinned = !isBottomPinned"
+                @mouseenter="isBottomHovered = true"
             >
                 <HiOutlineChevronDown v-if="isBottomPinned"/>
                 <HiOutlineChevronUp v-else/>

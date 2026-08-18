@@ -102,4 +102,45 @@ class ChannelController
 
         return response()->json(['message' => 'Audio data sent successfully']);
     }
+
+    public function voiceJoin(Request $request, Server $server, Channel $channel)
+    {
+        $user = Auth::user();
+        if (! $user) {
+            abort(401);
+        }
+
+        $user->load('allRoles');
+        $userPayload = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'nickname' => $user->nickname,
+            'icon' => $user->icon,
+            'status' => $user->status?->value ?? 'online',
+            'light_theme' => $user->light_theme?->value ?? 'oxy',
+            'dark_theme' => $user->dark_theme?->value ?? 'dark',
+            'roles' => $user->allRoles,
+            'rolesWithServer' => $user->allRoles,
+        ];
+
+        broadcast(new \App\Events\Voices\VoiceStateChanged($server->id, $channel->id, $userPayload, 'joined'))->toOthers();
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function voiceLeave(Request $request, Server $server, Channel $channel)
+    {
+        $user = Auth::user();
+        if (! $user) {
+            abort(401);
+        }
+
+        $userPayload = [
+            'id' => $user->id,
+        ];
+
+        broadcast(new \App\Events\Voices\VoiceStateChanged($server->id, $channel->id, $userPayload, 'left'))->toOthers();
+
+        return response()->json(['status' => 'ok']);
+    }
 }

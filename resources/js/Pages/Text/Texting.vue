@@ -9,7 +9,7 @@ import {computed, nextTick, onMounted, onUnmounted, onUpdated, ref, watch} from 
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';
-import {MdOutlineDeleteForever, MdOutlineModeEdit, MdDragIndicator, MdOutlineFileUpload, MdClose} from 'vue-icons-plus/md';
+import {MdOutlineDeleteForever, MdOutlineModeEdit, MdDragIndicator, MdOutlineFileUpload, MdClose, MdArrowDownward} from 'vue-icons-plus/md';
 import {useMessageEvents} from "@/composables/useMessageEvents";
 import {usePaneDrag} from "@/composables/usePaneDrag";
 import {useRecentUploads} from "@/composables/useRecentUploads";
@@ -293,8 +293,29 @@ const createMessage = async () => {
     });
 };
 
+const isScrolledUp = ref(false);
+
+const handleScroll = () => {
+    if (!messageContainer.value) return;
+    const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
+    isScrolledUp.value = scrollHeight - scrollTop - clientHeight > 150;
+};
+
+const scrollToBottomSmooth = () => {
+    if (messageContainer.value) {
+        messageContainer.value.scrollTo({
+            top: messageContainer.value.scrollHeight,
+            behavior: 'smooth'
+        });
+        isScrolledUp.value = false;
+    }
+};
+
 const scrollToBottom = () => {
-    if (messageContainer.value) messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+    if (messageContainer.value) {
+        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+        isScrolledUp.value = false;
+    }
 };
 
 onMounted(() => {
@@ -415,7 +436,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Messages Stream -->
-                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10">
+                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10 relative" @scroll.passive="handleScroll">
                         <div v-if="messages && messages.length > 0" class="space-y-4">
                             <div
                                 v-for="message in messages" :key="message.id"
@@ -482,6 +503,26 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                         </div>
                     </div>
 
+                    <!-- Floating Scroll to Bottom Button -->
+                    <Transition
+                        enter-active-class="transition duration-150 ease-out"
+                        enter-from-class="opacity-0 translate-y-2"
+                        enter-to-class="opacity-100 translate-y-0"
+                        leave-active-class="transition duration-100 ease-in"
+                        leave-from-class="opacity-100 translate-y-0"
+                        leave-to-class="opacity-0 translate-y-2"
+                    >
+                        <button
+                            v-if="isScrolledUp"
+                            type="button"
+                            class="btn btn-sm btn-circle btn-primary absolute bottom-16 right-6 shadow-lg z-30 opacity-90 hover:opacity-100"
+                            title="Jump to bottom"
+                            @click="scrollToBottomSmooth"
+                        >
+                            <MdArrowDownward class="size-4" />
+                        </button>
+                    </Transition>
+
                     <!-- Validation Error Toast / Banner -->
                     <div v-if="validationError" class="px-4 py-2 bg-error/15 text-error text-xs border-t border-error/30 flex items-center justify-between">
                         <span>{{ validationError }}</span>
@@ -491,7 +532,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Staged File Previews Container (Supports Multiple Files) -->
-                    <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-1 bg-base-100 border-t border-base-300 flex flex-wrap gap-2 max-h-36 overflow-y-auto">
+                    <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-2 bg-base-100 border-t border-base-300 flex flex-wrap gap-2 max-h-36 overflow-y-auto shrink-0 z-10">
                         <FilePreviewCard
                             v-for="(file, index) in stagedFiles"
                             :key="index + file.name"
@@ -504,7 +545,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     <!-- Send Message Form -->
                     <form
                         :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
-                        class="flex items-center gap-2 p-2 bg-base-100"
+                        class="flex items-center gap-2 p-2 bg-base-100 shrink-0 z-10"
                         @submit.prevent="createMessage"
                     >
                         <RecentUploadsDropdown
