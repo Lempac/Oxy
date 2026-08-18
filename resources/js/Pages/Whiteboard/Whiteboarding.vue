@@ -238,44 +238,39 @@ let isRestoringScroll = false;
 let scrollSaveTimeout: number | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
-const getScrollStorageKey = (): string | null => {
-    return props.selectedChannel?.id ? `oxy_scroll_${props.selectedChannel.id}` : null;
+const getScrollStorageKey = (): string => {
+    return `oxy_scroll_${props.selectedChannel?.id || props.selectedChannel?.slug || 'default'}`;
 };
 
 const handleScroll = () => {
-    if (!messageContainer.value || isRestoringScroll) return;
+    if (!messageContainer.value) return;
     const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-    const isOverflowing = scrollHeight > clientHeight + 30;
+    const maxScroll = scrollHeight - clientHeight;
 
-    if (!isOverflowing) {
+    if (maxScroll <= 30) {
         isScrolledUp.value = false;
         isPinnedToBottom = true;
         return;
     }
 
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const distanceFromBottom = maxScroll - scrollTop;
     const atBottom = distanceFromBottom <= 40;
 
     if (atBottom) {
         isScrolledUp.value = false;
         isPinnedToBottom = true;
     } else {
-        isScrolledUp.value = distanceFromBottom > 60;
+        isScrolledUp.value = distanceFromBottom > 50;
         isPinnedToBottom = false;
     }
 
     const key = getScrollStorageKey();
-    if (key && typeof sessionStorage !== 'undefined') {
-        if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
-        scrollSaveTimeout = window.setTimeout(() => {
-            if (!isRestoringScroll) {
-                if (atBottom) {
-                    sessionStorage.setItem(key, 'BOTTOM');
-                } else {
-                    sessionStorage.setItem(key, String(scrollTop));
-                }
-            }
-        }, 150);
+    if (typeof localStorage !== 'undefined') {
+        if (atBottom) {
+            localStorage.setItem(key, 'BOTTOM');
+        } else {
+            localStorage.setItem(key, String(scrollTop));
+        }
     }
 };
 
@@ -288,37 +283,33 @@ const scrollToBottomSmooth = () => {
             behavior: 'smooth'
         });
         const key = getScrollStorageKey();
-        if (key && typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem(key, 'BOTTOM');
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(key, 'BOTTOM');
         }
     }
 };
 
 const scrollToBottom = () => {
     if (messageContainer.value) {
+        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
         isPinnedToBottom = true;
         isScrolledUp.value = false;
-        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
     }
 };
 
 const restoreScrollOrBottom = () => {
     if (!messageContainer.value) return;
     const key = getScrollStorageKey();
-    const saved = key && typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(key) : null;
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
 
     if (saved && saved !== 'BOTTOM') {
         const savedTop = Number(saved);
         if (!isNaN(savedTop) && savedTop > 0) {
-            isRestoringScroll = true;
             isPinnedToBottom = false;
             messageContainer.value.scrollTop = savedTop;
             const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-            const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-            isScrolledUp.value = distanceFromBottom > 60;
-            setTimeout(() => {
-                isRestoringScroll = false;
-            }, 300);
+            const maxScroll = scrollHeight - clientHeight;
+            isScrolledUp.value = maxScroll - scrollTop > 50;
             return;
         }
     }
@@ -329,17 +320,23 @@ const restoreScrollOrBottom = () => {
 };
 
 onMounted(() => {
+    restoreScrollOrBottom();
+
     nextTick(() => {
         restoreScrollOrBottom();
 
-        if (typeof ResizeObserver !== 'undefined' && messageContainer.value instanceof Element) {
-            if (resizeObserver) resizeObserver.disconnect();
-            resizeObserver = new ResizeObserver(() => {
-                if (isPinnedToBottom && !isRestoringScroll && messageContainer.value) {
-                    scrollToBottom();
-                }
-            });
-            resizeObserver.observe(messageContainer.value);
+        if (messageContainer.value instanceof Element) {
+            messageContainer.value.addEventListener('scroll', handleScroll, { passive: true });
+
+            if (typeof ResizeObserver !== 'undefined') {
+                if (resizeObserver) resizeObserver.disconnect();
+                resizeObserver = new ResizeObserver(() => {
+                    if (isPinnedToBottom && messageContainer.value) {
+                        scrollToBottom();
+                    }
+                });
+                resizeObserver.observe(messageContainer.value);
+            }
         }
     });
 
@@ -348,11 +345,13 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('paste', handlePaste);
+    if (messageContainer.value instanceof Element) {
+        messageContainer.value.removeEventListener('scroll', handleScroll);
+    }
     if (resizeObserver) {
         resizeObserver.disconnect();
         resizeObserver = null;
     }
-    if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
 });
 
 watch(
@@ -360,14 +359,18 @@ watch(
     () => {
         nextTick(() => {
             restoreScrollOrBottom();
-            if (typeof ResizeObserver !== 'undefined' && messageContainer.value instanceof Element) {
-                if (resizeObserver) resizeObserver.disconnect();
-                resizeObserver = new ResizeObserver(() => {
-                    if (isPinnedToBottom && !isRestoringScroll && messageContainer.value) {
-                        scrollToBottom();
-                    }
-                });
-                resizeObserver.observe(messageContainer.value);
+            if (messageContainer.value instanceof Element) {
+                messageContainer.value.removeEventListener('scroll', handleScroll);
+                messageContainer.value.addEventListener('scroll', handleScroll, { passive: true });
+                if (typeof ResizeObserver !== 'undefined') {
+                    if (resizeObserver) resizeObserver.disconnect();
+                    resizeObserver = new ResizeObserver(() => {
+                        if (isPinnedToBottom && messageContainer.value) {
+                            scrollToBottom();
+                        }
+                    });
+                    resizeObserver.observe(messageContainer.value);
+                }
             }
         });
     }
