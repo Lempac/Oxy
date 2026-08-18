@@ -88,8 +88,24 @@ const showValidationError = (msg: string) => {
     }, 6000);
 };
 
+const getInputElement = (): HTMLInputElement | null => {
+    if (fileInput.value) {
+        if (typeof (fileInput.value as HTMLInputElement).click === 'function') {
+            return fileInput.value as HTMLInputElement;
+        }
+        if (Array.isArray(fileInput.value) && fileInput.value[0] && typeof fileInput.value[0].click === 'function') {
+            return fileInput.value[0] as HTMLInputElement;
+        }
+    }
+    if (typeof document !== 'undefined') {
+        return document.getElementById('whiteboard-file-input') as HTMLInputElement | null;
+    }
+    return null;
+};
+
 const clearAllFiles = () => {
-    if (fileInput.value) fileInput.value.value = '';
+    const el = getInputElement();
+    if (el) el.value = '';
     stagedFiles.value = [];
     form.attachments = [];
 };
@@ -97,8 +113,9 @@ const clearAllFiles = () => {
 const removeStagedFile = (index: number) => {
     stagedFiles.value.splice(index, 1);
     form.attachments = stagedFiles.value;
-    if (fileInput.value && stagedFiles.value.length === 0) {
-        fileInput.value.value = '';
+    if (stagedFiles.value.length === 0) {
+        const el = getInputElement();
+        if (el) el.value = '';
     }
 };
 
@@ -128,7 +145,8 @@ const stageFiles = (files: File[] | FileList | File) => {
 };
 
 const triggerFileInput = () => {
-    fileInput.value?.click();
+    const el = getInputElement();
+    el?.click();
 };
 
 const onFileInputChange = (e: Event) => {
@@ -452,26 +470,27 @@ function formatDate(dateString: string): string {
                 </div>
 
                 <!-- Chat Input Form -->
-                <form
-                    :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
-                    class="flex items-center gap-2 p-2 bg-base-100"
-                    @submit.prevent="createMessage"
-                >
-                    <RecentUploadsDropdown
-                        :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
-                        @select-file="stageFiles"
-                        @open-file-picker="triggerFileInput"
-                    />
-                    <input
-                        ref="fileInput"
-                        :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
-                        autocomplete="off"
-                        class="hidden"
-                        data-bwignore="true"
-                        type="file"
-                        multiple
-                        @change="onFileInputChange"
-                    />
+                    <form
+                        :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
+                        class="flex items-center gap-2 p-2 bg-base-100"
+                        @submit.prevent="createMessage"
+                    >
+                        <RecentUploadsDropdown
+                            :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
+                            @select-file="stageFiles"
+                            @open-file-picker="triggerFileInput"
+                        />
+                        <input
+                            id="whiteboard-file-input"
+                            ref="fileInput"
+                            :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
+                            autocomplete="off"
+                            class="hidden"
+                            data-bwignore="true"
+                            type="file"
+                            multiple
+                            @change="onFileInputChange"
+                        />
 
                     <input
                         v-model="form.content"

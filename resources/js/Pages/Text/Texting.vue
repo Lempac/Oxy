@@ -94,8 +94,24 @@ const showValidationError = (msg: string) => {
     }, 6000);
 };
 
+const getInputElement = (): HTMLInputElement | null => {
+    if (fileInput.value) {
+        if (typeof (fileInput.value as HTMLInputElement).click === 'function') {
+            return fileInput.value as HTMLInputElement;
+        }
+        if (Array.isArray(fileInput.value) && fileInput.value[0] && typeof fileInput.value[0].click === 'function') {
+            return fileInput.value[0] as HTMLInputElement;
+        }
+    }
+    if (typeof document !== 'undefined') {
+        return document.getElementById('message-file-input') as HTMLInputElement | null;
+    }
+    return null;
+};
+
 const clearAllFiles = () => {
-    if (fileInput.value) fileInput.value.value = '';
+    const el = getInputElement();
+    if (el) el.value = '';
     stagedFiles.value = [];
     form.attachments = [];
 };
@@ -103,8 +119,9 @@ const clearAllFiles = () => {
 const removeStagedFile = (index: number) => {
     stagedFiles.value.splice(index, 1);
     form.attachments = stagedFiles.value;
-    if (fileInput.value && stagedFiles.value.length === 0) {
-        fileInput.value.value = '';
+    if (stagedFiles.value.length === 0) {
+        const el = getInputElement();
+        if (el) el.value = '';
     }
 };
 
@@ -134,7 +151,8 @@ const stageFiles = (files: File[] | FileList | File) => {
 };
 
 const triggerFileInput = () => {
-    fileInput.value?.click();
+    const el = getInputElement();
+    el?.click();
 };
 
 const onFileInputChange = (e: Event) => {
@@ -492,6 +510,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                             @open-file-picker="triggerFileInput"
                         />
                         <input
+                            id="message-file-input"
                             ref="fileInput"
                             :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
                             autocomplete="off"
