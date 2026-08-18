@@ -527,7 +527,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Messages Stream -->
-                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10 relative" @scroll.passive="handleScroll">
+                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10 relative" @scroll="handleScroll">
                         <div v-if="messages && messages.length > 0" class="space-y-4">
                             <div
                                 v-for="message in messages" :key="message.id"

@@ -543,7 +543,7 @@ function formatDate(dateString: string): string {
                 </div>
 
                 <!-- Messages Stream -->
-                <div ref="messageContainer" class="overflow-y-auto grow p-3 space-y-2 pb-10 relative" @scroll.passive="handleScroll">
+                <div ref="messageContainer" class="overflow-y-auto grow p-3 space-y-2 pb-10 relative" @scroll="handleScroll">
                     <div v-if="messages && messages.length > 0">
                         <div
                             v-for="message in messages" :key="message.id"
