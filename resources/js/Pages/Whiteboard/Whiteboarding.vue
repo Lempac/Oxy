@@ -233,49 +233,70 @@ const onChatDragLeave = (e: DragEvent) => {
 
 const messageContainer = ref<HTMLDivElement | null>(null);
 const isScrolledUp = ref(false);
+let isPinnedToBottom = true;
+let isRestoringScroll = false;
 let scrollSaveTimeout: number | null = null;
+let resizeObserver: ResizeObserver | null = null;
 
 const getScrollStorageKey = (): string | null => {
     return props.selectedChannel?.id ? `oxy_scroll_${props.selectedChannel.id}` : null;
 };
 
 const handleScroll = () => {
-    if (!messageContainer.value) return;
+    if (!messageContainer.value || isRestoringScroll) return;
     const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-    const atBottom = scrollHeight - scrollTop - clientHeight < 50;
-    isScrolledUp.value = !atBottom;
+    const isOverflowing = scrollHeight > clientHeight + 40;
+
+    if (!isOverflowing) {
+        isScrolledUp.value = false;
+        isPinnedToBottom = true;
+        return;
+    }
+
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const atBottom = distanceFromBottom <= 50;
+
+    if (atBottom) {
+        isScrolledUp.value = false;
+        isPinnedToBottom = true;
+    } else {
+        isScrolledUp.value = distanceFromBottom > 100;
+        isPinnedToBottom = false;
+    }
 
     const key = getScrollStorageKey();
     if (key && typeof sessionStorage !== 'undefined') {
-        if (atBottom) {
-            sessionStorage.removeItem(key);
-        } else {
-            if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
-            scrollSaveTimeout = window.setTimeout(() => {
+        if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
+        scrollSaveTimeout = window.setTimeout(() => {
+            if (atBottom) {
+                sessionStorage.setItem(key, 'BOTTOM');
+            } else {
                 sessionStorage.setItem(key, String(scrollTop));
-            }, 100);
-        }
+            }
+        }, 150);
     }
 };
 
 const scrollToBottomSmooth = () => {
     if (messageContainer.value) {
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
         messageContainer.value.scrollTo({
             top: messageContainer.value.scrollHeight,
             behavior: 'smooth'
         });
-        isScrolledUp.value = false;
         const key = getScrollStorageKey();
         if (key && typeof sessionStorage !== 'undefined') {
-            sessionStorage.removeItem(key);
+            sessionStorage.setItem(key, 'BOTTOM');
         }
     }
 };
 
 const scrollToBottom = () => {
     if (messageContainer.value) {
-        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+        isPinnedToBottom = true;
         isScrolledUp.value = false;
+        messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
     }
 };
 
@@ -283,15 +304,24 @@ const restoreScrollOrBottom = () => {
     if (!messageContainer.value) return;
     const key = getScrollStorageKey();
     const saved = key && typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(key) : null;
-    if (saved !== null) {
+
+    if (saved && saved !== 'BOTTOM') {
         const savedTop = Number(saved);
         if (!isNaN(savedTop)) {
+            isRestoringScroll = true;
+            isPinnedToBottom = false;
             messageContainer.value.scrollTop = savedTop;
             const { scrollTop, scrollHeight, clientHeight } = messageContainer.value;
-            isScrolledUp.value = scrollHeight - scrollTop - clientHeight > 50;
+            const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+            isScrolledUp.value = distanceFromBottom > 100;
+            setTimeout(() => {
+                isRestoringScroll = false;
+            }, 100);
             return;
         }
     }
+
+    isPinnedToBottom = true;
     scrollToBottom();
 };
 
@@ -299,11 +329,25 @@ onMounted(() => {
     nextTick(() => {
         restoreScrollOrBottom();
     });
+
+    if (typeof ResizeObserver !== 'undefined' && messageContainer.value) {
+        resizeObserver = new ResizeObserver(() => {
+            if (isPinnedToBottom && !isRestoringScroll) {
+                scrollToBottom();
+            }
+        });
+        resizeObserver.observe(messageContainer.value);
+    }
+
     window.addEventListener('paste', handlePaste);
 });
 
 onUnmounted(() => {
     window.removeEventListener('paste', handlePaste);
+    if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
+    }
     if (scrollSaveTimeout) clearTimeout(scrollSaveTimeout);
 });
 
@@ -313,6 +357,29 @@ watch(
         nextTick(() => {
             restoreScrollOrBottom();
         });
+    }
+);
+
+watch(
+    () => props.messages,
+    () => {
+        if (isPinnedToBottom) {
+            nextTick(() => {
+                scrollToBottom();
+            });
+        }
+    },
+    { deep: true }
+);
+
+watch(
+    () => stagedFiles.value.length,
+    () => {
+        if (isPinnedToBottom) {
+            nextTick(() => {
+                scrollToBottom();
+            });
+        }
     }
 );
 
