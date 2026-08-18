@@ -307,8 +307,12 @@ const getScrollStorageKey = (): string => {
     return `oxy_scroll_${ch?.id || ch?.slug || 'default'}`;
 };
 
+const getMessagesContainer = (): HTMLElement | null => {
+    return (messageContainer.value as HTMLElement | null) || (document.querySelector('div.overflow-y-auto.grow') as HTMLElement | null);
+};
+
 const handleScroll = (e?: Event) => {
-    const el = (e?.target as HTMLElement) || messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
+    const el = (e?.target as HTMLElement) || getMessagesContainer();
     if (!el) return;
     const { scrollTop, scrollHeight, clientHeight } = el;
     const maxScroll = scrollHeight - clientHeight;
@@ -341,7 +345,7 @@ const handleScroll = (e?: Event) => {
 };
 
 const scrollToBottomSmooth = () => {
-    const el = messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
+    const el = getMessagesContainer();
     if (el) {
         isPinnedToBottom = true;
         isScrolledUp.value = false;
@@ -357,7 +361,7 @@ const scrollToBottomSmooth = () => {
 };
 
 const scrollToBottom = () => {
-    const el = messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
+    const el = getMessagesContainer();
     if (el) {
         el.scrollTop = el.scrollHeight;
         isPinnedToBottom = true;
@@ -366,7 +370,7 @@ const scrollToBottom = () => {
 };
 
 const restoreScrollOrBottom = () => {
-    const el = messageContainer.value || (document.querySelector('div[class*="overflow-y-auto"]') as HTMLElement);
+    const el = getMessagesContainer();
     if (!el) return;
     const key = getScrollStorageKey();
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
