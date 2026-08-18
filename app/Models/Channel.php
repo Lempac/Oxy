@@ -67,8 +67,8 @@ class Channel extends Model
         }
 
         return $this->where(function ($query) use ($value) {
-                $query->where('slug', $value)->orWhere('id', $value);
-            })
+            $query->where('slug', $value)->orWhere('id', $value);
+        })
             ->when($serverId, function ($query, $serverId) {
                 return $query->where('server_id', $serverId);
             })
