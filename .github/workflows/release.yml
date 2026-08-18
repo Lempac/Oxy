@@ -120,9 +120,11 @@ jobs:
           REPO_LOWER=$(echo "${GH_REPO}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO_LOWER}"
           TAG="${INPUT_TAG:-$REF_NAME}"
-          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "full_image=${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "image=${IMAGE}"
+            echo "tag=${TAG}"
+            echo "full_image=${IMAGE}:${TAG}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Docker metadata
         id: meta

@@ -143,7 +143,7 @@ jobs:
     name: Deploy Preview
     needs: [test]
     if: |
-      !cancelled() && !failed() &&
+      !cancelled() && !failure() &&
       needs.test.result == 'success' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.state == 'open' &&
@@ -185,9 +185,11 @@ jobs:
           REPO_LOWER=$(echo "${GH_REPO}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO_LOWER}"
           TAG="pr-${PR_NUMBER}"
-          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "full_image=${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "image=${IMAGE}"
+            echo "tag=${TAG}"
+            echo "full_image=${IMAGE}:${TAG}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
