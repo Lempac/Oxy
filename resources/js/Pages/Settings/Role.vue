@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, bigIntToPerms, defaultIcon, fetchJson, usePerms} from '@/bootstrap';
+import {bigIntToPerms, defaultIcon, fetchJson, resolveUrl, usePerms} from '@/bootstrap';
 import {server} from '@/routes/home';
 import {create, deleteMethod, edit, index} from '@/routes/roles';
 import {computed, ref} from 'vue';
@@ -432,7 +432,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                                                 <img
                                                     v-if="$page.props.user?.icon"
                                                     :alt="$page.props.user?.nickname || 'User'"
-                                                    :src="`${baseUrl}${$page.props.user.icon}`"/>
+                                                    :src="resolveUrl($page.props.user.icon)"/>
                                                 <img v-else :src="defaultIcon" alt="User"/>
                                             </div>
                                         </div>
@@ -565,7 +565,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                                 <div class="w-8 h-8 rounded-full bg-base-300">
                                     <img
                                         v-if="$page.props.user?.icon" :alt="$page.props.user?.nickname || 'User'"
-                                        :src="`${baseUrl}${$page.props.user.icon}`"/>
+                                        :src="resolveUrl($page.props.user.icon)"/>
                                     <img v-else :src="defaultIcon" alt="User"/>
                                 </div>
                             </div>

@@ -1,12 +1,20 @@
 import {addUser} from '@/routes/server';
 import './echo';
 import {router, usePage} from "@inertiajs/vue3";
-import {Perms, Role, Server} from "@/types";
+import {Perms, Role, Server, User} from "@/types";
 import {computed} from 'vue';
 
 export const defaultIcon = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s";
 
 export const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
+export const resolveUrl = (pathOrUrl?: string | null): string => {
+    if (!pathOrUrl) return '';
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://') || pathOrUrl.startsWith('blob:') || pathOrUrl.startsWith('data:')) {
+        return pathOrUrl;
+    }
+    return `${baseUrl}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}`;
+};
 
 export const bigIntToPerms = (newPrem: string[]): Perms => ({
     perms: [...newPrem],

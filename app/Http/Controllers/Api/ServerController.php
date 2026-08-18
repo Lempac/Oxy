@@ -32,7 +32,7 @@ class ServerController extends Controller
                 return back()->withErrors(['icon' => 'The image must not exceed 1920x1080 pixels.']);
             }
 
-            $path = $request->file('icon')->store('uploads', 'public');
+            $path = $request->file('icon')->store('uploads', config('filesystems.default'));
         }
 
         $server = Server::create([
@@ -138,7 +138,7 @@ class ServerController extends Controller
                 return back()->withErrors(['icon' => 'The image must not exceed 1920x1080 pixels.']);
             }
 
-            $path = $request->file('icon')->store('uploads', 'public');
+            $path = $request->file('icon')->store('uploads', config('filesystems.default'));
             $server->icon = Storage::url($path);
         }
 
@@ -225,7 +225,7 @@ class ServerController extends Controller
                 return response()->json(['errors' => ['icon' => ['The image must not exceed 1920x1080 pixels.']], 'message' => 'The image must not exceed 1920x1080 pixels.'], 422);
             }
 
-            $path = $request->file('icon')->store('uploads', 'public');
+            $path = $request->file('icon')->store('uploads', config('filesystems.default'));
             $server->icon = Storage::url($path);
         }
 

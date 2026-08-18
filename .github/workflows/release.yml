@@ -120,9 +120,11 @@ jobs:
           REPO_LOWER=$(echo "${GH_REPO}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO_LOWER}"
           TAG="${INPUT_TAG:-$REF_NAME}"
-          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "full_image=${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "image=${IMAGE}"
+            echo "tag=${TAG}"
+            echo "full_image=${IMAGE}:${TAG}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Docker metadata
         id: meta
@@ -169,6 +171,23 @@ jobs:
           tar -xzf uc_linux_amd64.tar.gz
           sudo install -m 755 uc /usr/local/bin/uc
           rm -f uc uc_linux_amd64.tar.gz checksums.txt
+
+      - name: Ensure Production S3 Bucket Exists
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_BUCKET: ${{ vars.AWS_BUCKET || 'oxy' }}
+        run: |
+          if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+            aws s3api create-bucket \
+              --bucket "${AWS_BUCKET}" \
+              --endpoint-url "https://void.lempac.dev" || true
+            aws s3api put-bucket-policy \
+              --bucket "${AWS_BUCKET}" \
+              --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::${AWS_BUCKET}/*\"]}]}" \
+              --endpoint-url "https://void.lempac.dev" || true
+          fi
 
       - name: Deploy Production to Uncloud
         env:

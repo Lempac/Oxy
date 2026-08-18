@@ -5,7 +5,7 @@ import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {router, useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import {baseUrl} from "@/bootstrap";
+import {baseUrl, resolveUrl} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import { PermType, Server } from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';
@@ -20,7 +20,7 @@ const {selectedServer, inviteCode} = defineProps<{
     inviteCode?: string,
 }>();
 
-const icon = ref<string | null>(selectedServer?.icon ? baseUrl + selectedServer?.icon : null);
+const icon = ref<string | null>(selectedServer?.icon ? resolveUrl(selectedServer?.icon) : null);
 const inputFile = ref<File | null>(null);
 const isEditorOpen = ref(false);
 const editorImageSource = ref<File | null>(null);

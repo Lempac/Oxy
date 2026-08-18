@@ -28,10 +28,18 @@ services:
       SESSION_LIFETIME: "120"
       SESSION_ENCRYPT: "false"
       BROADCAST_CONNECTION: reverb
-      FILESYSTEM_DISK: local
+      FILESYSTEM_DISK: s3
       QUEUE_CONNECTION: database
       CACHE_STORE: database
       OCTANE_SERVER: frankenphp
+      # S3 / RustFS Object Storage (Console: admin-void.lempac.dev, Endpoint: *.void.lempac.dev)
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+      AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION:-us-east-1}"
+      AWS_BUCKET: "${AWS_BUCKET}"
+      AWS_ENDPOINT: "https://void.lempac.dev"
+      AWS_USE_PATH_STYLE_ENDPOINT: "false"
+      AWS_URL: "https://${AWS_BUCKET}.void.lempac.dev"
       # Reverb Config
       REVERB_APP_ID: "${REVERB_APP_ID:-470744}"
       REVERB_APP_KEY: "${REVERB_APP_KEY:-oxy-preview-key}"
@@ -53,7 +61,6 @@ services:
       OXY_YJS_DOMAIN: "pr-${PR_NUMBER}-yjs.${OXY_BASE_DOMAIN}"
     volumes:
       - oxy-database-pr-${PR_NUMBER}:/var/www/database
-      - oxy-storage-pr-${PR_NUMBER}:/var/www/storage/app
     deploy:
       resources:
         limits:
@@ -86,4 +93,3 @@ services:
 
 volumes:
   oxy-database-pr-${PR_NUMBER}:
-  oxy-storage-pr-${PR_NUMBER}:

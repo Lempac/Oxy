@@ -86,7 +86,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, zip, pcntl
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, zip, pcntl, gd
           coverage: none
           tools: composer:v2
 
@@ -143,10 +143,11 @@ jobs:
     name: Deploy Preview
     needs: [test]
     if: |
+      !cancelled() && !failure() &&
+      needs.test.result == 'success' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.state == 'open' &&
-      contains(github.event.pull_request.labels.*.name, 'preview') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'preview') &&
+      (github.event.label.name == 'preview' || contains(toJSON(github.event.pull_request.labels), 'preview')) &&
       github.event.action != 'unlabeled' &&
       github.event.action != 'closed'
     runs-on: ubuntu-latest
@@ -184,9 +185,11 @@ jobs:
           REPO_LOWER=$(echo "${GH_REPO}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO_LOWER}"
           TAG="pr-${PR_NUMBER}"
-          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "full_image=${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "image=${IMAGE}"
+            echo "tag=${TAG}"
+            echo "full_image=${IMAGE}:${TAG}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -220,14 +223,34 @@ jobs:
           sudo install -m 755 uc /usr/local/bin/uc
           rm -f uc uc_linux_amd64.tar.gz checksums.txt
 
+      - name: Ensure Preview S3 Bucket Exists
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_BUCKET: ${{ vars.AWS_BUCKET_PREVIEW || vars.AWS_BUCKET || secrets.AWS_BUCKET || format('oxy-pr-{0}', github.event.pull_request.number) }}
+        run: |
+          if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+            aws s3api create-bucket \
+              --bucket "${AWS_BUCKET}" \
+              --endpoint-url "https://void.lempac.dev" || true
+            aws s3api put-bucket-policy \
+              --bucket "${AWS_BUCKET}" \
+              --policy "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":\"*\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::${AWS_BUCKET}/*\"]}]}" \
+              --endpoint-url "https://void.lempac.dev" || true
+          fi
+
       - name: Render Preview Compose File
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           OXY_IMAGE: ${{ steps.image-meta.outputs.full_image }}
           OXY_BASE_DOMAIN: ${{ vars.OXY_BASE_DOMAIN || 'oxy.lempac.dev' }}
           APP_KEY: ${{ secrets.PREVIEW_APP_KEY || 'base64:6nyWaSCYTO9JxQAPNAFiatnfO350PhSU/F1p56U6QuM=' }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_BUCKET: ${{ vars.AWS_BUCKET_PREVIEW || vars.AWS_BUCKET || secrets.AWS_BUCKET || format('oxy-pr-{0}', github.event.pull_request.number) }}
         run: |
-          export PR_NUMBER OXY_IMAGE OXY_BASE_DOMAIN APP_KEY
+          export PR_NUMBER OXY_IMAGE OXY_BASE_DOMAIN APP_KEY AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_BUCKET
           envsubst < compose.preview.yaml > compose.preview.rendered.yaml
 
       - name: Deploy Preview to Uncloud
@@ -385,6 +408,17 @@ jobs:
         run: |
           uc rm "oxy-app-pr-${PR_NUMBER}" "oxy-yjs-pr-${PR_NUMBER}" --connect "${UNCLOUD_CONNECT}" || true
           uc volume rm "oxy-database-pr-${PR_NUMBER}" "oxy-storage-pr-${PR_NUMBER}" -y --connect "${UNCLOUD_CONNECT}" || true
+
+      - name: Delete Preview S3 Bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_BUCKET: ${{ vars.AWS_BUCKET_PREVIEW || vars.AWS_BUCKET || secrets.AWS_BUCKET || format('oxy-pr-{0}', github.event.pull_request.number) }}
+        run: |
+          if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+            aws s3 rb "s3://${AWS_BUCKET}" --force --endpoint-url "https://void.lempac.dev" || true
+          fi
 
       - name: Update PR Comment (Torn Down)
         uses: actions/github-script@v7

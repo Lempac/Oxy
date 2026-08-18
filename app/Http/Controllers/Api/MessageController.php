@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\Messages\MessageCreated;
 use App\Models\Channel;
 use App\Models\Message;
 use App\Models\Server;
@@ -89,7 +90,12 @@ class MessageController
                 }
             }
 
-            $path = $file->store('uploads', 'public');
+            $path = $file->store('uploads', config('filesystems.default'));
+            if (! $path) {
+                throw ValidationException::withMessages([
+                    'attachments' => "Failed to upload file '{$originalName}' to storage.",
+                ]);
+            }
 
             $attachmentDataList[] = [
                 'filename' => $originalName,
@@ -108,15 +114,20 @@ class MessageController
         }
 
         DB::transaction(function () use ($content, $channel, $user, $attachmentDataList) {
-            $message = Message::create([
-                'content' => $content ?: null,
-                'channel_id' => $channel->id,
-                'user_id' => $user->id,
-            ]);
+            $message = Message::withoutEvents(function () use ($content, $channel, $user) {
+                return Message::create([
+                    'content' => $content ?: null,
+                    'channel_id' => $channel->id,
+                    'user_id' => $user->id,
+                ]);
+            });
 
             foreach ($attachmentDataList as $attachmentData) {
                 $message->attachments()->create($attachmentData);
             }
+
+            $message->load('attachments');
+            event(new MessageCreated($message));
         });
 
         return back()->with('message', 'Message created');
