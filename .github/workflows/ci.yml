@@ -143,10 +143,11 @@ jobs:
     name: Deploy Preview
     needs: [test]
     if: |
+      !cancelled() && !failed() &&
+      needs.test.result == 'success' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.state == 'open' &&
-      contains(github.event.pull_request.labels.*.name, 'preview') &&
-      (github.event.action != 'labeled' || github.event.label.name == 'preview') &&
+      (github.event.label.name == 'preview' || contains(toJSON(github.event.pull_request.labels), 'preview')) &&
       github.event.action != 'unlabeled' &&
       github.event.action != 'closed'
     runs-on: ubuntu-latest
