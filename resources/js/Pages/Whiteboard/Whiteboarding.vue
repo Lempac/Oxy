@@ -5,7 +5,7 @@ import {Channel, Message, PermType, Server, Whiteboard} from "@/types";
 import WhiteboardBoard from "./WhiteboardBoard.vue";
 import {computed, onMounted, onUnmounted, ref} from "vue";
 import {router, useForm} from "@inertiajs/vue3";
-import {baseUrl, defaultIcon, getMemberRoleColor, usePerms} from "@/bootstrap";
+import {baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from "@/bootstrap";
 import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';
 import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator, MdClose} from 'vue-icons-plus/md';
@@ -231,13 +231,32 @@ const onChatDragLeave = (e: DragEvent) => {
     onDragLeave(e);
 };
 
+const messageContainer = ref<HTMLDivElement | null>(null);
+
+const scrollToBottom = () => {
+    if (messageContainer.value) messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+};
+
 onMounted(() => {
+    scrollToBottom();
     window.addEventListener('paste', handlePaste);
 });
 
 onUnmounted(() => {
     window.removeEventListener('paste', handlePaste);
 });
+
+onUpdated(() => nextTick(() => scrollToBottom()));
+
+watch(
+    [() => props.messages, () => stagedFiles.value.length],
+    () => {
+        nextTick(() => {
+            scrollToBottom();
+        });
+    },
+    { deep: true }
+);
 
 const openImageEditor = (file: File, index: number) => {
     editingFileIndex.value = index;
@@ -393,7 +412,7 @@ function formatDate(dateString: string): string {
                 </div>
 
                 <!-- Messages Stream -->
-                <div class="overflow-y-auto grow p-3 space-y-2">
+                <div ref="messageContainer" class="overflow-y-auto grow p-3 space-y-2 pb-10">
                     <div v-if="messages && messages.length > 0">
                         <div
                             v-for="message in messages" :key="message.id"
@@ -401,7 +420,7 @@ function formatDate(dateString: string): string {
                         >
                             <div class="chat-image avatar">
                                 <div class="w-8 rounded-full">
-                                    <img :src="message.sender?.icon ? baseUrl + message.sender.icon : defaultIcon" alt="User Avatar"/>
+                                    <img :src="resolveUrl(message.sender?.icon) || defaultIcon" @error="(e) => (e.target as HTMLImageElement).src = defaultIcon" alt="User Avatar"/>
                                 </div>
                             </div>
                             <div class="chat-header text-xs">

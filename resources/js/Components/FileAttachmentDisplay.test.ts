@@ -125,7 +125,7 @@ describe('FileAttachmentDisplay', () => {
         const video = wrapper.find('video');
         expect(video.exists()).toBe(true);
 
-        const fullscreenBtn = wrapper.find('button[title="Fullscreen"]');
+        const fullscreenBtn = wrapper.find('button[title="Fullscreen Lightbox"]');
         expect(fullscreenBtn.exists()).toBe(true);
         await fullscreenBtn.trigger('click');
 

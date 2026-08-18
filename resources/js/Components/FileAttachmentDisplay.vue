@@ -167,24 +167,27 @@ const fileIconColorClass = computed(() => {
     <!-- Video Attachment -->
     <div
         v-else-if="isVideo"
-        class="relative group/media my-1 max-w-sm rounded-xl overflow-hidden border border-base-content/10 shadow-sm bg-base-300/40"
+        class="my-1 max-w-sm rounded-xl overflow-hidden border border-base-content/10 shadow-sm bg-base-300/60 hover:bg-base-300/90 p-2.5 space-y-2 transition-colors group/media"
     >
-        <video
-            :src="resolvedUrl"
-            controls
-            preload="metadata"
-            class="max-w-full max-h-72 object-contain rounded-xl block bg-black/40"
-        />
-        <!-- Video Hover Overlay with Action Buttons at Bottom -->
-        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover/media:opacity-100 transition-opacity flex items-center justify-between p-2.5 pt-6 pointer-events-none">
-            <span class="text-white text-xs font-medium truncate max-w-[150px]" :title="attachment.filename">
-                {{ attachment.filename }}
-            </span>
-            <div class="flex items-center gap-1.5 shrink-0 pointer-events-auto">
+        <div class="flex items-center justify-between gap-2 px-0.5">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="size-7 rounded-lg bg-base-100/70 flex items-center justify-center shrink-0">
+                    <FaFileVideo class="size-4 text-secondary" />
+                </div>
+                <div class="min-w-0">
+                    <span class="text-xs font-medium text-base-content truncate block max-w-[170px]" :title="attachment.filename">
+                        {{ attachment.filename }}
+                    </span>
+                    <span class="text-[10px] text-base-content/60 font-mono block">
+                        {{ formatFileSize(attachment.size) }}
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
                 <button
                     type="button"
-                    class="btn btn-xs btn-circle btn-ghost text-white hover:bg-white/20"
-                    title="Fullscreen"
+                    class="btn btn-xs btn-circle btn-ghost text-base-content/70 hover:btn-primary hover:text-primary-content transition-colors"
+                    title="Fullscreen Lightbox"
                     @click.stop="openFullscreen"
                 >
                     <MdFullscreen class="size-4" />
@@ -193,21 +196,27 @@ const fileIconColorClass = computed(() => {
                     :href="resolvedUrl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="btn btn-xs btn-circle btn-ghost text-white hover:bg-white/20"
-                    title="Open full size in new tab"
+                    class="btn btn-xs btn-circle btn-ghost text-base-content/70 hover:btn-primary hover:text-primary-content transition-colors"
+                    title="Open in new tab"
                 >
                     <MdOutlineOpenInNew class="size-4" />
                 </a>
                 <a
                     :href="resolvedUrl"
                     :download="attachment.filename"
-                    class="btn btn-xs btn-circle btn-primary shadow"
+                    class="btn btn-xs btn-circle btn-ghost text-base-content/70 hover:btn-primary hover:text-primary-content transition-colors"
                     :title="`Download ${attachment.filename}`"
                 >
-                    <MdOutlineFileDownload class="size-4 text-primary-content" />
+                    <MdOutlineFileDownload class="size-4" />
                 </a>
             </div>
         </div>
+        <video
+            :src="resolvedUrl"
+            controls
+            preload="metadata"
+            class="max-w-full max-h-72 object-contain rounded-lg block bg-black/40 w-full"
+        />
     </div>
 
     <!-- Audio Attachment -->

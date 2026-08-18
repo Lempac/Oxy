@@ -10,6 +10,7 @@ import SettingsHeader from "@/Components/SettingsHeader.vue";
 import { PermType, Server } from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';
 import { BsCheckLg } from 'vue-icons-plus/bs';
+import { MdLink } from 'vue-icons-plus/md';
 import { server } from '@/routes/home';
 import { Link } from '@inertiajs/vue3';
 import ImageEditorModal from '@/Components/ImageEditorModal.vue';
@@ -78,15 +79,30 @@ function deleteServer() {
     });
 }
 
-const copyText = ref('Copy');
+const copyCodeStatus = ref<Record<string, boolean>>({});
+const copyLinkStatus = ref<Record<string, boolean>>({});
 
-const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    copyText.value = 'Copied!';
+const getInviteLink = (code: string) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}/?invite=${encodeURIComponent(code)}`;
+};
+
+const copyCodeToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code);
+    copyCodeStatus.value[code] = true;
     setTimeout(() => {
-        copyText.value = 'Copy';
+        delete copyCodeStatus.value[code];
     }, 2000);
-}
+};
+
+const copyLinkToClipboard = (code: string) => {
+    const link = getInviteLink(code);
+    navigator.clipboard.writeText(link);
+    copyLinkStatus.value[code] = true;
+    setTimeout(() => {
+        delete copyLinkStatus.value[code];
+    }, 2000);
+};
 
 const createdInviteCode = ref<string | null>(null);
 
@@ -287,32 +303,38 @@ const generateInvite = async () => {
                         <div class="card-body">
                             <h2 class="card-title text-xl border-b border-base-300 pb-2 mb-4 text-base-content">Invite Code</h2>
                             <div class="space-y-4">
-                                <div v-if="inviteCode" class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-base-300">
+                                <div v-if="inviteCode" class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-base-100 p-4 rounded-xl border border-base-300">
                                     <div>
-                                        <span class="font-semibold text-base-content">Server Invite Code</span>
-                                        <p class="text-sm text-base-content/70 mt-1">Share this code with others so they can join.</p>
+                                        <span class="font-semibold text-base-content">Server Invite Code & Link</span>
+                                        <p class="text-sm text-base-content/70 mt-1">Share this code or link with others so they can join.</p>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider">{{ inviteCode }}</span>
-                                        <div class="tooltip tooltip-top" :data-tip="copyText">
-                                            <button class="btn btn-square btn-ghost" @click="copyToClipboard(inviteCode)">
-                                                <HiClipboardCopy class="w-5 h-5" />
-                                            </button>
-                                        </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider text-xs select-all">{{ inviteCode }}</span>
+                                        <button class="btn btn-sm btn-ghost gap-1.5" @click="copyCodeToClipboard(inviteCode)">
+                                            <HiClipboardCopy class="w-4 h-4" />
+                                            <span class="text-xs">{{ copyCodeStatus[inviteCode] ? 'Copied Code' : 'Copy Code' }}</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary gap-1.5" @click="copyLinkToClipboard(inviteCode)">
+                                            <MdLink class="w-4 h-4" />
+                                            <span class="text-xs">{{ copyLinkStatus[inviteCode] ? 'Link Copied!' : 'Copy Link' }}</span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div v-if="createdInviteCode" class="flex justify-between items-center bg-base-100 p-4 rounded-xl border border-primary/30">
+                                <div v-if="createdInviteCode" class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-base-100 p-4 rounded-xl border border-primary/30">
                                     <div>
-                                        <span class="font-semibold text-base-content">Generated Invite Code</span>
+                                        <span class="font-semibold text-base-content">Generated Invite Code & Link</span>
                                         <p class="text-sm text-base-content/70 mt-1">A new invite code has been generated.</p>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider">{{ createdInviteCode }}</span>
-                                        <div class="tooltip tooltip-top" :data-tip="copyText">
-                                            <button class="btn btn-square btn-ghost" @click="copyToClipboard(createdInviteCode)">
-                                                <HiClipboardCopy class="w-5 h-5" />
-                                            </button>
-                                        </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="font-mono bg-base-200 p-2 px-3 rounded-lg border border-base-300 font-bold tracking-wider text-xs select-all">{{ createdInviteCode }}</span>
+                                        <button class="btn btn-sm btn-ghost gap-1.5" @click="copyCodeToClipboard(createdInviteCode)">
+                                            <HiClipboardCopy class="w-4 h-4" />
+                                            <span class="text-xs">{{ copyCodeStatus[createdInviteCode] ? 'Copied Code' : 'Copy Code' }}</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary gap-1.5" @click="copyLinkToClipboard(createdInviteCode)">
+                                            <MdLink class="w-4 h-4" />
+                                            <span class="text-xs">{{ copyLinkStatus[createdInviteCode] ? 'Link Copied!' : 'Copy Link' }}</span>
+                                        </button>
                                     </div>
                                 </div>
                                 <button

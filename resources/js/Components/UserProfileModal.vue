@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
-import { baseUrl, defaultIcon, getMemberRoleColor, usePerms } from '@/bootstrap';
+import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
 import { PermType, Role, Server, User } from '@/types';
 import {
     HiCalendar,
@@ -329,7 +329,8 @@ const saveAboutMe = () => {
                                         <div class="w-20 rounded-full ring-4 ring-base-100 shadow-md bg-base-200">
                                             <img
                                                 :alt="localUser.nickname"
-                                                :src="localUser.icon ? `${baseUrl}${localUser.icon}` : defaultIcon"
+                                                :src="resolveUrl(localUser.icon) || defaultIcon"
+                                                @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
                                             />
                                         </div>
                                     </div>
@@ -480,7 +481,7 @@ const saveAboutMe = () => {
                                 >
                                     <div class="avatar">
                                         <div class="w-4 rounded-full">
-                                            <img :alt="srv.name" :src="srv.icon ? `${baseUrl}${srv.icon}` : defaultIcon" />
+                                            <img :alt="srv.name" :src="resolveUrl(srv.icon) || defaultIcon" @error="(e) => (e.target as HTMLImageElement).src = defaultIcon" />
                                         </div>
                                     </div>
                                     <span>{{ srv.name }}</span>

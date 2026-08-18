@@ -38,6 +38,103 @@ const connectedUsers = ref<Record<string | number, User[]>>({});
 const isAfk = ref<boolean>(false);
 const previousStatusBeforeAfk = ref<string | null>(null);
 
+const peerConnections: Record<string, RTCPeerConnection> = {};
+const remoteAudioElements: Record<string, HTMLAudioElement> = {};
+let activePresenceChannel: any = null;
+let currentUserId: string | number | null = null;
+
+const RTC_CONFIG: RTCConfiguration = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+    ],
+};
+
+function createPeerConnection(peerId: string): RTCPeerConnection {
+    if (peerConnections[peerId]) {
+        return peerConnections[peerId];
+    }
+
+    const pc = new RTCPeerConnection(RTC_CONFIG);
+    peerConnections[peerId] = pc;
+
+    if (activeStream.value) {
+        activeStream.value.getTracks().forEach((track) => {
+            pc.addTrack(track, activeStream.value!);
+        });
+    }
+
+    pc.onicecandidate = (event) => {
+        if (event.candidate && activePresenceChannel && currentUserId) {
+            activePresenceChannel.whisper('webrtc-signal', {
+                from: currentUserId,
+                to: peerId,
+                type: 'candidate',
+                candidate: event.candidate,
+            });
+        }
+    };
+
+    pc.ontrack = (event) => {
+        if (typeof Audio === 'undefined') return;
+        let audio = remoteAudioElements[peerId];
+        if (!audio) {
+            audio = new Audio();
+            audio.autoplay = true;
+            remoteAudioElements[peerId] = audio;
+        }
+        audio.srcObject = event.streams[0];
+        audio.muted = isDeafenedExplicit.value || currentState.value === VoiceParticipantState.Deafened;
+        audio.play().catch(() => {});
+    };
+
+    pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+            cleanupPeer(peerId);
+        }
+    };
+
+    return pc;
+}
+
+function cleanupPeer(peerId: string) {
+    if (peerConnections[peerId]) {
+        try {
+            peerConnections[peerId].close();
+        } catch {
+            // Ignore close error
+        }
+        delete peerConnections[peerId];
+    }
+    if (remoteAudioElements[peerId]) {
+        try {
+            remoteAudioElements[peerId].pause();
+            remoteAudioElements[peerId].srcObject = null;
+        } catch {
+            // Ignore pause error
+        }
+        delete remoteAudioElements[peerId];
+    }
+}
+
+function broadcastVoiceState(): void {
+    if (activePresenceChannel && currentUserId) {
+        try {
+            const isMutedVal = isMutedExplicit.value || currentState.value === VoiceParticipantState.Muted;
+            const isDeafenedVal = isDeafenedExplicit.value || currentState.value === VoiceParticipantState.Deafened;
+            activePresenceChannel.whisper('voice-state-update', {
+                user_id: currentUserId,
+                is_muted: isMutedVal,
+                is_deafened: isDeafenedVal,
+                is_afk: isAfk.value,
+            });
+        } catch {
+            // Ignore whisper error
+        }
+    }
+}
+
 export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateType) {
     if (initialState !== undefined) {
         currentState.value = initialState;
@@ -98,7 +195,6 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         isAfk.value = !isAfk.value;
 
         if (isAfk.value) {
-            // User went AFK: switch status to 'idle' ONLY if it was 'online'
             if (currentAuthUserStatus === 'online') {
                 previousStatusBeforeAfk.value = 'online';
                 try {
@@ -114,7 +210,6 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                 previousStatusBeforeAfk.value = null;
             }
         } else {
-            // User returned from AFK: restore back to online if it was online previously
             if (previousStatusBeforeAfk.value === 'online') {
                 previousStatusBeforeAfk.value = null;
                 try {
@@ -129,6 +224,7 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
             }
         }
 
+        broadcastVoiceState();
         return isAfk.value;
     }
 
@@ -158,44 +254,137 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
             activeServerId.value = serverId;
         }
 
+        currentUserId = currentUser?.id ?? null;
+
         if (currentUser) {
             connectedUsers.value[channel.id] = [currentUser];
         }
 
         try {
+            if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    activeStream.value = stream;
+                    if (typeof MediaRecorder !== 'undefined') {
+                        const recorder = new MediaRecorder(stream);
+                        recorder.start(100);
+                        mediaRecorder.value = recorder;
+                    }
+                } catch (micErr) {
+                    console.warn('Microphone access not granted or unavailable:', micErr);
+                }
+            }
+
             const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
             if (echoInstance) {
-                echoInstance.join(`voices.${channel.id}`)
-                    .here((users: any[]) => {
-                        connectedUsers.value[channel.id] = users.map(u => u.user || u);
+                activePresenceChannel = echoInstance.join(`voices.${channel.id}`);
+
+                activePresenceChannel
+                    .here(async (users: any[]) => {
+                        const mapped = users.map((u) => u.user || u);
+                        connectedUsers.value[channel.id] = mapped;
+
+                        if (currentUserId && typeof RTCPeerConnection !== 'undefined') {
+                            for (const u of mapped) {
+                                if (String(u.id) !== String(currentUserId)) {
+                                    try {
+                                        const pc = createPeerConnection(String(u.id));
+                                        const offer = await pc.createOffer();
+                                        await pc.setLocalDescription(offer);
+                                        activePresenceChannel.whisper('webrtc-signal', {
+                                            from: currentUserId,
+                                            to: String(u.id),
+                                            type: 'offer',
+                                            offer,
+                                        });
+                                    } catch (e) {
+                                        console.error('WebRTC offer error:', e);
+                                    }
+                                }
+                            }
+                        }
                     })
                     .joining((user: any) => {
                         const u = user.user || user;
                         const current = connectedUsers.value[channel.id] || [];
-                        if (!current.some(x => String(x.id) === String(u.id))) {
+                        if (!current.some((x) => String(x.id) === String(u.id))) {
                             connectedUsers.value[channel.id] = [...current, u];
+                        }
+
+                        if (currentUserId && activePresenceChannel) {
+                            activePresenceChannel.whisper('voice-state-update', {
+                                user_id: currentUserId,
+                                is_muted: isMuted.value,
+                                is_deafened: isDeafened.value,
+                                is_afk: isAfk.value,
+                            });
                         }
                     })
                     .leaving((user: any) => {
                         const u = user.user || user;
                         const current = connectedUsers.value[channel.id] || [];
-                        connectedUsers.value[channel.id] = current.filter(x => String(x.id) !== String(u.id));
+                        connectedUsers.value[channel.id] = current.filter((x) => String(x.id) !== String(u.id));
+                        cleanupPeer(String(u.id));
+                    })
+                    .listenForWhisper('webrtc-signal', async (data: any) => {
+                        if (!currentUserId || String(data.to) !== String(currentUserId)) return;
+                        if (typeof RTCPeerConnection === 'undefined') return;
+
+                        const peerId = String(data.from);
+
+                        if (data.type === 'offer' && data.offer) {
+                            try {
+                                const pc = createPeerConnection(peerId);
+                                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                                const answer = await pc.createAnswer();
+                                await pc.setLocalDescription(answer);
+                                activePresenceChannel.whisper('webrtc-signal', {
+                                    from: currentUserId,
+                                    to: peerId,
+                                    type: 'answer',
+                                    answer,
+                                });
+                            } catch (e) {
+                                console.error('WebRTC answer error:', e);
+                            }
+                        } else if (data.type === 'answer' && data.answer) {
+                            const pc = peerConnections[peerId];
+                            if (pc) {
+                                try {
+                                    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                                } catch (e) {
+                                    console.error('WebRTC setRemoteDescription error:', e);
+                                }
+                            }
+                        } else if (data.type === 'candidate' && data.candidate) {
+                            const pc = peerConnections[peerId];
+                            if (pc) {
+                                try {
+                                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                                } catch (e) {
+                                    console.error('WebRTC addIceCandidate error:', e);
+                                }
+                            }
+                        }
+                    })
+                    .listenForWhisper('voice-state-update', (data: any) => {
+                        if (!data || !data.user_id) return;
+                        const chUsers = connectedUsers.value[channel.id];
+                        if (chUsers) {
+                            const target = chUsers.find((u) => String(u.id) === String(data.user_id));
+                            if (target) {
+                                (target as any).is_muted = Boolean(data.is_muted);
+                                (target as any).is_deafened = Boolean(data.is_deafened);
+                                (target as any).is_afk = Boolean(data.is_afk);
+                            }
+                        }
                     });
             }
 
-            if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                activeStream.value = stream;
-                if (typeof MediaRecorder !== 'undefined') {
-                    const recorder = new MediaRecorder(stream);
-                    recorder.start(100);
-                    mediaRecorder.value = recorder;
-                }
-            }
             transitionTo(VoiceParticipantState.Connected);
             return true;
         } catch (error) {
-            console.error('Error accessing microphone:', error);
+            console.error('Error joining voice channel:', error);
             activeStream.value = null;
             mediaRecorder.value = null;
             activeChannel.value = null;
@@ -208,6 +397,11 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
     async function leaveChannel(): Promise<boolean> {
         const chId = activeChannel.value?.id;
         const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
+
+        for (const peerId of Object.keys(peerConnections)) {
+            cleanupPeer(peerId);
+        }
+
         if (chId && echoInstance) {
             try {
                 echoInstance.leave(`voices.${chId}`);
@@ -215,6 +409,9 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                 // Ignore leave error
             }
         }
+        activePresenceChannel = null;
+        currentUserId = null;
+
         if (chId) {
             delete connectedUsers.value[chId];
         }
@@ -246,7 +443,7 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         }
 
         if (activeStream.value) {
-            activeStream.value.getTracks().forEach(track => track.stop());
+            activeStream.value.getTracks().forEach((track) => track.stop());
             activeStream.value = null;
         }
 
@@ -266,8 +463,11 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                 currentState.value = VoiceParticipantState.Connected;
             }
             if (activeStream.value) {
-                activeStream.value.getAudioTracks().forEach(t => { t.enabled = true; });
+                activeStream.value.getAudioTracks().forEach((t) => {
+                    t.enabled = true;
+                });
             }
+            broadcastVoiceState();
             return true;
         } else {
             isMutedExplicit.value = true;
@@ -275,8 +475,11 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                 currentState.value = VoiceParticipantState.Muted;
             }
             if (activeStream.value) {
-                activeStream.value.getAudioTracks().forEach(t => { t.enabled = false; });
+                activeStream.value.getAudioTracks().forEach((t) => {
+                    t.enabled = false;
+                });
             }
+            broadcastVoiceState();
             return true;
         }
     }
@@ -289,19 +492,35 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
             if (currentState.value === VoiceParticipantState.Deafened) {
                 currentState.value = isMutedExplicit.value ? VoiceParticipantState.Muted : VoiceParticipantState.Connected;
             }
+            Object.values(remoteAudioElements).forEach((el) => {
+                el.muted = false;
+            });
+            broadcastVoiceState();
             return true;
         } else {
             isDeafenedExplicit.value = true;
             isMutedExplicit.value = true;
             currentState.value = VoiceParticipantState.Deafened;
             if (activeStream.value) {
-                activeStream.value.getAudioTracks().forEach(t => { t.enabled = false; });
+                activeStream.value.getAudioTracks().forEach((t) => {
+                    t.enabled = false;
+                });
             }
+            Object.values(remoteAudioElements).forEach((el) => {
+                el.muted = true;
+            });
+            broadcastVoiceState();
             return true;
         }
     }
 
     function resetState(): void {
+        for (const peerId of Object.keys(peerConnections)) {
+            cleanupPeer(peerId);
+        }
+        activePresenceChannel = null;
+        currentUserId = null;
+
         currentState.value = VoiceParticipantState.Disconnected;
         activeChannel.value = null;
         activeServerId.value = null;
@@ -311,7 +530,7 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         isDeafenedExplicit.value = false;
         previousStatusBeforeAfk.value = null;
         if (activeStream.value) {
-            activeStream.value.getTracks().forEach(t => t.stop());
+            activeStream.value.getTracks().forEach((t) => t.stop());
             activeStream.value = null;
         }
         mediaRecorder.value = null;

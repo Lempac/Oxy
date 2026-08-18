@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, defaultIcon, getMemberRoleColor, usePerms} from '@/bootstrap';
+import {baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
 import {create, deleteMethod, edit} from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import ChannelSidebar from "@/Components/ChannelSidebar.vue";
@@ -309,12 +309,13 @@ onUnmounted(() => {
 onUpdated(() => nextTick(() => scrollToBottom()));
 
 watch(
-    () => props.messages,
+    [() => props.messages, () => stagedFiles.value.length],
     () => {
         nextTick(() => {
             scrollToBottom();
         });
-    }
+    },
+    { deep: true }
 );
 
 const deleteMessage = async (messageId: string) => {
@@ -414,7 +415,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Messages Stream -->
-                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5">
+                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10">
                         <div v-if="messages && messages.length > 0" class="space-y-4">
                             <div
                                 v-for="message in messages" :key="message.id"
@@ -423,7 +424,8 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                                 <div class="chat-image avatar">
                                     <div class="w-10 rounded-full">
                                         <img
-                                            :src="message.sender?.icon ? baseUrl + message.sender.icon : defaultIcon"
+                                            :src="resolveUrl(message.sender?.icon) || defaultIcon"
+                                            @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
                                             alt="User Avatar"/>
                                     </div>
                                 </div>
@@ -448,32 +450,28 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                                             />
                                         </div>
 
-                                        <!-- Delete Message Action -->
+                                        <!-- Message Actions Hover Toolbar -->
                                         <div
                                             v-if="message.user_id === $page.props.user?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
-                                            :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}"
-                                            class="indicator-item indicator-top absolute hidden group-hover:block">
+                                            class="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-base-300/90 backdrop-blur-xs rounded-md p-0.5 shadow-sm z-20"
+                                        >
+                                            <button
+                                                v-if="message.user_id === $page.props.user?.id"
+                                                class="btn btn-ghost btn-xs btn-circle p-0"
+                                                title="Edit text"
+                                                @click="openEditModal(message.id, message.content)"
+                                            >
+                                                <MdOutlineModeEdit class="size-3.5 text-warning" />
+                                            </button>
                                             <ConfirmDialog
+                                                v-if="message.user_id === $page.props.user?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
                                                 :confirm="() => deleteMessage(message.id)"
-                                                class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
+                                                class-name="btn btn-ghost btn-xs btn-circle p-0"
                                                 description="Are you sure you want to delete this message?"
                                                 title="Delete Message"
                                             >
-                                                <MdOutlineDeleteForever/>
+                                                <MdOutlineDeleteForever class="size-3.5 text-error" />
                                             </ConfirmDialog>
-                                        </div>
-
-                                        <!-- Edit Message Action (Allowed for author) -->
-                                        <div
-                                            v-if="message.user_id === $page.props.user?.id"
-                                            :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}"
-                                            class="indicator-item indicator-bottom absolute hidden group-hover:block">
-                                            <button
-                                                class="indicator-item badge badge-warning h-auto w-auto p-0.5"
-                                                title="Edit text"
-                                                @click="openEditModal(message.id, message.content)">
-                                                <MdOutlineModeEdit/>
-                                            </button>
                                         </div>
                                     </div>
                                 </div>

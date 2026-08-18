@@ -33,6 +33,8 @@ Broadcast::channel('voices.{channelId}', function (User $user, string $channelId
         return null;
     }
 
+    $user->load('allRoles');
+
     return [
         'id' => $user->id,
         'name' => $user->name,
@@ -41,6 +43,8 @@ Broadcast::channel('voices.{channelId}', function (User $user, string $channelId
         'status' => $user->status?->value ?? 'online',
         'light_theme' => $user->light_theme?->value ?? 'oxy',
         'dark_theme' => $user->dark_theme?->value ?? 'dark',
+        'roles' => $user->allRoles,
+        'rolesWithServer' => $user->allRoles,
     ];
 });
 

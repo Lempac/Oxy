@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ChannelSidebar from '@/Components/ChannelSidebar.vue';
 import {Head} from '@inertiajs/vue3';
 import {joinServer} from "@/bootstrap";
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {Server, Channel} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {usePaneDrag} from "@/composables/usePaneDrag";
@@ -54,6 +54,17 @@ const checkServerCode = () => {
         }
     }, 300);
 };
+
+onMounted(() => {
+    if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const invite = params.get('invite') || params.get('code');
+        if (invite) {
+            joinCodeInput.value = invite;
+            checkServerCode();
+        }
+    }
+});
 
 const props = defineProps<{
     servers: Server[],

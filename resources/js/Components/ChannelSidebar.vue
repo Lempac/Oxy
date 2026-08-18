@@ -2,7 +2,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { Channel, ChannelType, PermType, Server, User } from '@/types';
-import { baseUrl, defaultIcon, getMemberRoleColor, usePerms } from '@/bootstrap';
+import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
 import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as textChannelRoute } from '@/routes/home/text';
 import { channel as whiteboardChannelRoute } from '@/routes/home/whiteboard';
@@ -218,50 +218,6 @@ const handleVoiceChannelClick = async (channel: Channel) => {
     await voiceState.joinChannel(channel, props.selectedServer?.id, page.props.user as any);
 };
 
-watch(
-    () => voiceChannels.value.map(c => c.id).join(','),
-    () => {
-        const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
-        if (!echoInstance) return;
-
-        for (const channel of voiceChannels.value) {
-            echoInstance.join(`voices.${channel.id}`)
-                .here((users: any[]) => {
-                    const mapped = users.map(u => u.user || u);
-                    voiceState.setChannelUsers(channel.id, mapped);
-                })
-                .joining((user: any) => {
-                    const u = user.user || user;
-                    const current = voiceState.getChannelUsers(channel.id);
-                    if (!current.some(x => String(x.id) === String(u.id))) {
-                        voiceState.setChannelUsers(channel.id, [...current, u]);
-                    }
-                })
-                .leaving((user: any) => {
-                    const u = user.user || user;
-                    const current = voiceState.getChannelUsers(channel.id);
-                    voiceState.setChannelUsers(channel.id, current.filter(x => String(x.id) !== String(u.id)));
-                });
-        }
-    },
-    { immediate: true }
-);
-
-onUnmounted(() => {
-    const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
-    if (!echoInstance) return;
-
-    for (const channel of voiceChannels.value) {
-        if (voiceState.activeChannel.value?.id !== channel.id) {
-            try {
-                echoInstance.leave(`voices.${channel.id}`);
-            } catch {
-                // Ignore leave error
-            }
-        }
-    }
-});
-
 useChannelEvents(props.selectedServer?.id, ['channels']);
 </script>
 
@@ -469,9 +425,9 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                             >
                                 <div class="flex items-center gap-2 truncate min-w-0">
                                     <div class="avatar size-5 rounded-full overflow-hidden shrink-0">
-                                        <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" :alt="user.nickname" />
+                                        <img :src="resolveUrl(user.icon) || defaultIcon" :alt="user.nickname" @error="(e) => (e.target as HTMLImageElement).src = defaultIcon" />
                                     </div>
-                                    <span class="truncate font-medium" :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }">
+                                    <span class="truncate font-medium text-base-content" :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }">
                                         {{ user.nickname || user.name }}
                                     </span>
                                 </div>
