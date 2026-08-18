@@ -32,14 +32,14 @@ services:
       QUEUE_CONNECTION: database
       CACHE_STORE: database
       OCTANE_SERVER: frankenphp
-      # S3 / RustFS Object Storage (Console: admin-void.lempac.dev, Endpoint: void.lempac.dev)
+      # S3 / RustFS Object Storage (Console: admin-void.lempac.dev, Endpoint: *.void.lempac.dev)
       AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
       AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION:-us-east-1}"
       AWS_BUCKET: "${AWS_BUCKET}"
       AWS_ENDPOINT: "https://void.lempac.dev"
-      AWS_USE_PATH_STYLE_ENDPOINT: "true"
-      AWS_URL: "https://void.lempac.dev/${AWS_BUCKET}"
+      AWS_USE_PATH_STYLE_ENDPOINT: "false"
+      AWS_URL: "https://${AWS_BUCKET}.void.lempac.dev"
       # Reverb Config
       REVERB_APP_ID: "${REVERB_APP_ID:-470744}"
       REVERB_APP_KEY: "${REVERB_APP_KEY:-oxy-preview-key}"
