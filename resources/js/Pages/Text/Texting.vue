@@ -395,14 +395,13 @@ const restoreScrollOrBottom = () => {
 };
 
 onMounted(() => {
-    restoreScrollOrBottom();
-
     nextTick(() => {
         restoreScrollOrBottom();
 
-        if (typeof ResizeObserver !== 'undefined' && messageContainer.value) {
+        if (typeof ResizeObserver !== 'undefined' && messageContainer.value instanceof Element) {
+            if (resizeObserver) resizeObserver.disconnect();
             resizeObserver = new ResizeObserver(() => {
-                if (isPinnedToBottom && !isRestoringScroll) {
+                if (isPinnedToBottom && !isRestoringScroll && messageContainer.value) {
                     scrollToBottom();
                 }
             });
@@ -427,6 +426,15 @@ watch(
     () => {
         nextTick(() => {
             restoreScrollOrBottom();
+            if (typeof ResizeObserver !== 'undefined' && messageContainer.value instanceof Element) {
+                if (resizeObserver) resizeObserver.disconnect();
+                resizeObserver = new ResizeObserver(() => {
+                    if (isPinnedToBottom && !isRestoringScroll && messageContainer.value) {
+                        scrollToBottom();
+                    }
+                });
+                resizeObserver.observe(messageContainer.value);
+            }
         });
     }
 );
