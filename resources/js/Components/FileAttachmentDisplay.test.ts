@@ -103,4 +103,71 @@ describe('FileAttachmentDisplay', () => {
 
         wrapper.unmount();
     });
+
+    it('renders video attachments and opens video player modal', async () => {
+        const attachment: MessageAttachment = {
+            id: 'att-video-1',
+            message_id: 'msg-1',
+            filename: 'clip.mp4',
+            path: 'uploads/clip.mp4',
+            mime_type: 'video/mp4',
+            size: 5242880,
+            url: '/storage/uploads/clip.mp4',
+        };
+
+        const wrapper = mount(FileAttachmentDisplay, {
+            props: {
+                attachment,
+            },
+            attachTo: document.body,
+        });
+
+        const video = wrapper.find('video');
+        expect(video.exists()).toBe(true);
+
+        const fullscreenBtn = wrapper.find('button[title="Fullscreen"]');
+        expect(fullscreenBtn.exists()).toBe(true);
+        await fullscreenBtn.trigger('click');
+
+        const modal = document.body.querySelector('[role="dialog"]');
+        expect(modal).not.toBeNull();
+        expect(modal?.textContent).toContain('clip.mp4');
+        expect(modal?.querySelector('video')).not.toBeNull();
+
+        wrapper.unmount();
+    });
+
+    it('renders audio attachments and opens audio player modal', async () => {
+        const attachment: MessageAttachment = {
+            id: 'att-audio-1',
+            message_id: 'msg-1',
+            filename: 'voice_note.mp3',
+            path: 'uploads/voice_note.mp3',
+            mime_type: 'audio/mpeg',
+            size: 1048576,
+            url: '/storage/uploads/voice_note.mp3',
+        };
+
+        const wrapper = mount(FileAttachmentDisplay, {
+            props: {
+                attachment,
+            },
+            attachTo: document.body,
+        });
+
+        const audio = wrapper.find('audio');
+        expect(audio.exists()).toBe(true);
+        expect(wrapper.text()).toContain('voice_note.mp3');
+
+        const modalBtn = wrapper.find('button[title="Open in player modal"]');
+        expect(modalBtn.exists()).toBe(true);
+        await modalBtn.trigger('click');
+
+        const modal = document.body.querySelector('[role="dialog"]');
+        expect(modal).not.toBeNull();
+        expect(modal?.textContent).toContain('voice_note.mp3');
+        expect(modal?.querySelector('audio')).not.toBeNull();
+
+        wrapper.unmount();
+    });
 });

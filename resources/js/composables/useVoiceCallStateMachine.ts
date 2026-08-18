@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { Channel, User, VoiceParticipantState, VoiceParticipantStateType } from '@/types';
 import { fetchJson } from '@/bootstrap';
+import echo from '@/echo';
 
 const ALLOWED_TRANSITIONS: Record<VoiceParticipantStateType, VoiceParticipantStateType[]> = {
     [VoiceParticipantState.Disconnected]: [VoiceParticipantState.Joining],
@@ -162,22 +163,23 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         }
 
         try {
-            if (typeof window !== 'undefined' && (window as any).Echo) {
-                (window as any).Echo.join(`voices.${channel.id}`)
+            const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
+            if (echoInstance) {
+                echoInstance.join(`voices.${channel.id}`)
                     .here((users: any[]) => {
                         connectedUsers.value[channel.id] = users.map(u => u.user || u);
                     })
                     .joining((user: any) => {
                         const u = user.user || user;
                         const current = connectedUsers.value[channel.id] || [];
-                        if (!current.some(x => x.id === u.id)) {
+                        if (!current.some(x => String(x.id) === String(u.id))) {
                             connectedUsers.value[channel.id] = [...current, u];
                         }
                     })
                     .leaving((user: any) => {
                         const u = user.user || user;
                         const current = connectedUsers.value[channel.id] || [];
-                        connectedUsers.value[channel.id] = current.filter(x => x.id !== u.id);
+                        connectedUsers.value[channel.id] = current.filter(x => String(x.id) !== String(u.id));
                     });
             }
 
@@ -205,9 +207,10 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
 
     async function leaveChannel(): Promise<boolean> {
         const chId = activeChannel.value?.id;
-        if (chId && typeof window !== 'undefined' && (window as any).Echo) {
+        const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
+        if (chId && echoInstance) {
             try {
-                (window as any).Echo.leave(`voices.${chId}`);
+                echoInstance.leave(`voices.${chId}`);
             } catch {
                 // Ignore leave error
             }

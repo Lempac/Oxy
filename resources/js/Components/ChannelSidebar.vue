@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { Channel, ChannelType, PermType, Server, User } from '@/types';
 import { baseUrl, defaultIcon, getMemberRoleColor, usePerms } from '@/bootstrap';
@@ -15,6 +15,7 @@ import { TbKeyboardOff } from 'vue-icons-plus/tb';
 import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine';
 import { usePaneDrag } from '@/composables/usePaneDrag';
 import { useChannelEvents } from '@/composables/useChannelEvents';
+import echo from '@/echo';
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
@@ -216,6 +217,50 @@ const handleVoiceChannelClick = async (channel: Channel) => {
     if (isChannelActive(channel)) return;
     await voiceState.joinChannel(channel, props.selectedServer?.id, page.props.user as any);
 };
+
+watch(
+    () => voiceChannels.value.map(c => c.id).join(','),
+    () => {
+        const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
+        if (!echoInstance) return;
+
+        for (const channel of voiceChannels.value) {
+            echoInstance.join(`voices.${channel.id}`)
+                .here((users: any[]) => {
+                    const mapped = users.map(u => u.user || u);
+                    voiceState.setChannelUsers(channel.id, mapped);
+                })
+                .joining((user: any) => {
+                    const u = user.user || user;
+                    const current = voiceState.getChannelUsers(channel.id);
+                    if (!current.some(x => String(x.id) === String(u.id))) {
+                        voiceState.setChannelUsers(channel.id, [...current, u]);
+                    }
+                })
+                .leaving((user: any) => {
+                    const u = user.user || user;
+                    const current = voiceState.getChannelUsers(channel.id);
+                    voiceState.setChannelUsers(channel.id, current.filter(x => String(x.id) !== String(u.id)));
+                });
+        }
+    },
+    { immediate: true }
+);
+
+onUnmounted(() => {
+    const echoInstance = echo || (typeof window !== 'undefined' ? (window as any).Echo : null);
+    if (!echoInstance) return;
+
+    for (const channel of voiceChannels.value) {
+        if (voiceState.activeChannel.value?.id !== channel.id) {
+            try {
+                echoInstance.leave(`voices.${channel.id}`);
+            } catch {
+                // Ignore leave error
+            }
+        }
+    }
+});
 
 useChannelEvents(props.selectedServer?.id, ['channels']);
 </script>

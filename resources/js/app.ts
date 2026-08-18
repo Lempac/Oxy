@@ -27,12 +27,44 @@ createInertiaApp({
         type UserThemeProps = { light_theme?: ThemeType; dark_theme?: ThemeType } | null;
         let currentUserTheme: UserThemeProps = (props.initialPage?.props as { user?: UserThemeProps })?.user || null;
 
+        const DARK_THEMES = new Set([
+            'dark',
+            'synthwave',
+            'halloween',
+            'forest',
+            'black',
+            'luxury',
+            'dracula',
+            'business',
+            'night',
+            'coffee',
+            'dim',
+            'sunset',
+        ]);
+
+        const updateMetaColorScheme = (isDark: boolean) => {
+            let meta = document.querySelector('meta[name="color-scheme"]') as HTMLMetaElement | null;
+            if (!meta) {
+                meta = document.createElement('meta');
+                meta.name = 'color-scheme';
+                document.head.appendChild(meta);
+            }
+            meta.content = isDark ? 'dark' : 'light';
+        };
+
         const applyTheme = () => {
-            const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = isDark
+            const isDarkSystem = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            const theme = isDarkSystem
                 ? (currentUserTheme?.dark_theme || Themes.DARK)
                 : (currentUserTheme?.light_theme || Themes.OXY);
+
+            const isDarkTheme = DARK_THEMES.has(theme) || (isDarkSystem && theme === currentUserTheme?.dark_theme);
+
             document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.style.colorScheme = isDarkTheme ? 'dark' : 'light';
+            document.documentElement.classList.toggle('dark', isDarkTheme);
+            document.documentElement.classList.toggle('light', !isDarkTheme);
+            updateMetaColorScheme(isDarkTheme);
         };
 
         // Initial theme application

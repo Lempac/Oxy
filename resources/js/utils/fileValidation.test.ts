@@ -6,6 +6,8 @@ import {
     formatFileSize,
     getFileExtension,
     isImageFile,
+    isVideoFile,
+    isAudioFile,
     MAX_FILE_SIZE,
 } from './fileValidation';
 
@@ -24,6 +26,20 @@ describe('fileValidation utility', () => {
         expect(isImageFile('image/jpeg')).toBe(true);
         expect(isImageFile('document.pdf')).toBe(false);
         expect(isImageFile('app.exe')).toBe(false);
+    });
+
+    it('identifies video and audio files by extension and mime type', () => {
+        expect(isVideoFile('video.mp4')).toBe(true);
+        expect(isVideoFile('clip.webm')).toBe(true);
+        expect(isVideoFile('movie.mkv')).toBe(true);
+        expect(isVideoFile('video/mp4')).toBe(true);
+        expect(isVideoFile('photo.png')).toBe(false);
+
+        expect(isAudioFile('track.mp3')).toBe(true);
+        expect(isAudioFile('voice.wav')).toBe(true);
+        expect(isAudioFile('sound.ogg')).toBe(true);
+        expect(isAudioFile('audio/mpeg')).toBe(true);
+        expect(isAudioFile('document.pdf')).toBe(false);
     });
 
     it('formats file sizes accurately', () => {

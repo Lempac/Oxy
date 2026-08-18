@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
 
     <title data-inertia>{{ config('app.name', 'Oxy') }}</title>
 
@@ -15,6 +16,21 @@
     <meta name="reverb-port" content="{{ env('VITE_REVERB_PORT', env('REVERB_PORT', 443)) }}">
     <meta name="reverb-scheme" content="{{ env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'https')) }}">
     <meta name="yjs-ws-url" content="{{ env('VITE_YJS_WS_URL', 'ws://localhost:1234') }}">
+
+    <script>
+        (function() {
+            try {
+                var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.style.colorScheme = 'light';
+                }
+            } catch (e) {}
+        })();
+    </script>
     <!-- Fonts -->
     {{--    <link rel="preconnect" href="https://fonts.bunny.net">--}}
     {{--    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet"/>--}}
