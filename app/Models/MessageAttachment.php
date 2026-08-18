@@ -42,6 +42,10 @@ class MessageAttachment extends Model
 
     public function getUrlAttribute(): string
     {
+        if (empty($this->path) || $this->path === '0') {
+            return '';
+        }
+
         return Storage::url($this->path);
     }
 

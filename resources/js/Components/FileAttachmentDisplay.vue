@@ -31,7 +31,7 @@ const isImage = computed(() => {
 
 const resolvedUrl = computed(() => {
     const raw = props.attachment.url || props.attachment.path || '';
-    if (!raw) return '';
+    if (!raw || raw === '0') return '';
     if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('blob:')) return raw;
     return `${baseUrl}${raw.startsWith('/') ? '' : '/'}${raw}`;
 });
