@@ -377,55 +377,37 @@ const restoreScrollOrBottom = () => {
 
     isRestoring = true;
 
-    const apply = (): boolean => {
-        const el = getMessagesContainer();
-        if (!el) return false;
-
-        const maxScroll = el.scrollHeight - el.clientHeight;
-
-        if (savedTop !== null && !isNaN(savedTop) && savedTop >= 0) {
-            isPinnedToBottom = false;
-            el.scrollTop = savedTop;
-            isScrolledUp.value = (el.scrollHeight - el.clientHeight) - el.scrollTop > 50;
-
-            if (maxScroll >= savedTop || el.scrollTop >= savedTop - 10) {
-                setTimeout(() => { isRestoring = false; }, 100);
-                return true;
-            }
-        } else {
-            isPinnedToBottom = true;
-            isScrolledUp.value = false;
-            el.scrollTop = el.scrollHeight;
-
-            if (maxScroll > 10) {
-                setTimeout(() => { isRestoring = false; }, 100);
-                return true;
-            }
-        }
-        return false;
-    };
-
-    apply();
-
     const el = getMessagesContainer();
-    if (el && typeof ResizeObserver !== 'undefined') {
-        const observer = new ResizeObserver(() => {
-            const finished = apply();
-            if (finished) {
-                observer.disconnect();
-            }
-        });
-        observer.observe(el);
+    if (!el) return;
 
-        setTimeout(() => {
-            observer.disconnect();
-            isRestoring = false;
-        }, 4000);
+    if (savedTop !== null && !isNaN(savedTop) && savedTop >= 0) {
+        isPinnedToBottom = false;
+        el.scrollTop = savedTop;
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        isScrolledUp.value = maxScroll - el.scrollTop > 50;
+    } else {
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
+        el.scrollTop = el.scrollHeight;
     }
+
+    setTimeout(() => {
+        isRestoring = false;
+    }, 150);
 };
 
 onMounted(() => {
     restoreScrollOrBottom();
+    nextTick(() => { restoreScrollOrBottom(); });
+    setTimeout(restoreScrollOrBottom, 50);
+    setTimeout(restoreScrollOrBottom, 150);
+    setTimeout(restoreScrollOrBottom, 350);
+    setTimeout(restoreScrollOrBottom, 600);
+
+    router.on('finish', () => {
+        setTimeout(restoreScrollOrBottom, 50);
+    });
+
     window.addEventListener('paste', handlePaste);
 });
 
@@ -436,7 +418,9 @@ onUnmounted(() => {
 watch(
     () => props.selectedChannel?.id,
     () => {
-        restoreScrollOrBottom();
+        nextTick(() => { restoreScrollOrBottom(); });
+        setTimeout(restoreScrollOrBottom, 100);
+        setTimeout(restoreScrollOrBottom, 300);
     }
 );
 
