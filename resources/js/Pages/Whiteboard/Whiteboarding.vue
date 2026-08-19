@@ -313,7 +313,7 @@ const restoreScrollOrBottom = () => {
 
     if (saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null') {
         const savedTop = parseFloat(saved);
-        if (!isNaN(savedTop)) {
+        if (!isNaN(savedTop) && savedTop >= 0) {
             isPinnedToBottom = false;
             el.scrollTop = savedTop;
             const maxScroll = el.scrollHeight - el.clientHeight;
@@ -328,16 +328,6 @@ const restoreScrollOrBottom = () => {
 };
 
 onMounted(() => {
-    restoreScrollOrBottom();
-
-    nextTick(() => {
-        restoreScrollOrBottom();
-    });
-
-    setTimeout(() => {
-        restoreScrollOrBottom();
-    }, 250);
-
     window.addEventListener('paste', handlePaste);
 });
 
@@ -357,42 +347,21 @@ watch(
 watch(
     () => props.messages,
     () => {
-        if (isPinnedToBottom) {
-            nextTick(() => {
+        nextTick(() => {
+            if (isPinnedToBottom) {
                 scrollToBottom();
-            });
-        }
+            } else {
+                restoreScrollOrBottom();
+            }
+        });
     },
-    { deep: true }
+    { immediate: true, deep: true }
 );
 
 watch(
     () => stagedFiles.value.length,
     () => {
         if (isPinnedToBottom) {
-            nextTick(() => {
-                scrollToBottom();
-            });
-        }
-    }
-);
-
-watch(
-    () => props.messages,
-    () => {
-        if (!isScrolledUp.value) {
-            nextTick(() => {
-                scrollToBottom();
-            });
-        }
-    },
-    { deep: true }
-);
-
-watch(
-    () => stagedFiles.value.length,
-    () => {
-        if (!isScrolledUp.value) {
             nextTick(() => {
                 scrollToBottom();
             });
