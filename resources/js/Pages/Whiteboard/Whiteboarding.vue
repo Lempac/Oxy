@@ -310,46 +310,52 @@ const restoreScrollOrBottom = () => {
     const savedTop = shouldRestoreNumber ? parseFloat(saved) : null;
 
     isRestoring = true;
-    let attempts = 0;
-    const applyScroll = () => {
-        attempts++;
+
+    const apply = (): boolean => {
         const el = getMessagesContainer();
-        if (!el) {
-            if (attempts < 30) setTimeout(applyScroll, 40);
-            else isRestoring = false;
-            return;
-        }
+        if (!el) return false;
 
         const maxScroll = el.scrollHeight - el.clientHeight;
 
-        if (savedTop !== null && !isNaN(savedTop) && savedTop > 0) {
+        if (savedTop !== null && !isNaN(savedTop) && savedTop >= 0) {
             isPinnedToBottom = false;
             el.scrollTop = savedTop;
             isScrolledUp.value = (el.scrollHeight - el.clientHeight) - el.scrollTop > 50;
 
-            if (maxScroll < savedTop && attempts < 30) {
-                setTimeout(applyScroll, 40);
-            } else {
-                setTimeout(() => {
-                    isRestoring = false;
-                }, 150);
+            if (maxScroll >= savedTop || el.scrollTop >= savedTop - 10) {
+                setTimeout(() => { isRestoring = false; }, 100);
+                return true;
             }
         } else {
             isPinnedToBottom = true;
             isScrolledUp.value = false;
             el.scrollTop = el.scrollHeight;
 
-            if (maxScroll <= 10 && attempts < 30) {
-                setTimeout(applyScroll, 40);
-            } else {
-                setTimeout(() => {
-                    isRestoring = false;
-                }, 150);
+            if (maxScroll > 10) {
+                setTimeout(() => { isRestoring = false; }, 100);
+                return true;
             }
         }
+        return false;
     };
 
-    applyScroll();
+    apply();
+
+    const el = getMessagesContainer();
+    if (el && typeof ResizeObserver !== 'undefined') {
+        const observer = new ResizeObserver(() => {
+            const finished = apply();
+            if (finished) {
+                observer.disconnect();
+            }
+        });
+        observer.observe(el);
+
+        setTimeout(() => {
+            observer.disconnect();
+            isRestoring = false;
+        }, 4000);
+    }
 };
 
 onMounted(() => {
