@@ -422,6 +422,7 @@ const restoreScrollOrBottom = () => {
 };
 
 onMounted(() => {
+    restoreScrollOrBottom();
     window.addEventListener('paste', handlePaste);
 });
 
@@ -441,15 +442,13 @@ watch(
 watch(
     () => props.messages,
     () => {
-        nextTick(() => {
-            if (isPinnedToBottom) {
+        if (isPinnedToBottom) {
+            nextTick(() => {
                 scrollToBottom();
-            } else {
-                restoreScrollOrBottom();
-            }
-        });
+            });
+        }
     },
-    { immediate: true, deep: true }
+    { deep: true }
 );
 
 watch(
