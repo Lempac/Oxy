@@ -306,67 +306,46 @@ const scrollToBottom = () => {
 };
 
 const restoreScrollOrBottom = () => {
-    const el = getMessagesContainer();
-    if (!el) return;
     const key = getScrollStorageKey();
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+    const shouldRestoreNumber = saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null';
+    const savedTop = shouldRestoreNumber ? parseFloat(saved) : null;
 
-    if (saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null') {
-        const savedTop = parseFloat(saved);
-        if (!isNaN(savedTop) && savedTop >= 0) {
-            isPinnedToBottom = false;
-            el.scrollTop = savedTop;
-            const maxScroll = el.scrollHeight - el.clientHeight;
-            isScrolledUp.value = maxScroll - el.scrollTop > 50;
-
-            if (el.scrollHeight <= el.clientHeight) {
-                let attempts = 0;
-                const retryTimer = setInterval(() => {
-                    attempts++;
-                    const curEl = getMessagesContainer();
-                    if (curEl && curEl.scrollHeight > curEl.clientHeight) {
-                        curEl.scrollTop = savedTop;
-                        const curMax = curEl.scrollHeight - curEl.clientHeight;
-                        isScrolledUp.value = curMax - curEl.scrollTop > 50;
-                        clearInterval(retryTimer);
-                    } else if (attempts >= 10) {
-                        clearInterval(retryTimer);
-                    }
-                }, 50);
-            }
+    let attempts = 0;
+    const applyScroll = () => {
+        attempts++;
+        const el = getMessagesContainer();
+        if (!el) {
+            if (attempts < 30) setTimeout(applyScroll, 40);
             return;
         }
-    }
 
-    isPinnedToBottom = true;
-    isScrolledUp.value = false;
-    el.scrollTop = el.scrollHeight;
+        const maxScroll = el.scrollHeight - el.clientHeight;
 
-    if (el.scrollHeight <= el.clientHeight) {
-        let attempts = 0;
-        const retryTimer = setInterval(() => {
-            attempts++;
-            const curEl = getMessagesContainer();
-            if (curEl && curEl.scrollHeight > curEl.clientHeight) {
-                curEl.scrollTop = curEl.scrollHeight;
-                clearInterval(retryTimer);
-            } else if (attempts >= 10) {
-                clearInterval(retryTimer);
+        if (savedTop !== null && !isNaN(savedTop) && savedTop >= 0) {
+            isPinnedToBottom = false;
+            el.scrollTop = savedTop;
+            isScrolledUp.value = (el.scrollHeight - el.clientHeight) - el.scrollTop > 50;
+
+            if (maxScroll < savedTop && attempts < 30) {
+                setTimeout(applyScroll, 40);
             }
-        }, 50);
-    }
+        } else {
+            isPinnedToBottom = true;
+            isScrolledUp.value = false;
+            el.scrollTop = el.scrollHeight;
+
+            if (maxScroll <= 10 && attempts < 30) {
+                setTimeout(applyScroll, 40);
+            }
+        }
+    };
+
+    applyScroll();
 };
 
 onMounted(() => {
-    nextTick(() => {
-        restoreScrollOrBottom();
-    });
-    setTimeout(() => {
-        restoreScrollOrBottom();
-    }, 100);
-    setTimeout(() => {
-        restoreScrollOrBottom();
-    }, 300);
+    restoreScrollOrBottom();
     window.addEventListener('paste', handlePaste);
 });
 
@@ -377,12 +356,7 @@ onUnmounted(() => {
 watch(
     () => props.selectedChannel?.id,
     () => {
-        nextTick(() => {
-            restoreScrollOrBottom();
-        });
-        setTimeout(() => {
-            restoreScrollOrBottom();
-        }, 150);
+        restoreScrollOrBottom();
     }
 );
 
