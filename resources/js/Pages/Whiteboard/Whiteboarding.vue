@@ -358,7 +358,15 @@ const restoreScrollOrBottom = () => {
 };
 
 onMounted(() => {
-    restoreScrollOrBottom();
+    nextTick(() => {
+        restoreScrollOrBottom();
+    });
+    setTimeout(() => {
+        restoreScrollOrBottom();
+    }, 100);
+    setTimeout(() => {
+        restoreScrollOrBottom();
+    }, 300);
     window.addEventListener('paste', handlePaste);
 });
 
@@ -372,6 +380,9 @@ watch(
         nextTick(() => {
             restoreScrollOrBottom();
         });
+        setTimeout(() => {
+            restoreScrollOrBottom();
+        }, 150);
     }
 );
 
