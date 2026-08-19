@@ -451,15 +451,16 @@ watch(
 );
 
 watch(
-    () => props.messages,
-    () => {
-        if (isPinnedToBottom) {
-            nextTick(() => {
-                scrollToBottom();
-            });
+    () => props.messages?.length,
+    (newLen, oldLen) => {
+        if (oldLen !== undefined && newLen && newLen > oldLen) {
+            if (isPinnedToBottom) {
+                nextTick(() => {
+                    scrollToBottom();
+                });
+            }
         }
-    },
-    { deep: true }
+    }
 );
 
 watch(
