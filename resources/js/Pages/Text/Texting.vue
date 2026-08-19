@@ -300,7 +300,7 @@ const createMessage = async () => {
 
 const isScrolledUp = ref(false);
 let isPinnedToBottom = true;
-let resizeObserver: ResizeObserver | null = null;
+let isRestoring = true;
 
 const getScrollStorageKey = (): string => {
     const ch = props.selectedChannel;
@@ -313,7 +313,7 @@ const getMessagesContainer = (): HTMLElement | null => {
 
 const handleScroll = (e?: Event) => {
     const el = (e?.target as HTMLElement) || getMessagesContainer();
-    if (!el) return;
+    if (!el || isRestoring) return;
     const { scrollTop, scrollHeight, clientHeight } = el;
     const maxScroll = scrollHeight - clientHeight;
 
@@ -338,7 +338,7 @@ const handleScroll = (e?: Event) => {
     if (typeof localStorage !== 'undefined') {
         if (atBottom) {
             localStorage.setItem(key, 'BOTTOM');
-        } else if (!isNaN(scrollTop)) {
+        } else if (!isNaN(scrollTop) && scrollTop > 0) {
             localStorage.setItem(key, String(scrollTop));
         }
     }
@@ -375,24 +375,30 @@ const restoreScrollOrBottom = () => {
     const shouldRestoreNumber = saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null';
     const savedTop = shouldRestoreNumber ? parseFloat(saved) : null;
 
+    isRestoring = true;
     let attempts = 0;
     const applyScroll = () => {
         attempts++;
         const el = getMessagesContainer();
         if (!el) {
             if (attempts < 30) setTimeout(applyScroll, 40);
+            else isRestoring = false;
             return;
         }
 
         const maxScroll = el.scrollHeight - el.clientHeight;
 
-        if (savedTop !== null && !isNaN(savedTop) && savedTop >= 0) {
+        if (savedTop !== null && !isNaN(savedTop) && savedTop > 0) {
             isPinnedToBottom = false;
             el.scrollTop = savedTop;
             isScrolledUp.value = (el.scrollHeight - el.clientHeight) - el.scrollTop > 50;
 
             if (maxScroll < savedTop && attempts < 30) {
                 setTimeout(applyScroll, 40);
+            } else {
+                setTimeout(() => {
+                    isRestoring = false;
+                }, 150);
             }
         } else {
             isPinnedToBottom = true;
@@ -401,6 +407,10 @@ const restoreScrollOrBottom = () => {
 
             if (maxScroll <= 10 && attempts < 30) {
                 setTimeout(applyScroll, 40);
+            } else {
+                setTimeout(() => {
+                    isRestoring = false;
+                }, 150);
             }
         }
     };
