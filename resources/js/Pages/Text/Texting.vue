@@ -382,6 +382,22 @@ const restoreScrollOrBottom = () => {
             el.scrollTop = savedTop;
             const maxScroll = el.scrollHeight - el.clientHeight;
             isScrolledUp.value = maxScroll - el.scrollTop > 50;
+
+            if (el.scrollHeight <= el.clientHeight) {
+                let attempts = 0;
+                const retryTimer = setInterval(() => {
+                    attempts++;
+                    const curEl = getMessagesContainer();
+                    if (curEl && curEl.scrollHeight > curEl.clientHeight) {
+                        curEl.scrollTop = savedTop;
+                        const curMax = curEl.scrollHeight - curEl.clientHeight;
+                        isScrolledUp.value = curMax - curEl.scrollTop > 50;
+                        clearInterval(retryTimer);
+                    } else if (attempts >= 10) {
+                        clearInterval(retryTimer);
+                    }
+                }, 50);
+            }
             return;
         }
     }
@@ -389,6 +405,20 @@ const restoreScrollOrBottom = () => {
     isPinnedToBottom = true;
     isScrolledUp.value = false;
     el.scrollTop = el.scrollHeight;
+
+    if (el.scrollHeight <= el.clientHeight) {
+        let attempts = 0;
+        const retryTimer = setInterval(() => {
+            attempts++;
+            const curEl = getMessagesContainer();
+            if (curEl && curEl.scrollHeight > curEl.clientHeight) {
+                curEl.scrollTop = curEl.scrollHeight;
+                clearInterval(retryTimer);
+            } else if (attempts >= 10) {
+                clearInterval(retryTimer);
+            }
+        }, 50);
+    }
 };
 
 onMounted(() => {
