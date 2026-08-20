@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
 import { usePage } from "@inertiajs/vue3";
-import { baseUrl, defaultIcon, getMemberRoleColor } from "@/bootstrap";
+import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl } from "@/bootstrap";
 import { Server, User } from "@/types";
 import { HiUsers } from "vue-icons-plus/hi";
 import UserProfileModal from "@/Components/UserProfileModal.vue";
@@ -130,7 +130,8 @@ const formatStatusText = (status?: string) => {
                             <div class="w-10 rounded-full group-hover:scale-105 transition-transform duration-150">
                                 <img
                                     :alt="user.nickname"
-                                    :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon"
+                                    :src="resolveUrl(user.icon) || defaultIcon"
+                                    @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
                                 />
                             </div>
                         </div>

@@ -19,4 +19,8 @@ const echo = typeof window !== 'undefined' && reverbKey ? new Echo({
     enabledTransports: ['ws', 'wss'],
 }) : null;
 
+if (typeof window !== 'undefined' && echo) {
+    (window as any).Echo = echo;
+}
+
 export default echo;

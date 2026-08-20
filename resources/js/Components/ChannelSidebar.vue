@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { Channel, ChannelType, PermType, Server, User } from '@/types';
-import { baseUrl, defaultIcon, getMemberRoleColor, usePerms } from '@/bootstrap';
+import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
 import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as textChannelRoute } from '@/routes/home/text';
 import { channel as whiteboardChannelRoute } from '@/routes/home/whiteboard';
@@ -15,6 +15,7 @@ import { TbKeyboardOff } from 'vue-icons-plus/tb';
 import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine';
 import { usePaneDrag } from '@/composables/usePaneDrag';
 import { useChannelEvents } from '@/composables/useChannelEvents';
+import echo from '@/echo';
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
@@ -217,6 +218,10 @@ const handleVoiceChannelClick = async (channel: Channel) => {
     await voiceState.joinChannel(channel, props.selectedServer?.id, page.props.user as any);
 };
 
+onMounted(() => {
+    voiceState.restoreSession(page.props.user as any);
+});
+
 useChannelEvents(props.selectedServer?.id, ['channels']);
 </script>
 
@@ -226,7 +231,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
         class="bg-base-100 flex flex-col h-full shrink-0 select-none relative group transition-[width] duration-75 w-full"
     >
         <!-- Top Drag Handle & Server Title Bar -->
-        <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between bg-base-200/50">
+        <div class="h-12 px-4 border-b border-base-300 flex items-center justify-between bg-base-200/50 shrink-0">
             <span class="font-bold text-sm truncate text-base-content max-w-[140px]">{{ selectedServer.name }}</span>
             <div class="flex items-center gap-1">
                 <!-- Pencil Mode Toggle -->
@@ -423,10 +428,13 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                                 @click.stop="openUserProfile(user)"
                             >
                                 <div class="flex items-center gap-2 truncate min-w-0">
-                                    <div class="avatar size-5 rounded-full overflow-hidden shrink-0">
-                                        <img :src="user.icon ? `${baseUrl}${user.icon}` : defaultIcon" :alt="user.nickname" />
+                                    <div
+                                        class="avatar size-5 rounded-full overflow-hidden shrink-0 transition-all"
+                                        :class="{ 'ring-2 ring-primary ring-offset-1 ring-offset-base-100 animate-pulse': voiceState.isUserSpeaking(user.id) }"
+                                    >
+                                        <img :src="resolveUrl(user.icon) || defaultIcon" :alt="user.nickname" @error="(e) => (e.target as HTMLImageElement).src = defaultIcon" />
                                     </div>
-                                    <span class="truncate font-medium" :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }">
+                                    <span class="truncate font-medium text-base-content" :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }">
                                         {{ user.nickname || user.name }}
                                     </span>
                                 </div>

@@ -17,6 +17,14 @@ export const IMAGE_EXTENSIONS = [
     'png', 'jpg', 'jpeg', 'webp', 'gif', 'svg', 'bmp', 'ico', 'avif'
 ];
 
+export const VIDEO_EXTENSIONS = [
+    'mp4', 'webm', 'ogg', 'mov', 'mkv', 'avi', 'wmv', 'm4v'
+];
+
+export const AUDIO_EXTENSIONS = [
+    'mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'opus', 'wma', 'weba'
+];
+
 export function getFileExtension(filename: string): string {
     if (!filename) return '';
     const parts = filename.split('.');
@@ -29,6 +37,20 @@ export function isImageFile(filenameOrMime: string): boolean {
     if (filenameOrMime.startsWith('image/')) return true;
     const ext = getFileExtension(filenameOrMime);
     return IMAGE_EXTENSIONS.includes(ext);
+}
+
+export function isVideoFile(filenameOrMime: string): boolean {
+    if (!filenameOrMime) return false;
+    if (filenameOrMime.startsWith('video/')) return true;
+    const ext = getFileExtension(filenameOrMime);
+    return VIDEO_EXTENSIONS.includes(ext);
+}
+
+export function isAudioFile(filenameOrMime: string): boolean {
+    if (!filenameOrMime) return false;
+    if (filenameOrMime.startsWith('audio/')) return true;
+    const ext = getFileExtension(filenameOrMime);
+    return AUDIO_EXTENSIONS.includes(ext);
 }
 
 export function formatFileSize(bytes: number): string {

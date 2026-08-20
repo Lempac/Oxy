@@ -140,3 +140,44 @@ test('user cannot create empty message without text or files', function () {
 
     $response->assertSessionHasErrors('content');
 });
+
+test('deleting a message removes its attachments from storage', function () {
+    $user = User::factory()->create();
+    $server = Server::factory()->create();
+    $channel = Channel::factory()->create(['server_id' => $server->id]);
+
+    $role = Role::create([
+        'name' => 'Member',
+        'server_id' => $server->id,
+        'color' => '#150f83',
+        'importance' => 1,
+    ]);
+    $role->givePermissionTo(['CAN_CREATE_MESSAGE', 'CAM_CREATE_ATTACHMENTS', 'CAN_DELETE_MESSAGE']);
+
+    setPermissionsTeamId($server->id);
+    $user->assignRole($role);
+    $server->users()->attach($user->id);
+
+    $this->actingAs($user);
+
+    $file = UploadedFile::fake()->image('photo.png', 800, 600);
+
+    $this->post("/api/message/{$server->slug}/{$channel->slug}", [
+        'content' => 'Message with attachment to delete',
+        'attachments' => [$file],
+    ]);
+
+    $message = Message::where('content', 'Message with attachment to delete')->first();
+    expect($message)->not->toBeNull();
+    expect($message->attachments)->toHaveCount(1);
+    $attachmentPath = $message->attachments[0]->path;
+
+    Storage::disk(config('filesystems.default'))->assertExists($attachmentPath);
+
+    $response = $this->delete("/api/message/{$message->id}");
+    $response->assertStatus(302);
+
+    $this->assertDatabaseMissing('messages', ['id' => $message->id]);
+    $this->assertDatabaseMissing('message_attachments', ['id' => $message->attachments[0]->id]);
+    Storage::disk(config('filesystems.default'))->assertMissing($attachmentPath);
+});

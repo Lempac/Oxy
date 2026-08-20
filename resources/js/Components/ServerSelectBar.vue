@@ -7,7 +7,7 @@ import {server as settingsServer} from '@/routes/settings';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
-import {baseUrl, defaultIcon, joinServer, usePerms} from "@/bootstrap";
+import {baseUrl, defaultIcon, joinServer, resolveUrl, usePerms} from "@/bootstrap";
 import {PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
@@ -148,7 +148,8 @@ const handleEditorSave = (editedFile: File) => {
                             >
                                 <div class="w-10 rounded-full">
                                     <img
-                                        :src="server.icon ? `${baseUrl}${server.icon}` : defaultIcon"
+                                        :src="resolveUrl(server.icon) || defaultIcon"
+                                        @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
                                         alt="Server"/>
                                 </div>
                             </div>
@@ -219,7 +220,8 @@ const handleEditorSave = (editedFile: File) => {
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img
-                                :src="$page.props.user?.icon ? `${baseUrl}${$page.props.user?.icon}` : defaultIcon"
+                                :src="resolveUrl($page.props.user?.icon) || defaultIcon"
+                                @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
                                 alt="User Avatar"/>
                         </div>
                     </div>

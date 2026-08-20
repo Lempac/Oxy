@@ -3,12 +3,12 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import ChannelSidebar from "@/Components/ChannelSidebar.vue";
 import {Channel, Message, PermType, Server, Whiteboard} from "@/types";
 import WhiteboardBoard from "./WhiteboardBoard.vue";
-import {computed, onMounted, onUnmounted, ref} from "vue";
+import {computed, nextTick, onMounted, onUnmounted, onUpdated, ref, watch} from "vue";
 import {router, useForm} from "@inertiajs/vue3";
-import {baseUrl, defaultIcon, getMemberRoleColor, usePerms} from "@/bootstrap";
+import {baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from "@/bootstrap";
 import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';
-import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator, MdClose} from 'vue-icons-plus/md';
+import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator, MdClose, MdArrowDownward} from 'vue-icons-plus/md';
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {create, deleteMethod, edit} from "@/routes/message";
 import {usePaneDrag} from "@/composables/usePaneDrag";
@@ -231,13 +231,156 @@ const onChatDragLeave = (e: DragEvent) => {
     onDragLeave(e);
 };
 
+const messageContainer = ref<HTMLDivElement | null>(null);
+const isScrolledUp = ref(false);
+let isPinnedToBottom = true;
+let isRestoring = true;
+
+const getScrollStorageKey = (): string => {
+    const ch = props.selectedChannel;
+    return `oxy_scroll_${ch?.id || ch?.slug || 'default'}`;
+};
+
+const getMessagesContainer = (): HTMLElement | null => {
+    return (messageContainer.value as HTMLElement | null) || (document.querySelector('div.overflow-y-auto.grow') as HTMLElement | null);
+};
+
+const handleScroll = (e?: Event) => {
+    const el = (e?.target as HTMLElement) || getMessagesContainer();
+    if (!el || isRestoring) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const maxScroll = scrollHeight - clientHeight;
+
+    if (maxScroll <= 30) {
+        isScrolledUp.value = false;
+        isPinnedToBottom = true;
+        return;
+    }
+
+    const distanceFromBottom = maxScroll - scrollTop;
+    const atBottom = distanceFromBottom <= 40;
+
+    if (atBottom) {
+        isScrolledUp.value = false;
+        isPinnedToBottom = true;
+    } else {
+        isScrolledUp.value = distanceFromBottom > 50;
+        isPinnedToBottom = false;
+    }
+
+    const key = getScrollStorageKey();
+    if (typeof localStorage !== 'undefined') {
+        if (atBottom) {
+            localStorage.setItem(key, 'BOTTOM');
+        } else if (!isNaN(scrollTop) && scrollTop > 0) {
+            localStorage.setItem(key, String(scrollTop));
+        }
+    }
+};
+
+const scrollToBottomSmooth = () => {
+    const el = getMessagesContainer();
+    if (el) {
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
+        el.scrollTo({
+            top: el.scrollHeight,
+            behavior: 'smooth'
+        });
+        const key = getScrollStorageKey();
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(key, 'BOTTOM');
+        }
+    }
+};
+
+const scrollToBottom = () => {
+    const el = getMessagesContainer();
+    if (el) {
+        el.scrollTop = el.scrollHeight;
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
+    }
+};
+
+const restoreScrollOrBottom = () => {
+    const key = getScrollStorageKey();
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+    const shouldRestoreNumber = saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null';
+    const savedTop = shouldRestoreNumber ? parseFloat(saved) : null;
+
+    isRestoring = true;
+
+    const el = getMessagesContainer();
+    if (!el) return;
+
+    if (savedTop !== null && !isNaN(savedTop) && savedTop >= 0) {
+        isPinnedToBottom = false;
+        el.scrollTop = savedTop;
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        isScrolledUp.value = maxScroll - el.scrollTop > 50;
+    } else {
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
+        el.scrollTop = el.scrollHeight;
+    }
+
+    setTimeout(() => {
+        isRestoring = false;
+    }, 150);
+};
+
 onMounted(() => {
+    restoreScrollOrBottom();
+    nextTick(() => { restoreScrollOrBottom(); });
+    setTimeout(restoreScrollOrBottom, 50);
+    setTimeout(restoreScrollOrBottom, 150);
+    setTimeout(restoreScrollOrBottom, 350);
+    setTimeout(restoreScrollOrBottom, 600);
+
+    router.on('finish', () => {
+        setTimeout(restoreScrollOrBottom, 50);
+    });
+
     window.addEventListener('paste', handlePaste);
 });
 
 onUnmounted(() => {
     window.removeEventListener('paste', handlePaste);
 });
+
+watch(
+    () => props.selectedChannel?.id,
+    () => {
+        nextTick(() => { restoreScrollOrBottom(); });
+        setTimeout(restoreScrollOrBottom, 100);
+        setTimeout(restoreScrollOrBottom, 300);
+    }
+);
+
+watch(
+    () => props.messages?.length,
+    (newLen, oldLen) => {
+        if (oldLen !== undefined && newLen && newLen > oldLen) {
+            if (isPinnedToBottom) {
+                nextTick(() => {
+                    scrollToBottom();
+                });
+            }
+        }
+    }
+);
+
+watch(
+    () => stagedFiles.value.length,
+    () => {
+        if (isPinnedToBottom) {
+            nextTick(() => {
+                scrollToBottom();
+            });
+        }
+    }
+);
 
 const openImageEditor = (file: File, index: number) => {
     editingFileIndex.value = index;
@@ -334,35 +477,36 @@ function formatDate(dateString: string): string {
             <div
                 v-if="paneId === 'sidebar' && selectedServer"
                 :style="getPaneStyle('sidebar', activePanes)"
-                :class="[
-                    'flex flex-col overflow-hidden relative transition-all duration-75',
-                    dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="flex flex-col overflow-hidden relative transition-all duration-75"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
                 @dragleave="onPaneDragLeave($event, 'sidebar')"
                 @drop="dropOnPane('sidebar')"
             >
                 <ChannelSidebar :channels="channels" :selected-server="selectedServer" />
+
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
             </div>
 
             <!-- 2. Chat Pane -->
             <div
                 v-else-if="paneId === 'chat' && selectedChannel"
                 :style="getPaneStyle('chat', activePanes)"
-                :class="[
-                    'bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]',
-                    dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragEnter($event)"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragOver($event)"
                 @dragleave="onChatDragLeave"
                 @drop="onDrop"
             >
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
                 <!-- File Drag & Drop Overlay -->
                 <div
                     v-if="isFileDragging"
@@ -375,7 +519,7 @@ function formatDate(dateString: string): string {
                     </div>
                 </div>
 
-                <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
+                <div class="h-12 px-4 bg-base-200/50 border-b border-base-300 flex items-center justify-between shrink-0">
                     <div class="font-bold text-sm text-base-content flex items-center gap-1.5">
                         <span>#</span>
                         <span>{{ selectedChannel.name }}</span>
@@ -392,7 +536,7 @@ function formatDate(dateString: string): string {
                 </div>
 
                 <!-- Messages Stream -->
-                <div class="overflow-y-auto grow p-3 space-y-2">
+                <div ref="messageContainer" class="overflow-y-auto grow p-3 space-y-2 pb-10 relative" @scroll="handleScroll">
                     <div v-if="messages && messages.length > 0">
                         <div
                             v-for="message in messages" :key="message.id"
@@ -400,7 +544,7 @@ function formatDate(dateString: string): string {
                         >
                             <div class="chat-image avatar">
                                 <div class="w-8 rounded-full">
-                                    <img :src="message.sender?.icon ? baseUrl + message.sender.icon : defaultIcon" alt="User Avatar"/>
+                                    <img :src="resolveUrl(message.sender?.icon) || defaultIcon" @error="(e) => (e.target as HTMLImageElement).src = defaultIcon" alt="User Avatar"/>
                                 </div>
                             </div>
                             <div class="chat-header text-xs">
@@ -450,6 +594,26 @@ function formatDate(dateString: string): string {
                     </div>
                 </div>
 
+                <!-- Floating Scroll to Bottom Button -->
+                <Transition
+                    enter-active-class="transition duration-150 ease-out"
+                    enter-from-class="opacity-0 translate-y-2"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 translate-y-2"
+                >
+                    <button
+                        v-if="isScrolledUp"
+                        type="button"
+                        class="btn btn-sm btn-circle btn-primary absolute bottom-20 right-6 shadow-2xl z-50 hover:scale-110 transition-transform"
+                        title="Jump to bottom"
+                        @click="scrollToBottomSmooth"
+                    >
+                        <MdArrowDownward class="size-4" />
+                    </button>
+                </Transition>
+
                 <!-- Validation Error Toast -->
                 <div v-if="validationError" class="px-3 py-1.5 bg-error/15 text-error text-[11px] border-t border-error/30 flex items-center justify-between">
                     <span>{{ validationError }}</span>
@@ -459,7 +623,7 @@ function formatDate(dateString: string): string {
                 </div>
 
                 <!-- Staged Attachments Container (Supports Multiple Files) -->
-                <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-1 bg-base-100 border-t border-base-300 flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-2 bg-base-100 border-t border-base-300 flex flex-wrap gap-1.5 max-h-28 overflow-y-auto shrink-0 z-10">
                     <FilePreviewCard
                         v-for="(file, index) in stagedFiles"
                         :key="index + file.name"
@@ -472,7 +636,7 @@ function formatDate(dateString: string): string {
                 <!-- Chat Input Form -->
                     <form
                         :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
-                        class="flex items-center gap-2 p-2 bg-base-100"
+                        class="flex items-center gap-2 p-2 bg-base-100 shrink-0 z-10"
                         @submit.prevent="createMessage"
                     >
                         <RecentUploadsDropdown
@@ -513,12 +677,7 @@ function formatDate(dateString: string): string {
             <div
                 v-else-if="paneId === 'whiteboard' && selectedChannel"
                 :style="getPaneStyle('whiteboard', activePanes)"
-                :class="[
-                    'bg-base-100 flex flex-col overflow-hidden min-w-[300px] transition-all duration-75',
-                    dragHoverPaneId === 'whiteboard' && draggedPaneId && draggedPaneId !== 'whiteboard'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="bg-base-100 flex flex-col overflow-hidden min-w-[300px] transition-all duration-75 relative"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('whiteboard') : null"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('whiteboard') : null"
                 @dragleave="onPaneDragLeave($event, 'whiteboard')"
@@ -529,6 +688,12 @@ function formatDate(dateString: string): string {
                     :selected-server="selectedServer"
                     :whiteboard="selectedChannel.whiteboard"
                     @toggle-maximize="isMaximized = !isMaximized"
+                />
+
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'whiteboard' && draggedPaneId && draggedPaneId !== 'whiteboard'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
                 />
             </div>
 

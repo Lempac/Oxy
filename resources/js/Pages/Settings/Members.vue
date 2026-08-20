@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, fetchJson, getMemberRoleColor, usePerms} from '@/bootstrap';
+import {baseUrl, defaultIcon, fetchJson, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {GiBootKick} from 'vue-icons-plus/gi';
@@ -156,7 +156,9 @@ const generateInvite = async () => {
                                                 <div class="bg-neutral text-neutral-content rounded-full w-8 h-8">
                                                     <img
                                                         v-if="user.icon" :alt="user.nickname"
-                                                        :src="baseUrl + user.icon"/>
+                                                        :src="resolveUrl(user.icon)"
+                                                        @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
+                                                    />
                                                     <span v-else class="text-xs uppercase">{{
                                                             user.nickname.substring(0, 2)
                                                         }}</span>

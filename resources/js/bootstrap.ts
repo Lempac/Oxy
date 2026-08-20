@@ -4,7 +4,7 @@ import {router, usePage} from "@inertiajs/vue3";
 import {Perms, Role, Server, User} from "@/types";
 import {computed} from 'vue';
 
-export const defaultIcon = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS78CXwhRL-71jDHotN6WOTp9dC1RWPQEAJUA&s";
+export const defaultIcon = "/images/icon.svg";
 
 export const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 

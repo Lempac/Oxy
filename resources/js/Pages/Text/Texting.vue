@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, defaultIcon, getMemberRoleColor, usePerms} from '@/bootstrap';
+import {baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
 import {create, deleteMethod, edit} from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import ChannelSidebar from "@/Components/ChannelSidebar.vue";
@@ -9,7 +9,7 @@ import {computed, nextTick, onMounted, onUnmounted, onUpdated, ref, watch} from 
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';
-import {MdOutlineDeleteForever, MdOutlineModeEdit, MdDragIndicator, MdOutlineFileUpload, MdClose} from 'vue-icons-plus/md';
+import {MdOutlineDeleteForever, MdOutlineModeEdit, MdDragIndicator, MdOutlineFileUpload, MdClose, MdArrowDownward} from 'vue-icons-plus/md';
 import {useMessageEvents} from "@/composables/useMessageEvents";
 import {usePaneDrag} from "@/composables/usePaneDrag";
 import {useRecentUploads} from "@/composables/useRecentUploads";
@@ -222,14 +222,18 @@ const onDrop = (e: DragEvent) => {
     }
 };
 
-const onChatDragLeave = (e: DragEvent) => {
+const onPaneDragLeave = (e: DragEvent, paneId: string) => {
     const currentTarget = e.currentTarget as HTMLElement | null;
     const relatedTarget = e.relatedTarget as Node | null;
     if (!currentTarget || !relatedTarget || !currentTarget.contains(relatedTarget)) {
-        if (dragHoverPaneId.value === 'chat') {
+        if (dragHoverPaneId.value === paneId) {
             setDragHoverPane(null);
         }
     }
+};
+
+const onChatDragLeave = (e: DragEvent) => {
+    onPaneDragLeave(e, 'chat');
     onDragLeave(e);
 };
 
@@ -278,6 +282,11 @@ const createMessage = async () => {
             clearAllFiles();
             form.reset();
             clearValidation();
+            const key = getScrollStorageKey();
+            if (key && typeof sessionStorage !== 'undefined') {
+                sessionStorage.removeItem(key);
+            }
+            nextTick(() => scrollToBottom());
         },
         onError: (errors) => {
             const errList = Object.values(errors).join(' ');
@@ -289,12 +298,116 @@ const createMessage = async () => {
     });
 };
 
+const isScrolledUp = ref(false);
+let isPinnedToBottom = true;
+let isRestoring = true;
+
+const getScrollStorageKey = (): string => {
+    const ch = props.selectedChannel;
+    return `oxy_scroll_${ch?.id || ch?.slug || 'default'}`;
+};
+
+const getMessagesContainer = (): HTMLElement | null => {
+    return (messageContainer.value as HTMLElement | null) || (document.querySelector('div.overflow-y-auto.grow') as HTMLElement | null);
+};
+
+const handleScroll = (e?: Event) => {
+    const el = (e?.target as HTMLElement) || getMessagesContainer();
+    if (!el || isRestoring) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const maxScroll = scrollHeight - clientHeight;
+
+    if (maxScroll <= 30) {
+        isScrolledUp.value = false;
+        isPinnedToBottom = true;
+        return;
+    }
+
+    const distanceFromBottom = maxScroll - scrollTop;
+    const atBottom = distanceFromBottom <= 40;
+
+    if (atBottom) {
+        isScrolledUp.value = false;
+        isPinnedToBottom = true;
+    } else {
+        isScrolledUp.value = distanceFromBottom > 50;
+        isPinnedToBottom = false;
+    }
+
+    const key = getScrollStorageKey();
+    if (typeof localStorage !== 'undefined') {
+        if (atBottom) {
+            localStorage.setItem(key, 'BOTTOM');
+        } else if (!isNaN(scrollTop) && scrollTop > 0) {
+            localStorage.setItem(key, String(scrollTop));
+        }
+    }
+};
+
+const scrollToBottomSmooth = () => {
+    const el = getMessagesContainer();
+    if (el) {
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
+        el.scrollTo({
+            top: el.scrollHeight,
+            behavior: 'smooth'
+        });
+        const key = getScrollStorageKey();
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(key, 'BOTTOM');
+        }
+    }
+};
+
 const scrollToBottom = () => {
-    if (messageContainer.value) messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+    const el = getMessagesContainer();
+    if (el) {
+        el.scrollTop = el.scrollHeight;
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
+    }
+};
+
+const restoreScrollOrBottom = () => {
+    const key = getScrollStorageKey();
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+    const shouldRestoreNumber = saved && saved !== 'BOTTOM' && saved !== 'undefined' && saved !== 'null';
+    const savedTop = shouldRestoreNumber ? parseFloat(saved) : null;
+
+    isRestoring = true;
+
+    const el = getMessagesContainer();
+    if (!el) return;
+
+    if (savedTop !== null && !isNaN(savedTop) && savedTop >= 0) {
+        isPinnedToBottom = false;
+        el.scrollTop = savedTop;
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        isScrolledUp.value = maxScroll - el.scrollTop > 50;
+    } else {
+        isPinnedToBottom = true;
+        isScrolledUp.value = false;
+        el.scrollTop = el.scrollHeight;
+    }
+
+    setTimeout(() => {
+        isRestoring = false;
+    }, 150);
 };
 
 onMounted(() => {
-    scrollToBottom();
+    restoreScrollOrBottom();
+    nextTick(() => { restoreScrollOrBottom(); });
+    setTimeout(restoreScrollOrBottom, 50);
+    setTimeout(restoreScrollOrBottom, 150);
+    setTimeout(restoreScrollOrBottom, 350);
+    setTimeout(restoreScrollOrBottom, 600);
+
+    router.on('finish', () => {
+        setTimeout(restoreScrollOrBottom, 50);
+    });
+
     window.addEventListener('paste', handlePaste);
 });
 
@@ -302,14 +415,36 @@ onUnmounted(() => {
     window.removeEventListener('paste', handlePaste);
 });
 
-onUpdated(() => nextTick(() => scrollToBottom()));
+watch(
+    () => props.selectedChannel?.id,
+    () => {
+        nextTick(() => { restoreScrollOrBottom(); });
+        setTimeout(restoreScrollOrBottom, 100);
+        setTimeout(restoreScrollOrBottom, 300);
+    }
+);
 
 watch(
-    () => props.messages,
+    () => props.messages?.length,
+    (newLen, oldLen) => {
+        if (oldLen !== undefined && newLen && newLen > oldLen) {
+            if (isPinnedToBottom) {
+                nextTick(() => {
+                    scrollToBottom();
+                });
+            }
+        }
+    }
+);
+
+watch(
+    () => stagedFiles.value.length,
     () => {
-        nextTick(() => {
-            scrollToBottom();
-        });
+        if (isPinnedToBottom) {
+            nextTick(() => {
+                scrollToBottom();
+            });
+        }
     }
 );
 
@@ -348,36 +483,37 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
             <div
                 v-if="paneId === 'sidebar' && selectedServer"
                 :style="getPaneStyle('sidebar', activePanes)"
-                :class="[
-                    'flex flex-col overflow-hidden relative transition-all duration-75',
-                    dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="flex flex-col overflow-hidden relative transition-all duration-75"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
-                @dragleave="dragHoverPaneId === 'sidebar' ? setDragHoverPane(null) : null"
+                @dragleave="onPaneDragLeave($event, 'sidebar')"
                 @drop="dropOnPane('sidebar')"
             >
                 <ChannelSidebar :channels="channels" :selected-server="selectedServer" />
+
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
             </div>
 
             <!-- Chat Stream & Input Pane -->
             <div
                 v-else-if="paneId === 'chat' || paneId === 'main'"
                 :style="getPaneStyle('chat', activePanes)"
-                :class="[
-                    'bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]',
-                    dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat' && draggedPaneId !== 'sidebar'
-                        ? 'border-2 border-dashed border-primary bg-primary/10 rounded-xl'
-                        : ''
-                ]"
+                class="bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]"
                 @dragenter.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragEnter($event)"
                 @dragover.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragOver($event)"
                 @dragleave="onChatDragLeave"
                 @drop="onDrop"
                 @paste="handlePaste"
             >
+                <!-- Pane Swap Drag Hover Overlay -->
+                <div
+                    v-if="dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'"
+                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+                />
                 <template v-if="selectedChannel">
                     <!-- File Drag & Drop Overlay -->
                     <div
@@ -392,7 +528,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Channel Header Bar with Drag Handle -->
-                    <div class="px-4 py-2 bg-base-200/50 border-b border-base-300 flex items-center justify-between">
+                    <div class="h-12 px-4 bg-base-200/50 border-b border-base-300 flex items-center justify-between shrink-0">
                         <div class="flex items-center gap-2 font-bold text-sm text-base-content">
                             <span>#</span>
                             <span>{{ selectedChannel.name }}</span>
@@ -409,7 +545,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Messages Stream -->
-                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5">
+                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10 relative" @scroll="handleScroll">
                         <div v-if="messages && messages.length > 0" class="space-y-4">
                             <div
                                 v-for="message in messages" :key="message.id"
@@ -418,7 +554,8 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                                 <div class="chat-image avatar">
                                     <div class="w-10 rounded-full">
                                         <img
-                                            :src="message.sender?.icon ? baseUrl + message.sender.icon : defaultIcon"
+                                            :src="resolveUrl(message.sender?.icon) || defaultIcon"
+                                            @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
                                             alt="User Avatar"/>
                                     </div>
                                 </div>
@@ -443,32 +580,28 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                                             />
                                         </div>
 
-                                        <!-- Delete Message Action -->
+                                        <!-- Message Actions Hover Toolbar -->
                                         <div
                                             v-if="message.user_id === $page.props.user?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
-                                            :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}"
-                                            class="indicator-item indicator-top absolute hidden group-hover:block">
+                                            class="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-base-300/90 backdrop-blur-xs rounded-md p-0.5 shadow-sm z-20"
+                                        >
+                                            <button
+                                                v-if="message.user_id === $page.props.user?.id"
+                                                class="btn btn-ghost btn-xs btn-circle p-0"
+                                                title="Edit text"
+                                                @click="openEditModal(message.id, message.content)"
+                                            >
+                                                <MdOutlineModeEdit class="size-3.5 text-warning" />
+                                            </button>
                                             <ConfirmDialog
+                                                v-if="message.user_id === $page.props.user?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
                                                 :confirm="() => deleteMessage(message.id)"
-                                                class-name="indicator-item badge badge-error h-auto w-auto p-0.5"
+                                                class-name="btn btn-ghost btn-xs btn-circle p-0"
                                                 description="Are you sure you want to delete this message?"
                                                 title="Delete Message"
                                             >
-                                                <MdOutlineDeleteForever/>
+                                                <MdOutlineDeleteForever class="size-3.5 text-error" />
                                             </ConfirmDialog>
-                                        </div>
-
-                                        <!-- Edit Message Action (Allowed for author) -->
-                                        <div
-                                            v-if="message.user_id === $page.props.user?.id"
-                                            :class="{'indicator-end': message.user_id !== $page.props.user?.id, 'indicator-start': message.user_id === $page.props.user?.id}"
-                                            class="indicator-item indicator-bottom absolute hidden group-hover:block">
-                                            <button
-                                                class="indicator-item badge badge-warning h-auto w-auto p-0.5"
-                                                title="Edit text"
-                                                @click="openEditModal(message.id, message.content)">
-                                                <MdOutlineModeEdit/>
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -479,6 +612,26 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                         </div>
                     </div>
 
+                    <!-- Floating Scroll to Bottom Button -->
+                    <Transition
+                        enter-active-class="transition duration-150 ease-out"
+                        enter-from-class="opacity-0 translate-y-3 scale-90"
+                        enter-to-class="opacity-100 translate-y-0 scale-100"
+                        leave-active-class="transition duration-100 ease-in"
+                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                        leave-to-class="opacity-0 translate-y-3 scale-90"
+                    >
+                        <button
+                            v-if="isScrolledUp"
+                            type="button"
+                            class="btn btn-sm btn-circle btn-primary absolute bottom-20 right-8 shadow-2xl z-50 hover:scale-110 transition-transform"
+                            title="Jump to bottom"
+                            @click="scrollToBottomSmooth"
+                        >
+                            <MdArrowDownward class="size-5" />
+                        </button>
+                    </Transition>
+
                     <!-- Validation Error Toast / Banner -->
                     <div v-if="validationError" class="px-4 py-2 bg-error/15 text-error text-xs border-t border-error/30 flex items-center justify-between">
                         <span>{{ validationError }}</span>
@@ -488,7 +641,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     </div>
 
                     <!-- Staged File Previews Container (Supports Multiple Files) -->
-                    <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-1 bg-base-100 border-t border-base-300 flex flex-wrap gap-2 max-h-36 overflow-y-auto">
+                    <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-2 bg-base-100 border-t border-base-300 flex flex-wrap gap-2 max-h-36 overflow-y-auto shrink-0 z-10">
                         <FilePreviewCard
                             v-for="(file, index) in stagedFiles"
                             :key="index + file.name"
@@ -501,7 +654,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     <!-- Send Message Form -->
                     <form
                         :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
-                        class="flex items-center gap-2 p-2 bg-base-100"
+                        class="flex items-center gap-2 p-2 bg-base-100 shrink-0 z-10"
                         @submit.prevent="createMessage"
                     >
                         <RecentUploadsDropdown

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { home, login, manual, register } from '@/routes';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { MdMessage, MdCall, MdScreenShare } from 'vue-icons-plus/md';
 import { FaBook } from 'vue-icons-plus/fa';
@@ -96,6 +96,18 @@ const submitRegister = () => {
         }
     });
 };
+
+onMounted(() => {
+    if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const invite = params.get('invite') || params.get('code');
+        if (invite) {
+            registerForm.server_code = invite;
+            checkServerCode();
+            registerModel.value?.showModal();
+        }
+    }
+});
 
 </script>
 
