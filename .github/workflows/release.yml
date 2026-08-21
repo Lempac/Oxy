@@ -166,11 +166,18 @@ jobs:
             echo "::warning title=Newer Uncloud Version Available::A newer upstream Uncloud version (${LATEST_UC}) is available. Current workflow uses ${UNCLOUD_VERSION}."
           fi
 
-          gh release download "${UNCLOUD_VERSION}" --repo psviderski/uncloud --pattern "uc_linux_amd64.tar.gz" --pattern "checksums.txt"
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+            UC_ARCH="arm64"
+          else
+            UC_ARCH="amd64"
+          fi
+
+          gh release download "${UNCLOUD_VERSION}" --repo psviderski/uncloud --pattern "uc_linux_${UC_ARCH}.tar.gz" --pattern "checksums.txt"
           sha256sum --ignore-missing -c checksums.txt
-          tar -xzf uc_linux_amd64.tar.gz
+          tar -xzf "uc_linux_${UC_ARCH}.tar.gz"
           sudo install -m 755 uc /usr/local/bin/uc
-          rm -f uc uc_linux_amd64.tar.gz checksums.txt
+          rm -f uc "uc_linux_${UC_ARCH}.tar.gz" checksums.txt
 
       - name: Ensure Production S3 Bucket Exists
         env:
