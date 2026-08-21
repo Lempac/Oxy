@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
-import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
+import { defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
 import { PermType, Role, Server, User } from '@/types';
 import {
     HiCalendar,

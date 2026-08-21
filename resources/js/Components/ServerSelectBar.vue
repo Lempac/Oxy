@@ -7,7 +7,7 @@ import {server as settingsServer} from '@/routes/settings';
 import {Link, router, useForm, usePage} from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import {computed, ref} from 'vue';
-import {baseUrl, defaultIcon, joinServer, resolveUrl, usePerms} from "@/bootstrap";
+import {defaultIcon, joinServer, resolveUrl, usePerms} from "@/bootstrap";
 import {PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
@@ -16,7 +16,6 @@ import {BsDoorOpen, BsGearFill} from 'vue-icons-plus/bs';
 import {MdMic, MdMicOff, MdHeadset, MdHeadsetOff, MdExitToApp} from 'vue-icons-plus/md';
 import {TbKeyboard, TbKeyboardOff} from 'vue-icons-plus/tb';
 import {useVoiceCallStateMachine} from '@/composables/useVoiceCallStateMachine';
-import {VoiceParticipantState} from '@/types';
 import ImageEditorModal from '@/Components/ImageEditorModal.vue';
 
 const perms = usePerms();
@@ -169,7 +168,7 @@ const handleEditorSave = (editedFile: File) => {
             <div v-if="!voiceState.isDisconnected.value" class="flex items-center gap-2 bg-base-200 border border-success/30 px-3 py-1 rounded-full shadow-xs mr-2">
                 <span class="size-2.5 rounded-full bg-success animate-pulse"></span>
                 <span class="text-xs font-semibold text-success">🔊 {{ voiceState.activeChannel.value?.name || 'Voice' }}</span>
-                
+
                 <!-- Voice Action Controls: Mute, Deafen, AFK, Disconnect -->
                 <div class="flex items-center gap-1 ml-2 border-l border-base-300 pl-2">
                     <button

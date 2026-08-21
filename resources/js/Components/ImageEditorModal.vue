@@ -5,9 +5,6 @@ import {
     MdRotateLeft,
     MdFlip,
     MdCrop,
-    MdCropSquare,
-    MdCrop169,
-    MdCropFree,
     MdOutlineRectangle,
     MdOutlineCircle,
     MdHorizontalRule,
@@ -20,7 +17,7 @@ import {
     MdZoomOut,
     MdCheck,
     MdClose,
-    MdOutlineFormatColorFill,
+
 } from 'vue-icons-plus/md';
 import { HiPencil } from 'vue-icons-plus/hi';
 import { BsEraser } from 'vue-icons-plus/bs';
