@@ -8,18 +8,22 @@ RUN --mount=type=cache,id=composer,target=/root/.composer/cache \
     composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --no-scripts
 
 # ── Stage 2: Node deps + Vite asset build ──────────────────────────────────
-FROM --platform=$BUILDPLATFORM node:24-slim AS node-build
+FROM --platform=$BUILDPLATFORM dunglas/frankenphp:1-php8.5 AS node-build
 WORKDIR /app
-RUN npm install -g pnpm@11.18.0
+
+COPY --from=node:24-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:24-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && npm install -g pnpm@11.18.0
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 
-# Copy frontend source files so PHP-only commits do not invalidate Vite cache
-COPY resources/ resources/
-COPY routes/ routes/
-COPY vite.config.ts tsconfig.json ./
-RUN pnpm run build
+COPY --from=composer-deps /app/vendor vendor/
+COPY . .
+
+RUN php artisan wayfinder:generate && pnpm run build
 
 # ── Stage 3: Runtime ───────────────────────────────────────────────────────
 FROM dunglas/frankenphp:1-php8.5
@@ -51,6 +55,7 @@ COPY . .
 COPY --from=composer-deps /app/vendor vendor/
 COPY --from=node-build /app/public/build public/build/
 COPY --from=node-build /app/bootstrap/ssr bootstrap/ssr/
+COPY --from=node-build /app/resources/js/routes resources/js/routes/
 
 RUN php artisan storage:link && \
     php artisan vendor:publish --tag=laravel-assets --force
