@@ -1,41 +1,31 @@
 import { onMounted, onUnmounted } from 'vue';
-import { router } from '@inertiajs/vue3';
-import echo from '@/echo';
+import pb from '@/pocketbase';
 import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine';
 
-export function useChannelEvents(serverId?: string | null, onlyKeys: string[] = ['channels']) {
-    const handleChannelChange = () => router.reload({ only: onlyKeys });
+export function useChannelEvents(
+    serverId?: string | null,
+    onChannelChange?: () => void
+) {
     const voiceState = useVoiceCallStateMachine();
+    let unsubscribe: (() => void) | null = null;
 
-    const handleVoiceStateChange = (event: { channelId: string | number; user: any; action: 'joined' | 'left' }) => {
-        if (!event || !event.channelId) return;
-        const currentUsers = voiceState.getChannelUsers(event.channelId);
-        if (event.action === 'joined') {
-            if (!currentUsers.some(u => String(u.id) === String(event.user.id))) {
-                voiceState.setChannelUsers(event.channelId, [...currentUsers, event.user]);
-            }
-        } else if (event.action === 'left') {
-            voiceState.setChannelUsers(event.channelId, currentUsers.filter(u => String(u.id) !== String(event.user.id)));
-        }
-    };
-
-    onMounted(() => {
+    onMounted(async () => {
         if (!serverId) return;
-        
-        echo?.private(`channels.${serverId}`)
-            .listen('.ChannelCreated', handleChannelChange)
-            .listen('.ChannelEdited', handleChannelChange)
-            .listen('.ChannelDeleted', handleChannelChange)
-            .listen('.VoiceStateChanged', handleVoiceStateChange);
+
+        try {
+            unsubscribe = await pb.collection('channels').subscribe('*', (e) => {
+                if (e.record.server === serverId && onChannelChange) {
+                    onChannelChange();
+                }
+            });
+        } catch (err) {
+            console.error('Failed to subscribe to channel realtime events:', err);
+        }
     });
 
     onUnmounted(() => {
-        if (!serverId) return;
-        
-        echo?.private(`channels.${serverId}`)
-            ?.stopListening('.ChannelCreated', handleChannelChange)
-            ?.stopListening('.ChannelEdited', handleChannelChange)
-            ?.stopListening('.ChannelDeleted', handleChannelChange)
-            ?.stopListening('.VoiceStateChanged', handleVoiceStateChange);
+        if (unsubscribe) {
+            unsubscribe();
+        }
     });
 }

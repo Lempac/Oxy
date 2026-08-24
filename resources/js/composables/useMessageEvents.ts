@@ -1,25 +1,37 @@
 import { onMounted, onUnmounted } from 'vue';
-import { router } from '@inertiajs/vue3';
-import echo from '@/echo';
+import pb from '@/pocketbase';
 
-export function useMessageEvents(channelId?: string | null) {
-    const handleMessageChange = () => router.reload({ only: ['messages'] });
+export function useMessageEvents(
+    channelId?: string | null,
+    onMessageCreated?: (message: any) => void,
+    onMessageUpdated?: (message: any) => void,
+    onMessageDeleted?: (messageId: string) => void
+) {
+    let unsubscribe: (() => void) | null = null;
 
-    onMounted(() => {
+    onMounted(async () => {
         if (!channelId) return;
-        
-        echo?.private(`messages.${channelId}`)
-            .listen('.MessageCreated', handleMessageChange)
-            .listen('.MessageDeleted', handleMessageChange)
-            .listen('.MessageEdited', handleMessageChange);
+
+        try {
+            unsubscribe = await pb.collection('messages').subscribe('*', (e) => {
+                if (e.record.channel !== channelId) return;
+
+                if (e.action === 'create' && onMessageCreated) {
+                    onMessageCreated(e.record);
+                } else if (e.action === 'update' && onMessageUpdated) {
+                    onMessageUpdated(e.record);
+                } else if (e.action === 'delete' && onMessageDeleted) {
+                    onMessageDeleted(e.record.id);
+                }
+            });
+        } catch (err) {
+            console.error('Failed to subscribe to message realtime events:', err);
+        }
     });
 
     onUnmounted(() => {
-        if (!channelId) return;
-        
-        echo?.private(`messages.${channelId}`)
-            ?.stopListening('.MessageCreated', handleMessageChange)
-            ?.stopListening('.MessageDeleted', handleMessageChange)
-            ?.stopListening('.MessageEdited', handleMessageChange);
+        if (unsubscribe) {
+            unsubscribe();
+        }
     });
 }

@@ -1,38 +1,41 @@
-import {onMounted, onUnmounted} from 'vue';
-import {router} from '@inertiajs/vue3';
-import echo from '@/echo';
+import { onMounted, onUnmounted } from 'vue';
+import pb from '@/pocketbase';
 
-export function useServerEvents(serverId?: string | null) {
-    const handleServerJoinedOrLeft = () => router.reload({only: ['selected_server']});
-    const handleServerEdited = () => router.reload({only: ['servers', 'selected_server']});
-    const handleRoleEditedOrDeleted = () => router.reload({only: ['selected_server']});
-    const handleUserStatusUpdated = () => router.reload({only: ['selected_server']});
+export function useServerEvents(
+    serverId?: string | null,
+    onServerUpdate?: () => void
+) {
+    let unsubServer: (() => void) | null = null;
+    let unsubMembers: (() => void) | null = null;
+    let unsubRoles: (() => void) | null = null;
 
-    onMounted(() => {
+    onMounted(async () => {
         if (!serverId) return;
 
-        echo?.private(`servers.${serverId}`)
-            .listen('.ServerJoined', handleServerJoinedOrLeft)
-            .listen('.ServerLeft', handleServerJoinedOrLeft)
-            .listen('.ServerEdited', handleServerEdited)
-            .listen('.UserStatusUpdated', handleUserStatusUpdated);
+        try {
+            unsubServer = await pb.collection('servers').subscribe(serverId, () => {
+                if (onServerUpdate) onServerUpdate();
+            });
 
-        echo?.private(`roles.${serverId}`)
-            .listen('.RoleDeleted', handleRoleEditedOrDeleted)
-            .listen('.RoleEdited', handleRoleEditedOrDeleted);
+            unsubMembers = await pb.collection('members').subscribe('*', (e) => {
+                if (e.record.server === serverId && onServerUpdate) {
+                    onServerUpdate();
+                }
+            });
+
+            unsubRoles = await pb.collection('roles').subscribe('*', (e) => {
+                if (e.record.server === serverId && onServerUpdate) {
+                    onServerUpdate();
+                }
+            });
+        } catch (err) {
+            console.error('Failed to subscribe to server realtime events:', err);
+        }
     });
 
     onUnmounted(() => {
-        if (!serverId) return;
-
-        echo?.private(`servers.${serverId}`)
-            ?.stopListening('.ServerJoined', handleServerJoinedOrLeft)
-            ?.stopListening('.ServerLeft', handleServerJoinedOrLeft)
-            ?.stopListening('.ServerEdited', handleServerEdited)
-            ?.stopListening('.UserStatusUpdated', handleUserStatusUpdated);
-
-        echo?.private(`roles.${serverId}`)
-            ?.stopListening('.RoleDeleted', handleRoleEditedOrDeleted)
-            ?.stopListening('.RoleEdited', handleRoleEditedOrDeleted);
+        if (unsubServer) unsubServer();
+        if (unsubMembers) unsubMembers();
+        if (unsubRoles) unsubRoles();
     });
 }

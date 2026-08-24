@@ -4,6 +4,14 @@ import ChannelSidebar from './ChannelSidebar.vue';
 import { Channel, ChannelType, Server, User } from '@/types';
 import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine';
 
+vi.mock('@/pocketbase', () => ({
+    default: {
+        collection: () => ({
+            subscribe: vi.fn().mockResolvedValue(vi.fn())
+        })
+    }
+}));
+
 // Mock Inertia router and hooks
 vi.mock('@inertiajs/vue3', () => ({
     Link: { template: '<a><slot /></a>' },

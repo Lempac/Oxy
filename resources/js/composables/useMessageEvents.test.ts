@@ -1,27 +1,16 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {mount} from '@vue/test-utils';
-import {useMessageEvents} from './useMessageEvents';
-import {router} from '@inertiajs/vue3';
-import {defineComponent} from 'vue';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { mount } from '@vue/test-utils';
+import { useMessageEvents } from './useMessageEvents';
+import { defineComponent } from 'vue';
 
-const mockListen = vi.fn().mockReturnThis();
-const mockStopListening = vi.fn().mockReturnThis();
-const mockPrivate = vi.fn(() => ({
-    listen: mockListen,
-    stopListening: mockStopListening
-}));
+const mockUnsubscribe = vi.fn();
+const mockSubscribe = vi.fn().mockResolvedValue(mockUnsubscribe);
 
-vi.mock('@/echo', () => {
-    return {
-        default: {
-            private: (...args: unknown[]) => mockPrivate(...args)
-        }
-    };
-});
-
-vi.mock('@inertiajs/vue3', () => ({
-    router: {
-        reload: vi.fn()
+vi.mock('@/pocketbase', () => ({
+    default: {
+        collection: () => ({
+            subscribe: mockSubscribe
+        })
     }
 }));
 
@@ -30,47 +19,51 @@ describe('useMessageEvents', () => {
         vi.clearAllMocks();
     });
 
-    const createWrapper = (channelId: number | null) => {
+    const createWrapper = (channelId: string | null, onCreated = vi.fn(), onUpdated = vi.fn(), onDeleted = vi.fn()) => {
         return mount(defineComponent({
             setup() {
-                useMessageEvents(channelId);
-                return () => {
-                };
+                useMessageEvents(channelId, onCreated, onUpdated, onDeleted);
+                return () => {};
             }
         }));
     };
 
     it('does not subscribe if channelId is missing', () => {
         const wrapper = createWrapper(null);
-        expect(mockPrivate).not.toHaveBeenCalled();
+        expect(mockSubscribe).not.toHaveBeenCalled();
         wrapper.unmount();
     });
 
     it('subscribes to message events on mount', () => {
-        createWrapper(456);
-
-        expect(mockPrivate).toHaveBeenCalledWith('messages.456');
-
-        expect(mockListen).toHaveBeenCalledWith('.MessageCreated', expect.any(Function));
-        expect(mockListen).toHaveBeenCalledWith('.MessageDeleted', expect.any(Function));
-        expect(mockListen).toHaveBeenCalledWith('.MessageEdited', expect.any(Function));
-    });
-
-    it('unsubscribes from events on unmount', () => {
-        const wrapper = createWrapper(456);
+        const wrapper = createWrapper('456');
+        expect(mockSubscribe).toHaveBeenCalledWith('*', expect.any(Function));
         wrapper.unmount();
-
-        expect(mockStopListening).toHaveBeenCalledWith('.MessageCreated', expect.any(Function));
-        expect(mockStopListening).toHaveBeenCalledWith('.MessageDeleted', expect.any(Function));
-        expect(mockStopListening).toHaveBeenCalledWith('.MessageEdited', expect.any(Function));
     });
-    
-    it('triggers router.reload when events are fired', () => {
-        createWrapper(456);
 
-        const call = mockListen.mock.calls.find(call => call[0] === '.MessageCreated');
-        call[1]();
+    it('unsubscribes from events on unmount', async () => {
+        const wrapper = createWrapper('456');
+        await new Promise(resolve => setTimeout(resolve, 10));
+        wrapper.unmount();
+        expect(mockUnsubscribe).toHaveBeenCalled();
+    });
 
-        expect(router.reload).toHaveBeenCalledWith({only: ['messages']});
+    it('triggers callbacks when realtime events are received', async () => {
+        const onCreated = vi.fn();
+        const onUpdated = vi.fn();
+        const onDeleted = vi.fn();
+
+        createWrapper('456', onCreated, onUpdated, onDeleted);
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        const callback = mockSubscribe.mock.calls[0][1];
+
+        callback({ action: 'create', record: { channel: '456', id: 'm1', content: 'hello' } });
+        expect(onCreated).toHaveBeenCalledWith({ channel: '456', id: 'm1', content: 'hello' });
+
+        callback({ action: 'update', record: { channel: '456', id: 'm1', content: 'updated' } });
+        expect(onUpdated).toHaveBeenCalledWith({ channel: '456', id: 'm1', content: 'updated' });
+
+        callback({ action: 'delete', record: { channel: '456', id: 'm1' } });
+        expect(onDeleted).toHaveBeenCalledWith('m1');
     });
 });

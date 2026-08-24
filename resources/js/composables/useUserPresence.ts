@@ -1,11 +1,9 @@
 import { onMounted, onUnmounted, ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { fetchJson } from '@/bootstrap';
+import pb from '@/pocketbase';
 import { UserStatus } from '@/types';
 import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine';
 
 export function useUserPresence(enabled: boolean = true) {
-    const page = usePage();
     const voiceState = useVoiceCallStateMachine();
     const currentStatus = ref<string | null>(null);
     let idleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -14,19 +12,11 @@ export function useUserPresence(enabled: boolean = true) {
 
     const sendStatus = async (status: string) => {
         if (!enabled || currentStatus.value === status) return;
+        if (!pb.authStore.model?.id) return;
 
         currentStatus.value = status;
-        const authUser = page.props.user as any;
-        if (authUser) {
-            authUser.status = status;
-        }
-
         try {
-            await fetchJson('/profile/status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status })
-            });
+            await pb.collection('users').update(pb.authStore.model.id, { status });
         } catch {
             // Ignore status report network errors silently
         }
@@ -35,17 +25,15 @@ export function useUserPresence(enabled: boolean = true) {
     const resetIdleTimer = () => {
         if (idleTimer) clearTimeout(idleTimer);
 
-        // If user is currently in AFK mode, do not auto-reset status
         if (voiceState.isAfk.value) return;
 
-        const authUser = page.props.user as any;
-        if (authUser?.status && authUser.status !== UserStatus.Online && authUser.status !== UserStatus.Idle) {
-            // User set custom status (DND, Invisible, Offline) - do not override
+        const authUserStatus = pb.authStore.model?.status;
+        if (authUserStatus && authUserStatus !== UserStatus.Online && authUserStatus !== UserStatus.Idle) {
             return;
         }
 
         if (document.visibilityState === 'visible' && document.hasFocus()) {
-            if (currentStatus.value !== UserStatus.Online && authUser?.status !== UserStatus.Online) {
+            if (currentStatus.value !== UserStatus.Online) {
                 sendStatus(UserStatus.Online);
             }
             idleTimer = setTimeout(() => {
@@ -70,8 +58,7 @@ export function useUserPresence(enabled: boolean = true) {
 
     const handleBlur = () => {
         if (idleTimer) clearTimeout(idleTimer);
-        const authUser = page.props.user as any;
-        if (authUser?.status === UserStatus.Online) {
+        if (currentStatus.value === UserStatus.Online) {
             sendStatus(UserStatus.Idle);
         }
     };
@@ -79,8 +66,7 @@ export function useUserPresence(enabled: boolean = true) {
     const handleVisibilityChange = () => {
         if (document.visibilityState === 'hidden') {
             if (idleTimer) clearTimeout(idleTimer);
-            const authUser = page.props.user as any;
-            if (authUser?.status === UserStatus.Online) {
+            if (currentStatus.value === UserStatus.Online) {
                 sendStatus(UserStatus.Idle);
             }
         } else {
