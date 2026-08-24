@@ -24,9 +24,9 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@": path.resolve(import.meta.dirname, "./resources/js"),
-            "@inertiajs/vue3": path.resolve(import.meta.dirname, "./resources/js/inertia-compat.ts"),
-            "@inertiajs/core": path.resolve(import.meta.dirname, "./resources/js/inertia-compat.ts")
+            "@": path.resolve(import.meta.dirname, "./src"),
+            "@inertiajs/vue3": path.resolve(import.meta.dirname, "./src/inertia-compat.ts"),
+            "@inertiajs/core": path.resolve(import.meta.dirname, "./src/inertia-compat.ts")
         }
     },
     optimizeDeps: {
@@ -34,7 +34,7 @@ export default defineConfig({
     },
     test: {
         environment: 'jsdom',
-        include: ['resources/js/**/*.spec.ts', 'resources/js/**/*.test.ts'],
+        include: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
         globals: true,
     }
 });

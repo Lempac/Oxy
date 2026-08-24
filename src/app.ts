@@ -1,5 +1,5 @@
 import './bootstrap';
-import '../css/app.css';
+import './css/app.css';
 
 import { createApp } from 'vue';
 import VueKonva from 'vue-konva';

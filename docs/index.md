@@ -1,26 +1,24 @@
 # Oxy Architectural Reference
 
-Welcome to the technical documentation for Oxy. This reference provides core maintainers and API consumers with a complete architectural blueprint of Oxy's backend services, real-time engines, state machines, and security controls.
+Welcome to the technical documentation for Oxy. This reference provides maintainers and developers with an architectural blueprint of Oxy's backend services, real-time engines, state machines, and security controls.
 
 ---
 
 ## Architectural Principles
 
-1. **Lightweight Enum-Backed State Machines**:
-   - Built using PHP 8.1+ String-backed Enums (`App\Enums\*`) and TypeScript string literal unions (`resources/js/types/index.d.ts`).
-   - Database migrations use `array_column(Enum::cases(), 'value')` to enforce strict database column constraints.
-   - Avoids third-party state package overhead by leveraging Eloquent `$casts` and model transition methods (`transitionStatusTo(...)`).
+1. **Lightweight TypeScript State Machines**:
+   - Built using TypeScript string literal unions (`src/types/index.ts`).
+   - Vue 3 composables (`useVoiceCallStateMachine`, `useApplicationStateMachine`, `useWhiteboardSyncStateMachine`) enforce predictable client-side UI state transitions.
 
-2. **Deterministic State Guards & Event Propagation**:
-   - State transition rules are declared via `allowedTransitions()` matrix methods on Enums.
-   - Calling `$model->transitionStatusTo(...)` validates transitions before saving to the database and broadcasting real-time WebSocket events.
+2. **PocketBase Backend & TypeScript Server Hooks**:
+   - Single-binary PocketBase backend handling SQLite database migrations (`pb_migrations/`), Authentication, and Realtime SSE subscriptions.
+   - Server-side TypeScript hooks (`src/hooks/*.ts` -> `pb_hooks/*.pb.js`) for invite validation, token signing, and custom API endpoints.
 
-3. **Frontend & Backend Alignment**:
-   - Vue 3 composables (`useVoiceCallStateMachine`, `useApplicationStateMachine`, `useWhiteboardSyncStateMachine`) mirror backend state machines for predictable client-side UI behavior.
+3. **LiveKit WebRTC SFU**:
+   - Dedicated LiveKit server for multi-participant voice rooms, video camera grids, and screen sharing.
 
 4. **Zero-Trust Anti-Scraping & High-Entropy Security**:
    - 128-bit Base64-URL invite tokens eliminate collision checks and render invite scraping mathematically impossible.
-   - Granular IP-based rate limiting (`throttle:10,1`) guards invite redemption and registration endpoints.
 
 ---
 
@@ -29,10 +27,9 @@ Welcome to the technical documentation for Oxy. This reference provides core mai
 - [Enum Standard & Definitions](architecture/enums.md)
 - [Server Invite & Anti-Scraping System](architecture/invites.md)
 - [Permissions & Team Roles System](architecture/permissions.md)
-- [Real-Time WebSockets & Broadcasting Architecture](architecture/broadcasting.md)
+- [Real-Time Broadcasting Architecture](architecture/broadcasting.md)
 - [Authentication & User System Architecture](architecture/authentication.md)
 - [Message Attachments & Upload Architecture](architecture/attachments.md)
-- [Theming & PDF Data Export Architecture](architecture/theming-and-export.md)
 
 ---
 
