@@ -1,56 +1,29 @@
 <script lang="ts" setup>
 import { welcome } from '@/routes';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { useI18n } from '@/i18n';
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 
-const page = usePage();
+const { locale, setLocale, t } = useI18n();
 
-function t(key: string) {
-    const keys = key.split('.');
-    let translation: unknown = page.props.translations;
-    for (const k of keys) {
-        if (translation && typeof translation === 'object' && k in translation) {
-            translation = (translation as Record<string, unknown>)[k];
-        } else {
-            return key;
-        }
-    }
-    return translation as string;
+function handleLanguageChange(lang: 'en' | 'lv') {
+    setLocale(lang);
 }
-
-function setLanguage(lang: string) {
-    router.post(route('language.update'), { language: lang.toLowerCase() }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            // Locale updated
-        }
-    });
-}
-
-// Fallback if route() helper isn't globally available or ziggy is replaced by wayfinder
-// Assuming Wayfinder setup from previous conversation 8eda478c...
-// If route helper is missing, we use direct string for now as a safe bet: '/language'
-function route(name: string) {
-    if (name === 'language.update') return '/language';
-    return '';
-}
-
 </script>
+
 <template>
-    <Head :title="t('manual.manual')"></Head>
-    <body class="bg-base-200 flex flex-col min-h-screen">
+    <div class="bg-base-200 flex flex-col min-h-screen">
     <div class="card card-body flex-grow">
         <header class="flex justify-between items-center">
-            <Link :href="welcome.url()">
+            <router-link :to="welcome.url()">
                 <ApplicationLogo class="navbar-center mb-1.5 tooltip tooltip-bottom" :data-tip="t('manual.home')"/>
-            </Link>
+            </router-link>
             <div class="join ml-auto">
                 <input
-                    :checked="page.props.locale === 'en'" aria-label="En" autocomplete="off" class="join-item btn btn-square" data-bwignore="true" name="Language"
-                    type="radio" @click="setLanguage('En')"/>
+                    :checked="locale === 'en'" aria-label="En" autocomplete="off" class="join-item btn btn-square" data-bwignore="true" name="Language"
+                    type="radio" @click="handleLanguageChange('en')"/>
                 <input
-                    :checked="page.props.locale === 'lv'" aria-label="Lv" autocomplete="off" class="join-item btn btn-square" data-bwignore="true" name="Language"
-                    type="radio" @click="setLanguage('Lv')"/>
+                    :checked="locale === 'lv'" aria-label="Lv" autocomplete="off" class="join-item btn btn-square" data-bwignore="true" name="Language"
+                    type="radio" @click="handleLanguageChange('lv')"/>
             </div>
         </header>
 
@@ -285,13 +258,13 @@ function route(name: string) {
             </div>
         </footer>
     </div>
-    </body>
+    </div>
 </template>
 
 <style scoped>
 
-body {
-    animation: fadeIn ease-in-out 2s;
+div {
+    animation: fadeIn ease-in-out 0.3s;
 }
 
 @keyframes fadeIn {
