@@ -21,12 +21,11 @@
     };
     nix.enable = true;
   };
-  packages = with pkgs; [ sqlite nixd ];
+  packages = with pkgs; [ sqlite pocketbase nixd ];
   processes = {
+    pocketbase.exec = "pocketbase serve --dir=./pb_data --dev";
+    hooks-watch.exec = "pnpm run watch:hooks";
     vite.exec = "pnpm run dev";
     y-web.exec = "pnpm run yjs";
-    php-serve.exec = "php artisan serve";
-    php-queue.exec = "php artisan queue:work";
-    php-reverb.exec = "php artisan reverb:start";
   };
 }
