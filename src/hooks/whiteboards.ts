@@ -1,4 +1,4 @@
-/// <reference path="../../node_modules/pocketbase/index.d.ts" />
+/// <reference path="./pocketbase-hooks.d.ts" />
 
 routerAdd("POST", "/api/whiteboard/{id}/save", (e) => {
   const info = $apis.requestInfo(e);
@@ -14,7 +14,7 @@ routerAdd("POST", "/api/whiteboard/{id}/save", (e) => {
   }
 
   try {
-    let record: Record;
+    let record: any;
     try {
       record = $app.findFirstRecordByData("whiteboards", "channel", id);
     } catch {

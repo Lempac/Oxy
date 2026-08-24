@@ -179,7 +179,7 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
                 });
 
                 await livekitRoom.connect(wsUrl, token);
-                await livekitRoom.localParticipant.enableAudio();
+                await livekitRoom.localParticipant.setMicrophoneEnabled(true);
             }
 
             transitionTo(VoiceParticipantState.Connected);

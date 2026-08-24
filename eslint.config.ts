@@ -2,23 +2,21 @@ import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import eslintPluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
-import typescriptEslint from 'typescript-eslint';
+import tseslint from 'typescript-eslint';
 
-export default typescriptEslint.config(
-    {ignores: ['*.d.ts', '**/coverage', '**/dist', '**/vendor/**']},
+export default tseslint.config(
+    { ignores: ['*.d.ts', '**/coverage', '**/dist', '**/vendor/**', '**/pb_hooks', '**/pb_migrations'] },
+    eslint.configs.recommended,
+    ...tseslint.configs.recommended,
+    ...eslintPluginVue.configs['flat/recommended'],
     {
-        extends: [
-            eslint.configs.recommended,
-            ...typescriptEslint.configs.recommended,
-            ...eslintPluginVue.configs['flat/recommended'],
-        ],
         files: ['**/*.{ts,vue}'],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
             globals: globals.browser,
             parserOptions: {
-                parser: typescriptEslint.parser,
+                parser: tseslint.parser,
                 tsconfigRootDir: import.meta.dirname,
                 project: ['./tsconfig.json'],
                 extraFileExtensions: ['.vue'],

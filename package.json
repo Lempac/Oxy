@@ -4,8 +4,8 @@
     "packageManager": "pnpm@11.18.0",
     "scripts": {
         "dev": "vite",
-        "build:hooks": "esbuild src/hooks/*.ts --outdir=pb_hooks --out-extension:.js=.pb.js --format=cjs",
-        "watch:hooks": "esbuild src/hooks/*.ts --outdir=pb_hooks --out-extension:.js=.pb.js --format=cjs --watch",
+        "build:hooks": "esbuild src/hooks/invites.ts src/hooks/livekit_token.ts src/hooks/profile.ts src/hooks/servers.ts src/hooks/whiteboards.ts --outdir=pb_hooks --out-extension:.js=.pb.js --format=cjs",
+        "watch:hooks": "esbuild src/hooks/invites.ts src/hooks/livekit_token.ts src/hooks/profile.ts src/hooks/servers.ts src/hooks/whiteboards.ts --outdir=pb_hooks --out-extension:.js=.pb.js --format=cjs --watch",
         "build": "pnpm run build:hooks && vite build",
         "yjs": "y-websocket-server",
         "test": "vitest run",

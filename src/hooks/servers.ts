@@ -1,4 +1,4 @@
-/// <reference path="../../node_modules/pocketbase/index.d.ts" />
+/// <reference path="./pocketbase-hooks.d.ts" />
 
 routerAdd("POST", "/api/server/{id}/leave", (e) => {
   const info = $apis.requestInfo(e);
