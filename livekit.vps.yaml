@@ -1,0 +1,12 @@
+# Dedicated VPS LiveKit Server Compose File (`ssh vps`)
+version: '3.9'
+
+services:
+  livekit:
+    image: livekit/livekit-server:v1.8.0
+    container_name: livekit-server
+    command: --config /etc/livekit.yaml
+    restart: always
+    network_mode: host
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml

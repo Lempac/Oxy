@@ -1,19 +1,20 @@
 services:
   app:
     build: .
-    image: oxy-app
+    image: oxy-app:latest
     ports:
-      - "8000:8000"
-      - "9000:9000"
-    env_file: .env
+      - "8090:8090"
     volumes:
-      - oxy_database:/var/www/database
-      - oxy_storage:/var/www/storage/app
-    deploy:
-      resources:
-        limits:
-          cpus: '1.5'
-          memory: 512M
+      - pb_data:/pb/pb_data
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:v1.8.0
+    command: --config /etc/livekit.yaml --dev
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50000-60000:50000-60000/udp"
     restart: unless-stopped
 
   y-web:
@@ -22,14 +23,7 @@ services:
     ports:
       - "1234:1234"
     command: npx --yes y-websocket@2.1.0
-    env_file: .env
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
     restart: unless-stopped
 
 volumes:
-  oxy_database:
-  oxy_storage:
+  pb_data:
