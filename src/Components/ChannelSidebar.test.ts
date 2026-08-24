@@ -126,8 +126,8 @@ describe('ChannelSidebar Component', () => {
         voiceState.resetState();
 
         voiceState.setChannelUsers(201, [
-            { id: '1', nickname: 'Alex', status: 'online', is_afk: true } as any,
-            { id: '2', nickname: 'Sarah', status: 'online', is_muted: true } as any
+            { id: '1', nickname: 'Alex', status: 'online', is_afk: true } as unknown as User,
+            { id: '2', nickname: 'Sarah', status: 'online', is_muted: true } as unknown as User
         ]);
 
         const wrapper = mount(ChannelSidebar, {

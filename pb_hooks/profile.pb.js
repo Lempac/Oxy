@@ -1,4 +1,5 @@
 "use strict";
+var import_pocketbase_hooks_d = require("./pocketbase-hooks.d.ts");
 routerAdd("POST", "/profile/status", (e) => {
   const info = $apis.requestInfo(e);
   if (!info.authRecord) {
@@ -12,7 +13,7 @@ routerAdd("POST", "/profile/status", (e) => {
     info.authRecord.set("status", status);
     $app.save(info.authRecord);
     return e.json(200, { success: true });
-  } catch (err) {
+  } catch {
     return e.json(500, { message: "Failed to update profile status" });
   }
 });

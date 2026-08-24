@@ -4,9 +4,9 @@ const dummyChannel = {
     listenForWhisper() { return dummyChannel; },
     stopListening() { return dummyChannel; },
     whisper() { return dummyChannel; },
-    here(cb: any) { if (typeof cb === 'function') cb([]); return dummyChannel; },
-    joining(cb: any) { return dummyChannel; },
-    leaving(cb: any) { return dummyChannel; }
+    here(cb: unknown) { if (typeof cb === 'function') cb([]); return dummyChannel; },
+    joining(_cb: unknown) { return dummyChannel; },
+    leaving(_cb: unknown) { return dummyChannel; }
 };
 
 export const echo = {

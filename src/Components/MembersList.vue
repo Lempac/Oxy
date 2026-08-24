@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
-import { usePage } from "@inertiajs/vue3";
-import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl } from "@/bootstrap";
+import { defaultIcon, getMemberRoleColor, resolveUrl } from "@/bootstrap";
 import { Server, User } from "@/types";
 import { HiUsers } from "vue-icons-plus/hi";
 import UserProfileModal from "@/Components/UserProfileModal.vue";

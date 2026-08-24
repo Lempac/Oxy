@@ -30,8 +30,8 @@ const handleRegister = async () => {
         });
         await pb.collection('users').authWithPassword(email.value, password.value);
         router.push('/home');
-    } catch (err: any) {
-        error.value = err?.message || 'Registration failed.';
+    } catch (err: unknown) {
+        error.value = (err as { message?: string })?.message || 'Registration failed.';
     } finally {
         loading.value = false;
     }

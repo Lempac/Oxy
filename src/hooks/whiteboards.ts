@@ -1,6 +1,6 @@
-/// <reference path="./pocketbase-hooks.d.ts" />
+import './pocketbase-hooks.d.ts';
 
-routerAdd("POST", "/api/whiteboard/{id}/save", (e) => {
+routerAdd("POST", "/api/whiteboard/{id}/save", (e: unknown) => {
   const info = $apis.requestInfo(e);
   if (!info.authRecord) {
     return e.json(401, { message: "Unauthorized" });
@@ -14,7 +14,7 @@ routerAdd("POST", "/api/whiteboard/{id}/save", (e) => {
   }
 
   try {
-    let record: any;
+    let record: unknown;
     try {
       record = $app.findFirstRecordByData("whiteboards", "channel", id);
     } catch {
@@ -24,12 +24,12 @@ routerAdd("POST", "/api/whiteboard/{id}/save", (e) => {
       });
     }
 
-    record.set("state", state);
-    record.set("sync_status", "synced");
+    (record as { set: (k: string, v: unknown) => void }).set("state", state);
+    (record as { set: (k: string, v: unknown) => void }).set("sync_status", "synced");
     $app.save(record);
 
     return e.json(200, { success: true });
-  } catch (err) {
+  } catch {
     return e.json(500, { message: "Failed to save whiteboard state" });
   }
 });

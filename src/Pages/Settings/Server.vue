@@ -5,7 +5,7 @@ import {ref} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {router, useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import {baseUrl, resolveUrl} from "@/bootstrap";
+import {resolveUrl} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import { PermType, Server } from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';

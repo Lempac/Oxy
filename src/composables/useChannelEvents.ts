@@ -1,12 +1,9 @@
 import { onMounted, onUnmounted } from 'vue';
 import pb from '@/pocketbase';
-import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine';
-
 export function useChannelEvents(
     serverId?: string | null,
     onChannelChange?: () => void
 ) {
-    const voiceState = useVoiceCallStateMachine();
     let unsubscribe: (() => void) | null = null;
 
     onMounted(async () => {

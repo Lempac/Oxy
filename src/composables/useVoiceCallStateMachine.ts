@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { Room, RoomEvent, Track, RemoteParticipant, LocalParticipant } from 'livekit-client';
+import { Room, RoomEvent, RemoteParticipant } from 'livekit-client';
 import { Channel, User, VoiceParticipantState, VoiceParticipantStateType } from '@/types';
 import pb from '@/pocketbase';
 
@@ -40,7 +40,7 @@ const isAfk = ref<boolean>(false);
 const speakingUsers = ref<Record<string, boolean>>({});
 
 let livekitRoom: Room | null = null;
-let currentUserId: string | number | null = null;
+let _currentUserId: string | number | null = null;
 
 export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateType) {
     if (initialState !== undefined) {
@@ -120,7 +120,7 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
 
         activeChannel.value = channel;
         if (serverId) activeServerId.value = serverId;
-        currentUserId = currentUser?.id ?? pb.authStore.model?.id ?? null;
+        _currentUserId = currentUser?.id ?? pb.authStore.model?.id ?? null;
 
         if (currentUser) {
             connectedUsers.value[channel.id] = [currentUser];
@@ -199,7 +199,9 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         if (livekitRoom) {
             try {
                 await livekitRoom.disconnect();
-            } catch {}
+            } catch {
+                // Ignore disconnect error
+            }
             livekitRoom = null;
         }
 
@@ -258,13 +260,14 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
         return isScreenShareEnabled.value;
     }
 
-    async function toggleAfk(currentAuthUserStatus?: string): Promise<boolean> {
+    async function toggleAfk(_currentAuthUserStatus?: string): Promise<boolean> {
         isAfk.value = !isAfk.value;
         return isAfk.value;
     }
 
-    async function restoreSession(currentUser?: User | null) {
+    async function restoreSession(_currentUser?: User | null) {
         if (isConnected.value || isJoining.value) return;
+        return;
     }
 
     function isUserSpeaking(userId: string | number): boolean {
@@ -273,7 +276,9 @@ export function useVoiceCallStateMachine(initialState?: VoiceParticipantStateTyp
 
     function resetState(): void {
         if (livekitRoom) {
-            try { livekitRoom.disconnect(); } catch {}
+            try { livekitRoom.disconnect(); } catch {
+                // Ignore disconnect error
+            }
             livekitRoom = null;
         }
         currentState.value = VoiceParticipantState.Disconnected;

@@ -172,7 +172,7 @@ const duplicateRole = async (roleToDuplicate?: Role, event?: Event) => {
 
         let permsArray: string[] = [];
         if (Array.isArray(rawPerms)) {
-            permsArray = rawPerms.map((p: any) => typeof p === 'string' ? p : (p?.name || String(p))).filter(Boolean);
+            permsArray = rawPerms.map((p: unknown) => typeof p === 'string' ? p : (p && typeof p === 'object' && 'name' in p ? String((p as { name?: unknown }).name) : String(p))).filter(Boolean);
         }
 
         const response = await fetchJson(create.url(selectedServer?.route_key), {
@@ -191,8 +191,8 @@ const duplicateRole = async (roleToDuplicate?: Role, event?: Event) => {
             const duplicatedRole = roles.value.find(r => r.id === response.data.role.id) || response.data.role;
             selectRole(duplicatedRole);
         }
-    } catch (error: any) {
-        console.error('Error duplicating role:', error?.response?.data || error);
+    } catch (error: unknown) {
+        console.error('Error duplicating role:', (error as { response?: { data?: unknown } })?.response?.data || error);
     }
 };
 

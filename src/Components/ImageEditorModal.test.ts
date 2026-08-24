@@ -21,7 +21,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
     ellipse: vi.fn(),
     closePath: vi.fn(),
     fillText: vi.fn(),
-})) as any;
+})) as unknown as CanvasRenderingContext2D;
 
 describe('ImageEditorModal', () => {
     it('renders modal when modelValue is true', () => {

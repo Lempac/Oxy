@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { Channel, ChannelType, PermType, Server, User } from '@/types';
-import { baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
+import { defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
 import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as textChannelRoute } from '@/routes/home/text';
 import { channel as whiteboardChannelRoute } from '@/routes/home/whiteboard';
@@ -15,7 +15,6 @@ import { TbKeyboardOff } from 'vue-icons-plus/tb';
 import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine';
 import { usePaneDrag } from '@/composables/usePaneDrag';
 import { useChannelEvents } from '@/composables/useChannelEvents';
-import echo from '@/echo';
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
@@ -195,31 +194,31 @@ const isUserAfk = (user: User) => {
     if (isCurrentUser(user)) {
         return voiceState.isAfk.value;
     }
-    return Boolean((user as any).is_afk);
+    return Boolean((user as Record<string, unknown>).is_afk);
 };
 
 const isUserDeafened = (user: User) => {
     if (isCurrentUser(user)) {
         return voiceState.isDeafened.value;
     }
-    return Boolean((user as any).is_deafened);
+    return Boolean((user as Record<string, unknown>).is_deafened);
 };
 
 const isUserMuted = (user: User) => {
     if (isCurrentUser(user)) {
         return voiceState.isMuted.value;
     }
-    return Boolean((user as any).is_muted);
+    return Boolean((user as Record<string, unknown>).is_muted);
 };
 
 const handleVoiceChannelClick = async (channel: Channel) => {
     if (isEditMode.value) return;
     if (isChannelActive(channel)) return;
-    await voiceState.joinChannel(channel, props.selectedServer?.id, page.props.user as any);
+    await voiceState.joinChannel(channel, props.selectedServer?.id, page.props.user as User);
 };
 
 onMounted(() => {
-    voiceState.restoreSession(page.props.user as any);
+    voiceState.restoreSession(page.props.user as User);
 });
 
 useChannelEvents(props.selectedServer?.id, ['channels']);

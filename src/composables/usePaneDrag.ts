@@ -1,4 +1,4 @@
-import { computed, ComputedRef, getCurrentInstance, onMounted, onUnmounted, ref, Ref } from 'vue';
+import { computed, ComputedRef, ref, Ref } from 'vue';
 
 export interface LayoutPreferences {
     paneOrder: string[];

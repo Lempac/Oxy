@@ -1,4 +1,4 @@
-/// <reference path="./pocketbase-hooks.d.ts" />
+import './pocketbase-hooks.d.ts';
 
 // Check Invite Code endpoint
 routerAdd("GET", "/api/invites/{code}/check", (e) => {
@@ -40,7 +40,7 @@ routerAdd("GET", "/api/invites/{code}/check", (e) => {
         online_count: members.length,
       }
     });
-  } catch (err) {
+  } catch {
     return e.json(404, { valid: false, message: "Invalid invite code." });
   }
 });
@@ -82,7 +82,7 @@ routerAdd("POST", "/api/invites/join", (e) => {
     $app.save(invite);
 
     return e.json(200, [200, "Successfully joined server!"]);
-  } catch (err) {
+  } catch {
     return e.json(500, { message: "Failed to join server." });
   }
 });

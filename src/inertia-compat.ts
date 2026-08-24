@@ -1,9 +1,9 @@
-import { defineComponent, h, reactive, ref } from 'vue';
+import { defineComponent, h, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import pb from '@/pocketbase';
 
 export const Head = defineComponent({
-  name: 'Head',
+  name: 'HeadComponent',
   props: {
     title: { type: String, default: '' }
   },
@@ -16,7 +16,7 @@ export const Head = defineComponent({
 });
 
 export const Link = defineComponent({
-  name: 'Link',
+  name: 'LinkComponent',
   props: {
     href: { type: String, default: '#' },
     to: { type: String, default: '' },
@@ -24,31 +24,31 @@ export const Link = defineComponent({
     as: { type: String, default: 'a' }
   },
   setup(props, { slots }) {
-    const router = useRouter();
+    const routerInstance = useRouter();
     const handleClick = (e: MouseEvent) => {
       e.preventDefault();
       const target = props.to || props.href;
-      if (target && router) {
-        router.push(target);
+      if (target && routerInstance) {
+        routerInstance.push(target);
       }
     };
     return () => h('a', { href: props.href || props.to, onClick: handleClick }, slots.default ? slots.default() : []);
   }
 });
 
-export function useForm<T extends Record<string, any>>(initialValues: T) {
+export function useForm<T extends Record<string, unknown>>(initialValues: T) {
   const form = reactive({
     ...initialValues,
     processing: false,
     errors: {} as Record<string, string>,
     isDirty: false,
-    post(_url: string, _options?: any) {
+    post(_url: string, _options?: Record<string, unknown>) {
       this.processing = false;
     },
-    put(_url: string, _options?: any) {
+    put(_url: string, _options?: Record<string, unknown>) {
       this.processing = false;
     },
-    delete(_url: string, _options?: any) {
+    delete(_url: string, _options?: Record<string, unknown>) {
       this.processing = false;
     },
     reset(...fields: string[]) {
@@ -56,7 +56,7 @@ export function useForm<T extends Record<string, any>>(initialValues: T) {
         Object.assign(this, initialValues);
       } else {
         fields.forEach((f) => {
-          (this as any)[f] = initialValues[f];
+          (this as Record<string, unknown>)[f] = initialValues[f];
         });
       }
     },
@@ -80,13 +80,13 @@ export const router = {
       window.location.href = url;
     }
   },
-  reload(_options?: any) {
+  reload(_options?: Record<string, unknown>) {
     // SPA reactive reload trigger
   },
-  post(_url: string, _data?: any, _options?: any) {},
-  patch(_url: string, _data?: any, _options?: any) {},
-  delete(_url: string, _options?: any) {},
-  on(_event: string, _callback: any) {
+  post(_url: string, _data?: unknown, _options?: Record<string, unknown>) {},
+  patch(_url: string, _data?: unknown, _options?: Record<string, unknown>) {},
+  delete(_url: string, _options?: Record<string, unknown>) {},
+  on(_event: string, _callback: unknown) {
     return () => {};
   }
 };

@@ -17,8 +17,8 @@ const handleLogin = async () => {
     try {
         await pb.collection('users').authWithPassword(identity.value, password.value);
         router.push('/home');
-    } catch (err: any) {
-        error.value = err?.message || 'Failed to sign in. Please check your credentials.';
+    } catch (err: unknown) {
+        error.value = (err as { message?: string })?.message || 'Failed to sign in. Please check your credentials.';
     } finally {
         loading.value = false;
     }

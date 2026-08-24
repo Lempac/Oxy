@@ -3,8 +3,8 @@ import pb from '@/pocketbase';
 
 export function useMessageEvents(
     channelId?: string | null,
-    onMessageCreated?: (message: any) => void,
-    onMessageUpdated?: (message: any) => void,
+    onMessageCreated?: (message: Record<string, unknown>) => void,
+    onMessageUpdated?: (message: Record<string, unknown>) => void,
     onMessageDeleted?: (messageId: string) => void
 ) {
     let unsubscribe: (() => void) | null = null;

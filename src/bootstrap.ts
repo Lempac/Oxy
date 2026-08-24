@@ -73,8 +73,9 @@ export const joinServer = async (code: string): Promise<[number, string?]> => {
             body: JSON.stringify({ code })
         });
         return [200, res?.[1] || 'Successfully joined server.'];
-    } catch (err: any) {
-        return [err?.status || 500, err?.message || 'Failed to join server.'];
+    } catch (err: unknown) {
+        const error = err as { status?: number; message?: string };
+        return [error.status || 500, error.message || 'Failed to join server.'];
     }
 };
 

@@ -1,4 +1,5 @@
 "use strict";
+var import_pocketbase_hooks_d = require("./pocketbase-hooks.d.ts");
 routerAdd("GET", "/api/invites/{code}/check", (e) => {
   const code = e.request.pathValue("code");
   if (!code) {
@@ -32,7 +33,7 @@ routerAdd("GET", "/api/invites/{code}/check", (e) => {
         online_count: members.length
       }
     });
-  } catch (err) {
+  } catch {
     return e.json(404, { valid: false, message: "Invalid invite code." });
   }
 });
@@ -64,7 +65,7 @@ routerAdd("POST", "/api/invites/join", (e) => {
     invite.set("uses", invite.getInt("uses") + 1);
     $app.save(invite);
     return e.json(200, [200, "Successfully joined server!"]);
-  } catch (err) {
+  } catch {
     return e.json(500, { message: "Failed to join server." });
   }
 });

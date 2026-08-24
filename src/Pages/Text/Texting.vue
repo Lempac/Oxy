@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import {baseUrl, defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
+import {defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
 import {create, deleteMethod, edit} from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import ChannelSidebar from "@/Components/ChannelSidebar.vue";
 import {router, useForm} from "@inertiajs/vue3";
 import {Channel, Message, PermType, Server} from "@/types";
-import {computed, nextTick, onMounted, onUnmounted, onUpdated, ref, watch} from "vue";
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';

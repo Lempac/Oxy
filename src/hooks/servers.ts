@@ -1,4 +1,4 @@
-/// <reference path="./pocketbase-hooks.d.ts" />
+import './pocketbase-hooks.d.ts';
 
 routerAdd("POST", "/api/server/{id}/leave", (e) => {
   const info = $apis.requestInfo(e);
@@ -15,7 +15,7 @@ routerAdd("POST", "/api/server/{id}/leave", (e) => {
       $app.delete(m);
     }
     return e.json(200, { success: true });
-  } catch (err) {
+  } catch {
     return e.json(500, { message: "Failed to leave server" });
   }
 });

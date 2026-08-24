@@ -5,7 +5,6 @@ import {
     MdOutlineFileUpload,
     MdHistory,
     MdClose,
-    MdOutlineDelete,
 } from 'vue-icons-plus/md';
 import {
     FaFilePdf,

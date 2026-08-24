@@ -5,8 +5,6 @@ import Welcome from '@/Pages/Welcome.vue';
 import Home from '@/Pages/Home.vue';
 import Login from '@/Pages/Auth/Login.vue';
 import Register from '@/Pages/Auth/Register.vue';
-import Texting from '@/Pages/Text/Texting.vue';
-import WhiteboardBoard from '@/Pages/Whiteboard/WhiteboardBoard.vue';
 import Manual from '@/Pages/Manual.vue';
 import ProfileEdit from '@/Pages/Profile/Edit.vue';
 import ServerSettings from '@/Pages/Settings/Server.vue';

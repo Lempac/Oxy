@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {baseUrl, defaultIcon, fetchJson, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
+import {defaultIcon, fetchJson, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {GiBootKick} from 'vue-icons-plus/gi';

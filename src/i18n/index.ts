@@ -4,7 +4,7 @@ import lv from './lv';
 
 export type SupportedLocale = 'en' | 'lv';
 
-const messages: Record<SupportedLocale, any> = { en, lv };
+const messages: Record<SupportedLocale, Record<string, unknown>> = { en, lv };
 
 export const currentLocale = ref<SupportedLocale>('en');
 
@@ -31,10 +31,10 @@ export function t(key: string): string {
   const translationObj = messages[lang] || messages.en;
 
   const keys = key.split('.');
-  let current: any = translationObj;
+  let current: unknown = translationObj;
   for (const k of keys) {
     if (current && typeof current === 'object' && k in current) {
-      current = current[k];
+      current = (current as Record<string, unknown>)[k];
     } else {
       return key;
     }
