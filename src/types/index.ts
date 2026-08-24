@@ -168,6 +168,7 @@ export interface Channel extends Object {
     type: ChannelType;
     server_id: string;
     route_key: string;
+    slug?: string;
 }
 
 export interface Server extends Object {
@@ -223,6 +224,7 @@ export interface User {
     id: string;
     icon: string | null;
     nickname: string;
+    name?: string;
     status: UserStatusType;
     light_theme: ThemeType;
     dark_theme: ThemeType;

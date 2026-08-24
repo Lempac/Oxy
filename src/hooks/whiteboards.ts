@@ -1,6 +1,6 @@
 import './pocketbase-hooks.d.ts';
 
-routerAdd("POST", "/api/whiteboard/{id}/save", (e: unknown) => {
+routerAdd("POST", "/api/whiteboard/{id}/save", (e) => {
   const info = $apis.requestInfo(e);
   if (!info.authRecord) {
     return e.json(401, { message: "Unauthorized" });

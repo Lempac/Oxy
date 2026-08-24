@@ -32,8 +32,8 @@ vi.mock('@inertiajs/vue3', () => ({
 
 describe('ChannelSidebar Component', () => {
     const mockUsers: User[] = [
-        { id: '1', nickname: 'Alex', status: 'online' },
-        { id: '2', nickname: 'Sarah', status: 'online' }
+        { id: '1', nickname: 'Alex', status: 'online', icon: null, light_theme: 'oxy', dark_theme: 'dark', roles: [], servers: [] },
+        { id: '2', nickname: 'Sarah', status: 'online', icon: null, light_theme: 'oxy', dark_theme: 'dark', roles: [], servers: [] }
     ];
 
     const mockServer: Server = {
@@ -87,8 +87,8 @@ describe('ChannelSidebar Component', () => {
 
         // Set connected users in voice channel 201
         voiceState.setChannelUsers(201, [
-            { id: '1', nickname: 'Alex', status: 'online' },
-            { id: '2', nickname: 'Sarah', status: 'online' }
+            { id: '1', nickname: 'Alex', status: 'online', icon: null, light_theme: 'oxy', dark_theme: 'dark', roles: [], servers: [] },
+            { id: '2', nickname: 'Sarah', status: 'online', icon: null, light_theme: 'oxy', dark_theme: 'dark', roles: [], servers: [] }
         ]);
 
         const updatedWrapper = mount(ChannelSidebar, {

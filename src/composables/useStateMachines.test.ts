@@ -41,11 +41,11 @@ describe('Voice Call State Machine Composable', () => {
         sm.resetState();
 
         const mockChannel: Channel = {
-            id: 1,
+            id: '1',
             name: 'Voice Lounge',
             type: ChannelType.Voice,
             route_key: 'voice-lounge',
-            server_id: 1,
+            server_id: '1',
             update_at: '',
         };
 

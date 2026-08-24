@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import ImageEditorModal from './ImageEditorModal.vue';
 
 // Mock canvas getContext
-HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
     clearRect: vi.fn(),
     drawImage: vi.fn(),
     save: vi.fn(),
@@ -21,7 +21,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
     ellipse: vi.fn(),
     closePath: vi.fn(),
     fillText: vi.fn(),
-})) as unknown as CanvasRenderingContext2D;
+}) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
 describe('ImageEditorModal', () => {
     it('renders modal when modelValue is true', () => {

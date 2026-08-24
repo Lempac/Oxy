@@ -1,20 +1,25 @@
 {
-    "compilerOptions": {
-        "allowJs": true,
-        "module": "ESNext",
-        "lib": ["DOM", "ESNext"],
-        "moduleResolution": "bundler",
-        "jsx": "preserve",
-        "strict": true,
-        "isolatedModules": true,
-        "target": "ESNext",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "noEmit": true,
-        "skipLibCheck": true,
-        "paths": {
-            "@/*": ["./src/*"]
-        }
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
     },
-    "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "eslint.config.ts", "vite.config.ts"]
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "eslint.config.ts", "vite.config.ts"]
 }
