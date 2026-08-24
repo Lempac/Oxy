@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="oxy">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Oxy</title>
+    <script>
+        (function() {
+            try {
+                var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.style.colorScheme = 'light';
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+<body class="font-sans antialiased bg-base-200 text-base-content">
+<div id="app"></div>
+<script type="module" src="/resources/js/app.ts"></script>
+</body>
+</html>

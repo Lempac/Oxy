@@ -1,8 +1,6 @@
-import {addUser} from '@/routes/server';
-import './echo';
-import {router, usePage} from "@inertiajs/vue3";
-import {Perms, Role, Server, User} from "@/types";
-import {computed} from 'vue';
+import pb from '@/pocketbase';
+import { Perms, Role, Server, User } from "@/types";
+import { computed } from 'vue';
 
 export const defaultIcon = "/images/icon.svg";
 
@@ -40,34 +38,15 @@ export const bigIntToPerms = (newPrem: string[]): Perms => ({
     }
 });
 
-export const usePerms = () => {
-    return computed(() => {
-        const page = usePage();
-        const server = page.props.selectedServer as Server | undefined;
-        const user = page.props.user;
-        if (server && server.roles !== null && server.roles !== undefined) {
-            return bigIntToPerms(server.roles.filter((role: Role) => user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
-        }
-        return bigIntToPerms([]);
-    });
-};
-
 export const fetchJson = async (url: string, options: RequestInit = {}) => {
-    const xsrfTokenMatch = document.cookie.match(new RegExp('(^| )XSRF-TOKEN=([^;]+)'));
-    const xsrfToken = xsrfTokenMatch ? decodeURIComponent(xsrfTokenMatch[2]) : '';
-    const csrfMeta = typeof document !== 'undefined' ? (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content : '';
-
+    const token = pb.authStore.token;
     const headers: Record<string, string> = {
         'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
         ...((options.headers as Record<string, string>) || {})
     };
 
-    if (xsrfToken) {
-        headers['X-XSRF-TOKEN'] = xsrfToken;
-    }
-    if (csrfMeta) {
-        headers['X-CSRF-TOKEN'] = csrfMeta;
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
     }
 
     const response = await fetch(url, {
@@ -79,32 +58,25 @@ export const fetchJson = async (url: string, options: RequestInit = {}) => {
     const data = isJson ? await response.json() : null;
 
     if (!response.ok) {
-        if (response.status === 419 && typeof window !== 'undefined') {
-            router.reload();
-        }
         const error = new Error(response.statusText) as Error & { response: { status: number, data: unknown } };
-        error.response = {status: response.status, data};
+        error.response = { status: response.status, data };
         throw error;
     }
 
-    return {status: response.status, data};
+    return { status: response.status, data };
 };
 
 export const joinServer = async (code: string): Promise<[number, string?]> => {
     try {
-        await fetchJson(addUser.url(), {
+        const res = await pb.send('/api/invites/join', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({code})
+            body: JSON.stringify({ code })
         });
-
-        router.reload({only: ['servers', 'user']});
-        return [200, 'Successfully joined to server.'];
-    } catch (err: unknown) {
-        const error = err as { response?: { status?: number, data?: { message?: string } }, message?: string };
-        return [error.response?.status || 500, error.response?.data?.message || error.message];
+        return [200, res?.[1] || 'Successfully joined server.'];
+    } catch (err: any) {
+        return [err?.status || 500, err?.message || 'Failed to join server.'];
     }
-}
+};
 
 export const getMemberRoleColor = (
     user?: (User & { rolesWithServer?: Role[] | null }) | null,
@@ -126,3 +98,11 @@ export const getMemberRoleColor = (
     return memberServerRoles[0]?.color || undefined;
 };
 
+export const usePerms = (server?: Server | null, user?: User | null) => {
+    return computed(() => {
+        if (server && server.roles !== null && server.roles !== undefined) {
+            return bigIntToPerms(server.roles.filter((role: Role) => user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
+        }
+        return bigIntToPerms([]);
+    });
+};
