@@ -40,6 +40,7 @@ export function useForm<T extends Record<string, unknown>>(initialValues: T) {
   const form = reactive({
     ...initialValues,
     processing: false,
+    recentlySuccessful: false,
     errors: {} as Record<string, string>,
     isDirty: false,
     post(_url: string, _options?: Record<string, unknown>) {
@@ -48,8 +49,14 @@ export function useForm<T extends Record<string, unknown>>(initialValues: T) {
     put(_url: string, _options?: Record<string, unknown>) {
       this.processing = false;
     },
+    patch(_url: string, _options?: Record<string, unknown>) {
+      this.processing = false;
+    },
     delete(_url: string, _options?: Record<string, unknown>) {
       this.processing = false;
+    },
+    defaults(..._args: unknown[]) {
+      return this;
     },
     reset(...fields: string[]) {
       if (fields.length === 0) {
@@ -95,7 +102,9 @@ export function usePage() {
   const user = pb.authStore.model ? {
     id: pb.authStore.model.id,
     nickname: pb.authStore.model.name || pb.authStore.model.email || 'User',
+    name: pb.authStore.model.name || pb.authStore.model.email || 'User',
     icon: pb.authStore.model.avatar || null,
+    about_me: null,
     status: 'online',
     light_theme: 'oxy',
     dark_theme: 'dark',
@@ -104,6 +113,7 @@ export function usePage() {
   } : null;
 
   return reactive({
+    url: typeof window !== 'undefined' ? window.location.pathname : '/',
     props: {
       user,
       selectedServer: undefined,
