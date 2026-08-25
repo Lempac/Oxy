@@ -12,7 +12,7 @@ migrate((app) => {
       { name: "server", type: "relation", collectionId: servers.id, required: true, cascadeDelete: true },
       { name: "name", type: "text", required: true },
       { name: "slug", type: "text", required: true },
-      { name: "type", type: "select", select: { maxSelect: 1, values: ["text", "voice", "whiteboard"] }, required: true },
+      { name: "type", type: "select", values: ["text", "voice", "whiteboard"], maxSelect: 1, required: true },
       { name: "position", type: "number" }
     ]
   });

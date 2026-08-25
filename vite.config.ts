@@ -24,7 +24,8 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@": path.resolve(import.meta.dirname, "./src")
+            "@": path.resolve(import.meta.dirname, "./src"),
+            "vue": "vue/dist/vue.esm-bundler.js"
         }
     },
     optimizeDeps: {

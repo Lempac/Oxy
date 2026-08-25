@@ -1,4 +1,4 @@
-import './pocketbase-hooks.d.ts';
+/// <reference path="./pocketbase-hooks.d.ts" />
 
 // Check Invite Code endpoint
 routerAdd("GET", "/api/invites/{code}/check", (e) => {

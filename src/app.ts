@@ -1,12 +1,13 @@
 import './bootstrap';
 import './css/app.css';
 
-import { createApp } from 'vue';
+import { createApp, h } from 'vue';
+import { RouterView } from 'vue-router';
 import VueKonva from 'vue-konva';
 import router from '@/router';
 
 const app = createApp({
-    template: '<router-view></router-view>',
+    render: () => h(RouterView),
 });
 
 app.use(VueKonva);

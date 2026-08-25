@@ -1,4 +1,4 @@
-import './pocketbase-hooks.d.ts';
+/// <reference path="./pocketbase-hooks.d.ts" />
 
 routerAdd("POST", "/api/livekit/token", (e) => {
   const info = $apis.requestInfo(e);

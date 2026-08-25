@@ -1,4 +1,4 @@
-import './pocketbase-hooks.d.ts';
+/// <reference path="./pocketbase-hooks.d.ts" />
 
 routerAdd("POST", "/profile/status", (e) => {
   const info = $apis.requestInfo(e);

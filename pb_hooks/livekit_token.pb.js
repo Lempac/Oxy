@@ -1,5 +1,4 @@
 "use strict";
-var import_pocketbase_hooks_d = require("./pocketbase-hooks.d.ts");
 routerAdd("POST", "/api/livekit/token", (e) => {
   const info = $apis.requestInfo(e);
   if (!info.authRecord) {

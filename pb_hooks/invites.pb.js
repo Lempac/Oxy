@@ -1,5 +1,4 @@
 "use strict";
-var import_pocketbase_hooks_d = require("./pocketbase-hooks.d.ts");
 routerAdd("GET", "/api/invites/{code}/check", (e) => {
   const code = e.request.pathValue("code");
   if (!code) {

@@ -2,7 +2,7 @@
 import { home, manual } from '@/routes';
 import { useRouter } from 'vue-router';
 import pb from '@/pocketbase';
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { MdMessage, MdCall, MdScreenShare } from 'vue-icons-plus/md';
 import { FaBook } from 'vue-icons-plus/fa';
@@ -12,6 +12,7 @@ import ImageEditorModal from "@/Components/ImageEditorModal.vue";
 const loginModel = ref<HTMLDialogElement>();
 const registerModel = ref<HTMLDialogElement>();
 const router = useRouter();
+const isAuthenticated = computed(() => pb.authStore.isValid);
 
 const isEditorOpen = ref(false);
 const editorImageSource = ref<File | null>(null);
@@ -163,7 +164,7 @@ onMounted(() => {
                 </div>
                 <ApplicationLogo class="navbar-center mb-1.5"/>
                 <div class="navbar-end mr-5">
-                    <router-link v-if="$page.props.user" :to="home.url()" class="btn btn-lg btn-primary">
+                    <router-link v-if="isAuthenticated" :to="home.url()" class="btn btn-lg btn-primary">
                         Home
                     </router-link>
                     <template v-else>
@@ -205,7 +206,7 @@ onMounted(() => {
                     <p class="text-base-content text-xl">
                         Join now!!!
                     </p>
-                    <router-link v-if="$page.props.user" :to="home.url()" class="btn btn-lg btn-primary">
+                    <router-link v-if="isAuthenticated" :to="home.url()" class="btn btn-lg btn-primary">
                         Home
                     </router-link>
                     <template v-else>
