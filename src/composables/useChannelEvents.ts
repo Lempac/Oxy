@@ -1,8 +1,9 @@
 import { onMounted, onUnmounted } from 'vue';
 import pb from '@/pocketbase';
+
 export function useChannelEvents(
     serverId?: string | null,
-    onChannelChange?: () => void
+    onChannelChangeOrOnlyKeys?: string[] | (() => void)
 ) {
     let unsubscribe: (() => void) | null = null;
 
@@ -11,8 +12,8 @@ export function useChannelEvents(
 
         try {
             unsubscribe = await pb.collection('channels').subscribe('*', (e) => {
-                if (e.record.server === serverId && onChannelChange) {
-                    onChannelChange();
+                if (e.record.server === serverId && typeof onChannelChangeOrOnlyKeys === 'function') {
+                    onChannelChangeOrOnlyKeys();
                 }
             });
         } catch (err) {

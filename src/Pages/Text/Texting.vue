@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import {defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
-import {create} from '@/routes/message';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import ChannelSidebar from "@/Components/ChannelSidebar.vue";
 import pb from "@/pocketbase";
@@ -279,28 +278,32 @@ const createMessage = async () => {
     }
 
     loading.value = true;
-    form.attachments = stagedFiles.value;
+    try {
+        const formData = new FormData();
+        formData.append('channel', props.selectedChannel!.id);
+        formData.append('user', pb.authStore.model!.id);
+        formData.append('content', form.content);
+        formData.append('status', 'sent');
 
-    form.post(create.url({server: props.selectedServer!.route_key, channel: props.selectedChannel!.route_key}), {
-        preserveScroll: true,
-        onSuccess: () => {
-            clearAllFiles();
-            form.reset();
-            clearValidation();
-            const key = getScrollStorageKey();
-            if (key && typeof sessionStorage !== 'undefined') {
-                sessionStorage.removeItem(key);
-            }
-            nextTick(() => scrollToBottom());
-        },
-        onError: (errors) => {
-            const errList = Object.values(errors).join(' ');
-            showValidationError(errList);
-        },
-        onFinish: () => {
-            loading.value = false;
+        stagedFiles.value.forEach(file => {
+            formData.append('attachments', file);
+        });
+
+        await pb.collection('messages').create(formData);
+
+        clearAllFiles();
+        form.content = '';
+        clearValidation();
+        const key = getScrollStorageKey();
+        if (key && typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(key);
         }
-    });
+        nextTick(() => scrollToBottom());
+    } catch (err: unknown) {
+        showValidationError((err as { message?: string })?.message || 'Failed to send message');
+    } finally {
+        loading.value = false;
+    }
 };
 
 const isScrolledUp = ref(false);

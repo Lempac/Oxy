@@ -120,7 +120,8 @@ const onChannelDrop = (e: DragEvent, targetChannel: Channel, typeList: Channel[]
 
 const form = reactive({
     type: ChannelType.Text as string,
-    name: ''
+    name: '',
+    errors: {} as Record<string, string>,
 });
 
 const openModal = (type: string, channel?: Channel) => {
@@ -207,21 +208,21 @@ const isUserAfk = (user: User) => {
     if (isCurrentUser(user)) {
         return voiceState.isAfk.value;
     }
-    return Boolean((user as Record<string, unknown>).is_afk);
+    return Boolean((user as unknown as Record<string, unknown>).is_afk);
 };
 
 const isUserDeafened = (user: User) => {
     if (isCurrentUser(user)) {
         return voiceState.isDeafened.value;
     }
-    return Boolean((user as Record<string, unknown>).is_deafened);
+    return Boolean((user as unknown as Record<string, unknown>).is_deafened);
 };
 
 const isUserMuted = (user: User) => {
     if (isCurrentUser(user)) {
         return voiceState.isMuted.value;
     }
-    return Boolean((user as Record<string, unknown>).is_muted);
+    return Boolean((user as unknown as Record<string, unknown>).is_muted);
 };
 
 const handleVoiceChannelClick = async (channel: Channel) => {

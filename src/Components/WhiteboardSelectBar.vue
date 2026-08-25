@@ -24,7 +24,8 @@ const editCurrent = ref<() => void>();
 
 const form = reactive({
     type: ChannelType.Whiteboard,
-    name: ''
+    name: '',
+    errors: {} as Record<string, string>,
 });
 
 const openModal = (channel?: Channel) => {

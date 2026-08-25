@@ -10,7 +10,6 @@ import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';
 import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator, MdClose, MdArrowDownward} from 'vue-icons-plus/md';
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import {create} from "@/routes/message";
 import {usePaneDrag} from "@/composables/usePaneDrag";
 import {useRecentUploads} from "@/composables/useRecentUploads";
 import FilePreviewCard from "@/Components/FilePreviewCard.vue";
@@ -418,23 +417,27 @@ const createMessage = async () => {
     }
 
     loading.value = true;
-    form.attachments = stagedFiles.value;
+    try {
+        const formData = new FormData();
+        formData.append('channel', props.selectedChannel.id);
+        formData.append('user', pb.authStore.model!.id);
+        formData.append('content', form.content);
+        formData.append('status', 'sent');
 
-    form.post(create.url({server: props.selectedServer.route_key, channel: props.selectedChannel.route_key}), {
-        preserveScroll: true,
-        onSuccess: () => {
-            clearAllFiles();
-            form.reset();
-            clearValidation();
-        },
-        onError: (errors) => {
-            const errList = Object.values(errors).join(' ');
-            showValidationError(errList);
-        },
-        onFinish: () => {
-            loading.value = false;
-        }
-    });
+        stagedFiles.value.forEach(file => {
+            formData.append('attachments', file);
+        });
+
+        await pb.collection('messages').create(formData);
+
+        clearAllFiles();
+        form.content = '';
+        clearValidation();
+    } catch (err: unknown) {
+        showValidationError((err as { message?: string })?.message || 'Failed to send message');
+    } finally {
+        loading.value = false;
+    }
 };
 
 const deleteMessage = async (messageId: string) => {

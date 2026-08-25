@@ -19,7 +19,7 @@ import {HiClipboardCopy} from 'vue-icons-plus/hi';
 const perms = usePerms();
 const {selectedServer, allPermissions} = defineProps<{
     selectedServer: Server,
-    allPermissions: { name: string, title: string, description: string }[]
+    allPermissions: { name: string, title: string, description: string, category?: string }[]
 }>();
 
 const roles = ref<Role[]>([]);
@@ -380,7 +380,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                             <button
                                 :disabled="!perms.has([PermType.CAN_CREATE_ROLE])"
                                 class="btn btn-neutral px-6"
-                                @click="duplicateRole">
+                                @click="() => duplicateRole()">
                                 Duplicate Role
                             </button>
                             <button

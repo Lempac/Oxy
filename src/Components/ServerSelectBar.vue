@@ -85,6 +85,7 @@ const form = reactive({
     description: '',
     icon: null as File | null,
     error: null as string | null,
+    errors: {} as Record<string, string>,
 });
 
 const loading = ref(false);
@@ -185,7 +186,7 @@ const handleEditorSave = (editedFile: File) => {
                     </router-link>
                 </div>
 
-                <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="serverModal?.showModal()">
+                <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="() => serverModal?.showModal()">
                     <GoPlus scale="1.5"/>
                 </button>
             </div>

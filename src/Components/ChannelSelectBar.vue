@@ -106,7 +106,8 @@ const editCurrent = ref<() => void>();
 
 const form = reactive({
     type: ChannelType.Text as string,
-    name: ''
+    name: '',
+    errors: {} as Record<string, string>,
 });
 
 const openModal = (type: string, channel?: Channel) => {
