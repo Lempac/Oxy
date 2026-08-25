@@ -11,17 +11,21 @@ const password = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-const handleLogin = async () => {
+const handleLogin = async (userEmail?: string, userPass?: string) => {
     loading.value = true;
     error.value = null;
     try {
-        await pb.collection('users').authWithPassword(identity.value, password.value);
+        await pb.collection('users').authWithPassword(userEmail || identity.value, userPass || password.value);
         router.push('/home');
     } catch (err: unknown) {
         error.value = (err as { message?: string })?.message || 'Failed to sign in. Please check your credentials.';
     } finally {
         loading.value = false;
     }
+};
+
+const quickTestLogin = () => {
+    handleLogin('testuser@oxy.local', 'password123');
 };
 </script>
 
@@ -30,7 +34,7 @@ const handleLogin = async () => {
         <div class="card bg-base-100 shadow-xl w-full max-w-md p-6">
             <h2 class="text-2xl font-bold text-center mb-6">Sign In to Oxy</h2>
             <ErrorAlert v-if="error" :message="error" class="mb-4" />
-            <form @submit.prevent="handleLogin" class="space-y-4">
+            <form @submit.prevent="handleLogin()" class="space-y-4">
                 <div>
                     <label class="label"><span class="label-text">Email or Username</span></label>
                     <input v-model="identity" type="text" required class="input input-bordered w-full" placeholder="user@example.com" />
@@ -44,6 +48,13 @@ const handleLogin = async () => {
                     Sign In
                 </button>
             </form>
+
+            <div class="divider my-4">OR</div>
+
+            <button type="button" class="btn btn-outline btn-accent w-full" :disabled="loading" @click="quickTestLogin">
+                🚀 One-Click Demo Login (testuser)
+            </button>
+
             <div class="mt-4 text-center text-sm">
                 Don't have an account?
                 <router-link to="/register" class="link link-primary font-bold">Register</router-link>

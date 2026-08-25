@@ -87,6 +87,15 @@ const handleEditorSave = (editedFile: File) => {
     iconPreview.value = URL.createObjectURL(editedFile);
 };
 
+const quickDemoLogin = async () => {
+    try {
+        await pb.collection('users').authWithPassword('testuser@oxy.local', 'password123');
+        router.push('/home');
+    } catch (err: unknown) {
+        console.error('Demo login error:', err);
+    }
+};
+
 const submitLogin = async () => {
     loginForm.error = null;
     try {
@@ -168,11 +177,18 @@ onMounted(() => {
                         Home
                     </router-link>
                     <template v-else>
-                        <button
-                            class="btn btn-lg btn-primary"
-                            @click="() => {loginForm.clearErrors(); loginModel?.showModal()}">
-                            Join
-                        </button>
+                        <div class="flex gap-2">
+                            <button
+                                class="btn btn-lg btn-outline btn-accent"
+                                @click="quickDemoLogin">
+                                Demo Login
+                            </button>
+                            <button
+                                class="btn btn-lg btn-primary"
+                                @click="() => {loginForm.clearErrors(); loginModel?.showModal()}">
+                                Join
+                            </button>
+                        </div>
                     </template>
                 </div>
             </div>

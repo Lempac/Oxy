@@ -6,7 +6,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-    { ignores: ['*.d.ts', '**/coverage', '**/dist', '**/vendor/**', '**/pb_hooks/**', '**/pb_migrations/**', '**/bootstrap/**'] },
+    { ignores: ['*.d.ts', '**/coverage', '**/dist', '**/vendor/**', '**/pb_hooks/**', '**/pb_migrations/**', '**/pb_data/**', '**/bootstrap/**'] },
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
     ...eslintPluginVue.configs['flat/recommended'],
@@ -17,6 +17,7 @@ export default defineConfig([
             'vue/no-reserved-component-names': 'off',
             'vue/one-component-per-file': 'off',
             '@typescript-eslint/no-explicit-any': 'error',
+            '@typescript-eslint/triple-slash-reference': 'off',
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
         },
         languageOptions: {
