@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import {usePerms} from '@/bootstrap';
 import {members, role, server} from '@/routes/settings';
-import {Link} from "@inertiajs/vue3";
 import {PermType, Server} from "@/types";
 
 const perms = usePerms();
-const {selectedServer} = defineProps<{
+defineProps<{
     selectedServer: Server
 }>();
 </script>
@@ -18,23 +17,23 @@ const {selectedServer} = defineProps<{
             </h1>
         </div>
         <div class="flex space-x-6">
-            <Link
+            <router-link
                 v-if="perms.has([PermType.CAN_MANAGE_SERVER])"
-                :href="server.url(selectedServer?.route_key)"
+                :to="server.url(selectedServer?.route_key)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Server
-            </Link>
-            <Link
-                v-if="perms.has([PermType.CAN_MANAGE_ROLE])" :href="role.url(selectedServer?.route_key)"
+            </router-link>
+            <router-link
+                v-if="perms.has([PermType.CAN_MANAGE_ROLE])" :to="role.url(selectedServer?.route_key)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Roles
-            </Link>
-            <Link
+            </router-link>
+            <router-link
                 v-if="perms.has([PermType.CAN_MANAGE_MEMBERS])"
-                :href="members.url(selectedServer?.route_key)"
+                :to="members.url(selectedServer?.route_key)"
                 class="text-lg text-base-content transition-all duration-300 ease-in-out hover:bg-base-200 hover:pl-6 hover:pr-6 p-2 rounded-lg btn btn-neutral">
                 Members
-            </Link>
+            </router-link>
         </div>
     </div>
 </template>

@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import { usePerms, fetchJson } from '@/bootstrap';
-import {destroy, update} from '@/routes/server';
-import {ref} from 'vue';
+import {ref, reactive} from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {router, useForm} from '@inertiajs/vue3';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {resolveUrl} from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
@@ -12,7 +10,6 @@ import { HiClipboardCopy } from 'vue-icons-plus/hi';
 import { BsCheckLg } from 'vue-icons-plus/bs';
 import { MdLink } from 'vue-icons-plus/md';
 import { server } from '@/routes/home';
-import { Link } from '@inertiajs/vue3';
 import ImageEditorModal from '@/Components/ImageEditorModal.vue';
 
 const perms = usePerms();
@@ -27,15 +24,22 @@ const isEditorOpen = ref(false);
 const editorImageSource = ref<File | null>(null);
 const isDraggingOver = ref(false);
 
-const form = useForm({
-    name: selectedServer?.name,
-    description: selectedServer?.description,
+import pb from '@/pocketbase';
+import {useRouter} from 'vue-router';
+
+const router = useRouter();
+
+const form = reactive({
+    name: selectedServer?.name || '',
+    description: selectedServer?.description || '',
     icon: null as File | null,
-    default_role_id: selectedServer?.default_role_id ?? null as string | null,
+    default_role_id: selectedServer?.default_role_id || null as string | null,
     enable_whiteboard: selectedServer?.enable_whiteboard ?? true,
+    isDirty: false,
+    errors: {} as Record<string, string>,
 });
 
-form.defaults();
+const error = ref<string | null>(null);
 
 const onFileSelected = (file: File | null) => {
     if (!file) return;
@@ -58,25 +62,37 @@ const handleEditorSave = (editedFile: File) => {
     icon.value = URL.createObjectURL(editedFile);
 };
 
-function handleSave() {
+async function handleSave() {
     if (!form.name || form.name.trim() === "") {
-        form.setError("name", "Server name cannot be empty.");
+        error.value = "Server name cannot be empty.";
         return;
     }
-    form.clearErrors(); // Clear any existing errors
-    form.post(update.url(selectedServer!.route_key), {
-        onSuccess: () => {
-            router.reload(); // This will reload the current Inertia page without a full page reload
-        },
-    });
+    if (!selectedServer?.id) return;
+    error.value = null;
+
+    try {
+        const formData = new FormData();
+        formData.append('name', form.name);
+        formData.append('description', form.description);
+        formData.append('enable_whiteboard', String(form.enable_whiteboard));
+        if (form.icon) {
+            formData.append('icon', form.icon);
+        }
+
+        await pb.collection('servers').update(selectedServer.id, formData);
+    } catch (err: unknown) {
+        error.value = (err as { message?: string })?.message || 'Failed to update server.';
+    }
 }
 
-function deleteServer() {
-    router.delete(destroy.url(selectedServer!.route_key), {
-        onSuccess: () => {
-            router.visit('/home');
-        },
-    });
+async function deleteServer() {
+    if (!selectedServer?.id) return;
+    try {
+        await pb.collection('servers').delete(selectedServer.id);
+        router.push('/home');
+    } catch (err: unknown) {
+        error.value = (err as { message?: string })?.message || 'Failed to delete server.';
+    }
 }
 
 const copyCodeStatus = ref<Record<string, boolean>>({});
@@ -135,9 +151,9 @@ const generateInvite = async () => {
                     <div class="flex items-center justify-between">
                         <h1 class="text-3xl font-bold text-base-content">Server Settings</h1>
                         <div class="flex space-x-3">
-                            <Link :href="server.url(selectedServer!.route_key)" class="btn btn-neutral px-6">
+                            <router-link :to="server.url(selectedServer!.route_key)" class="btn btn-neutral px-6">
                                 ← Back to Server
-                            </Link>
+                            </router-link>
                             <button
                                 class="btn btn-success px-8"
                                 :disabled="!perms.has([PermType.CAN_EDIT_SERVER]) || !form.isDirty"

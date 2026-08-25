@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import pb from '@/pocketbase';
 import { defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
 import { PermType, Role, Server, User } from '@/types';
 import {
@@ -13,9 +13,7 @@ import {
     HiShieldCheck,
     HiUserRemove
 } from 'vue-icons-plus/hi';
-import { addUser, removeUser as roles_removeUser } from '@/routes/roles';
-import { removeUser as server_removeUser } from '@/routes/server';
-import { update as updateProfile } from '@/routes/profile';
+
 
 const props = defineProps<{
     user: User | null;
@@ -26,11 +24,21 @@ const emit = defineEmits<{
     (e: 'close'): void;
 }>();
 
-const page = usePage();
 const perms = usePerms();
 
 const localUser = ref<User | null>(null);
 const showKickConfirm = ref(false);
+
+const currentUser = computed(() => (pb.authStore.model ? {
+    id: pb.authStore.model.id,
+    nickname: pb.authStore.model.name || pb.authStore.model.email || 'User',
+    icon: pb.authStore.model.avatar || null,
+    status: pb.authStore.model.status || 'online',
+    light_theme: 'oxy',
+    dark_theme: 'dark',
+    roles: [],
+    servers: []
+} as User : null));
 
 const isEditingAboutMe = ref(false);
 const aboutMeInput = ref('');
@@ -58,8 +66,6 @@ watch(
 const closeProfile = () => {
     emit('close');
 };
-
-const currentUser = computed(() => page.props.user as User | null);
 
 const getStatusBadgeClass = (status?: string) => {
     switch (status) {
@@ -138,7 +144,7 @@ const getContrastColor = (hexColor?: string): string => {
     return yiq >= 128 ? '#000000' : '#ffffff';
 };
 
-const toggleRole = (roleId: string | number, userId: string | number, state: boolean) => {
+const toggleRole = async (roleId: string | number, userId: string | number, state: boolean) => {
     if (!localUser.value) return;
 
     const targetRole = props.selectedServer?.roles?.find((r) => String(r.id) === String(roleId));
@@ -173,43 +179,26 @@ const toggleRole = (roleId: string | number, userId: string | number, state: boo
         }
     }
 
-    if (state) {
-        router.post(
-            addUser.url({ role: roleId, user: userId }),
-            {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onError: () => {
-                    if (localUser.value) {
-                        localUser.value = {
-                            ...localUser.value,
-                            rolesWithServer: previousRoles
-                        };
-                    }
-                }
-            }
-        );
-    } else {
-        router.delete(
-            roles_removeUser.url({ role: roleId, user: userId }),
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onError: () => {
-                    if (localUser.value) {
-                        localUser.value = {
-                            ...localUser.value,
-                            rolesWithServer: previousRoles
-                        };
-                    }
-                }
-            }
-        );
+    try {
+        const members = await pb.collection('members').getList(1, 1, {
+            filter: `server = "${props.selectedServer?.id}" && user = "${userId}"`
+        });
+        if (members.items.length > 0) {
+            await pb.collection('members').update(members.items[0].id, {
+                role: state ? roleId : null
+            });
+        }
+    } catch {
+        if (localUser.value) {
+            localUser.value = {
+                ...localUser.value,
+                rolesWithServer: previousRoles
+            };
+        }
     }
 };
 
-const pageServers = computed(() => (page.props.servers as Server[]) || currentUser.value?.servers || []);
+const pageServers = computed(() => currentUser.value?.servers || []);
 
 const commonServers = computed(() => {
     if (!localUser.value) return [];
@@ -231,16 +220,20 @@ const canKickUser = computed(() => {
     return perms.value.hasAny([PermType.CAN_KICK, PermType.CAN_MANAGE_MEMBERS, PermType.CAN_MANAGE_SERVER]);
 });
 
-const kickMember = () => {
+const kickMember = async () => {
     if (!props.selectedServer || !localUser.value) return;
     const userId = localUser.value.id;
-    router.delete(server_removeUser.url(props.selectedServer.route_key), {
-        data: { user_id: userId },
-        onSuccess: () => {
-            closeProfile();
-            router.reload({ only: ['selected_server'] });
+    try {
+        const members = await pb.collection('members').getList(1, 1, {
+            filter: `server = "${props.selectedServer.id}" && user = "${userId}"`
+        });
+        if (members.items.length > 0) {
+            await pb.collection('members').delete(members.items[0].id);
         }
-    });
+        closeProfile();
+    } catch (err: unknown) {
+        console.error('Error kicking member:', err);
+    }
 };
 
 const canEditAboutMe = computed(() => {
@@ -252,30 +245,20 @@ const startEditAboutMe = () => {
     isEditingAboutMe.value = true;
 };
 
-const saveAboutMe = () => {
-    if (!localUser.value) return;
+const saveAboutMe = async () => {
+    if (!localUser.value?.id) return;
     isSavingAboutMe.value = true;
-    router.post(
-        updateProfile.url(),
-        {
-            nickname: localUser.value.nickname,
+    try {
+        await pb.collection('users').update(localUser.value.id, {
             about_me: aboutMeInput.value
-        },
-        {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: () => {
-                if (localUser.value) {
-                    localUser.value.about_me = aboutMeInput.value;
-                }
-                isEditingAboutMe.value = false;
-                isSavingAboutMe.value = false;
-            },
-            onError: () => {
-                isSavingAboutMe.value = false;
-            }
-        }
-    );
+        });
+        localUser.value.about_me = aboutMeInput.value;
+        isEditingAboutMe.value = false;
+    } catch (err: unknown) {
+        console.error('Error saving bio:', err);
+    } finally {
+        isSavingAboutMe.value = false;
+    }
 };
 </script>
 

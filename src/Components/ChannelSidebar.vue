@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
-import { Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import pb from '@/pocketbase';
 import { Channel, ChannelType, PermType, Server, User } from '@/types';
 import { defaultIcon, getMemberRoleColor, resolveUrl, usePerms } from '@/bootstrap';
-import { create, deleteMethod, edit } from '@/routes/channel';
 import { channel as textChannelRoute } from '@/routes/home/text';
 import { channel as whiteboardChannelRoute } from '@/routes/home/whiteboard';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
@@ -18,7 +18,8 @@ import { useChannelEvents } from '@/composables/useChannelEvents';
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
-const page = usePage();
+const route = useRoute();
+const currentPath = computed(() => route.path);
 const { startPaneSwapDrag, endPaneSwapDrag } = usePaneDrag();
 
 const props = defineProps<{
@@ -107,13 +108,17 @@ const onChannelDrop = (e: DragEvent, targetChannel: Channel, typeList: Channel[]
     onChannelDragEnd();
 
     if (props.selectedServer) {
-        router.post(`/api/channel/${props.selectedServer.route_key}/reorder`, {
-            channel_ids: allChannelIds,
-        }, { preserveScroll: true });
+        try {
+            allChannelIds.forEach(async (id, idx) => {
+                await pb.collection('channels').update(id, { position: idx });
+            });
+        } catch (err: unknown) {
+            console.error('Error reordering channels:', err);
+        }
     }
 };
 
-const form = useForm({
+const form = reactive({
     type: ChannelType.Text as string,
     name: ''
 });
@@ -134,44 +139,52 @@ const openModal = (type: string, channel?: Channel) => {
 const loading = ref(false);
 
 const createChannel = async () => {
-    if (loading.value) return;
+    if (loading.value || !props.selectedServer?.id) return;
     loading.value = true;
-    form.post(create.url(props.selectedServer!.route_key), {
-        onSuccess: () => {
-            isChannelModalOpen.value = false;
-            router.reload();
-            form.reset();
-        },
-        onError: (errors) => {
-            console.error('Error creating channel:', errors);
-        },
-        onFinish: () => {
-            loading.value = false;
-        }
-    });
+    try {
+        await pb.collection('channels').create({
+            server: props.selectedServer.id,
+            name: form.name,
+            slug: form.name.toLowerCase().replace(/\s+/g, '-'),
+            type: form.type,
+            position: props.channels?.length || 0,
+        });
+        isChannelModalOpen.value = false;
+        form.name = '';
+    } catch (err: unknown) {
+        console.error('Error creating channel:', err);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const deleteChannel = async (channel: Channel) => {
-    router.delete(deleteMethod.url({ server: props.selectedServer!.route_key, channel: channel.route_key }));
+    try {
+        await pb.collection('channels').delete(channel.id);
+    } catch (err: unknown) {
+        console.error('Error deleting channel:', err);
+    }
 };
 
 const editChannel = async (channelKey: string) => {
-    if (loading.value) return;
+    if (loading.value || !props.selectedServer?.id) return;
     loading.value = true;
 
-    form.patch(edit.url({ server: props.selectedServer!.route_key, channel: channelKey }), {
-        onSuccess: () => {
-            isChannelModalOpen.value = false;
-            router.reload();
-            form.reset();
-        },
-        onError: (errors) => {
-            console.error('Error editing channel:', errors);
-        },
-        onFinish: () => {
-            loading.value = false;
+    try {
+        const channelRecord = props.channels?.find(c => c.route_key === channelKey || c.id === channelKey);
+        if (channelRecord) {
+            await pb.collection('channels').update(channelRecord.id, {
+                name: form.name,
+                slug: form.name.toLowerCase().replace(/\s+/g, '-'),
+            });
         }
-    });
+        isChannelModalOpen.value = false;
+        form.name = '';
+    } catch (err: unknown) {
+        console.error('Error editing channel:', err);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const isChannelActive = (channel: Channel) => {
@@ -187,7 +200,7 @@ const getChannelParticipants = (channel: Channel): User[] => {
 };
 
 const isCurrentUser = (user: User) => {
-    return String(user.id) === String(page.props.user?.id);
+    return String(user.id) === String(pb.authStore.model?.id);
 };
 
 const isUserAfk = (user: User) => {
@@ -214,11 +227,11 @@ const isUserMuted = (user: User) => {
 const handleVoiceChannelClick = async (channel: Channel) => {
     if (isEditMode.value) return;
     if (isChannelActive(channel)) return;
-    await voiceState.joinChannel(channel, props.selectedServer?.id, page.props.user as User);
+    await voiceState.joinChannel(channel, props.selectedServer?.id, pb.authStore.model as unknown as User);
 };
 
 onMounted(() => {
-    voiceState.restoreSession(page.props.user as User);
+    voiceState.restoreSession(pb.authStore.model as unknown as User);
 });
 
 useChannelEvents(props.selectedServer?.id, ['channels']);
@@ -278,7 +291,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                         :key="channel.id"
                         class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-all duration-150 relative border-2"
                         :class="[
-                            page.url.includes(`/text/${channel.route_key}`) ? 'bg-primary text-primary-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
+                            currentPath.includes(`/text/${channel.route_key}`) ? 'bg-primary text-primary-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
                             hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id
                                 ? 'border-dotted border-primary bg-primary/15'
                                 : 'border-transparent'
@@ -300,13 +313,13 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                             <MdDragIndicator class="size-3.5" />
                         </div>
 
-                        <Link
-                            v-if="!page.url.includes(`/text/${channel.route_key}`)"
-                            :href="textChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
+                        <router-link
+                            v-if="!currentPath.includes(`/text/${channel.route_key}`)"
+                            :to="textChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
                             class="flex-1 truncate text-sm"
                         >
                             # {{ channel.name }}
-                        </Link>
+                        </router-link>
                         <span
                             v-else
                             class="flex-1 truncate text-sm cursor-default"
@@ -478,7 +491,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                         :key="channel.id"
                         class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-all duration-150 border-2"
                         :class="[
-                            page.url.includes(`/whiteboard/${channel.route_key}`) ? 'bg-accent text-accent-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
+                            currentPath.includes(`/whiteboard/${channel.route_key}`) ? 'bg-accent text-accent-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
                             hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id
                                 ? 'border-dotted border-primary bg-primary/15'
                                 : 'border-transparent'
@@ -500,14 +513,14 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                             <MdDragIndicator class="size-3.5" />
                         </div>
 
-                        <Link
-                            v-if="!page.url.includes(`/whiteboard/${channel.route_key}`)"
-                            :href="whiteboardChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
+                        <router-link
+                            v-if="!currentPath.includes(`/whiteboard/${channel.route_key}`)"
+                            :to="whiteboardChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
                             class="flex-1 truncate text-sm flex items-center gap-1.5"
                         >
                             <span>🎨</span>
                             <span>{{ channel.name }}</span>
-                        </Link>
+                        </router-link>
                         <span
                             v-else
                             class="flex-1 truncate text-sm flex items-center gap-1.5 cursor-default"

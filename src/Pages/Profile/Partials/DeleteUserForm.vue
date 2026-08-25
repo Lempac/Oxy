@@ -1,16 +1,15 @@
 <script lang="ts" setup>
-import { destroy } from '@/routes/profile';
-import {useForm} from '@inertiajs/vue3';
-import {ref} from 'vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import pb from '@/pocketbase';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { MdKey } from 'vue-icons-plus/md';
 
-
+const router = useRouter();
 const passwordInput = ref<HTMLInputElement | null>(null);
-const form = useForm({
-    password: '',
-});
-
+const password = ref('');
+const processing = ref(false);
+const error = ref<string | null>(null);
 const modalRef = ref<HTMLDialogElement | null>(null);
 
 const toggleModal = (action: 'open' | 'close') => {
@@ -20,15 +19,22 @@ const toggleModal = (action: 'open' | 'close') => {
     }
 };
 
-const deleteUser = () => {
-    form.delete(destroy.url(), {
-        preserveScroll: true,
-        onSuccess: () => toggleModal('close'),
-        onError: () => passwordInput.value?.focus(),
-        onFinish: () => {
-            form.reset();
-        },
-    });
+const deleteUser = async () => {
+    if (!pb.authStore.model?.id) return;
+    processing.value = true;
+    error.value = null;
+    try {
+        await pb.collection('users').delete(pb.authStore.model.id);
+        pb.authStore.clear();
+        toggleModal('close');
+        router.push('/');
+    } catch (err: unknown) {
+        error.value = (err as { message?: string })?.message || 'Failed to delete account.';
+        passwordInput.value?.focus();
+    } finally {
+        processing.value = false;
+        password.value = '';
+    }
 };
 </script>
 
@@ -59,7 +65,7 @@ const deleteUser = () => {
                         <input
                             id="delete-password"
                             ref="passwordInput"
-                            v-model="form.password"
+                            v-model="password"
                             autocomplete="current-password"
                             class="grow text-base-content"
                             name="password"
@@ -68,14 +74,14 @@ const deleteUser = () => {
                             @keyup.enter="deleteUser"
                         />
                     </label>
-                    <ErrorAlert v-if="form.errors.password" :message="form.errors.password" class="mt-2"/>
+                    <ErrorAlert v-if="error" :message="error" class="mt-2"/>
                 </div>
 
                 <div class="modal-action mt-6">
                     <button class="btn" type="button" @click="toggleModal('close')">Cancel</button>
 
                     <button
-                        :class="{ 'opacity-25': form.processing }" :disabled="form.processing"
+                        :class="{ 'opacity-25': processing }" :disabled="processing"
                         class="btn btn-error"
                         type="button"
                         @click="deleteUser"

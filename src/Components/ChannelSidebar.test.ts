@@ -7,27 +7,20 @@ import { useVoiceCallStateMachine } from '@/composables/useVoiceCallStateMachine
 vi.mock('@/pocketbase', () => ({
     default: {
         collection: () => ({
-            subscribe: vi.fn().mockResolvedValue(vi.fn())
-        })
+            subscribe: vi.fn().mockResolvedValue(vi.fn()),
+            create: vi.fn(),
+            delete: vi.fn(),
+            update: vi.fn()
+        }),
+        authStore: {
+            model: { id: '1', name: 'TestUser' }
+        }
     }
 }));
 
-// Mock Inertia router and hooks
-vi.mock('@inertiajs/vue3', () => ({
-    Link: { template: '<a><slot /></a>' },
-    router: { reload: vi.fn(), delete: vi.fn(), patch: vi.fn(), post: vi.fn() },
-    useForm: () => ({
-        type: 'text',
-        name: '',
-        post: vi.fn(),
-        patch: vi.fn(),
-        errors: {},
-        reset: vi.fn()
-    }),
-    usePage: () => ({
-        url: '/home/text/general',
-        props: { user: { id: '1', nickname: 'TestUser' } }
-    })
+vi.mock('vue-router', () => ({
+    useRoute: () => ({ path: '/home/text/general' }),
+    useRouter: () => ({ push: vi.fn() })
 }));
 
 describe('ChannelSidebar Component', () => {
@@ -55,8 +48,19 @@ describe('ChannelSidebar Component', () => {
         { id: '301', name: 'Project Diagram', type: ChannelType.Whiteboard, route_key: 'diagram', server_id: '1', update_at: '' }
     ];
 
+    const mountOptions = {
+        global: {
+            stubs: {
+                RouterLink: {
+                    template: '<a><slot /></a>'
+                }
+            }
+        }
+    };
+
     it('renders text, voice, and whiteboard channel categories', () => {
         const wrapper = mount(ChannelSidebar, {
+            ...mountOptions,
             props: {
                 selectedServer: mockServer,
                 channels: mockChannels
@@ -76,6 +80,7 @@ describe('ChannelSidebar Component', () => {
         voiceState.resetState();
 
         const wrapper = mount(ChannelSidebar, {
+            ...mountOptions,
             props: {
                 selectedServer: mockServer,
                 channels: mockChannels
@@ -92,6 +97,7 @@ describe('ChannelSidebar Component', () => {
         ]);
 
         const updatedWrapper = mount(ChannelSidebar, {
+            ...mountOptions,
             props: {
                 selectedServer: mockServer,
                 channels: mockChannels
@@ -107,6 +113,7 @@ describe('ChannelSidebar Component', () => {
         voiceState.resetState();
 
         const wrapper = mount(ChannelSidebar, {
+            ...mountOptions,
             props: {
                 selectedServer: mockServer,
                 channels: mockChannels
@@ -131,6 +138,7 @@ describe('ChannelSidebar Component', () => {
         ]);
 
         const wrapper = mount(ChannelSidebar, {
+            ...mountOptions,
             props: {
                 selectedServer: mockServer,
                 channels: mockChannels

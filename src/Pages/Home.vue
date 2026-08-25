@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ChannelSidebar from '@/Components/ChannelSidebar.vue';
-import {Head} from '@inertiajs/vue3';
 import {joinServer} from "@/bootstrap";
 import {computed, onMounted, ref} from "vue";
 import {Server, Channel} from "@/types";
@@ -101,7 +100,6 @@ const onPaneDragLeave = (e: DragEvent, paneId: string) => {
 </script>
 
 <template>
-    <Head title="Home"/>
     <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
         <template v-for="(paneId, idx) in activePanes" :key="paneId">
             <!-- Sidebar Pane -->

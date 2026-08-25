@@ -6,10 +6,8 @@ import {GiBootKick} from 'vue-icons-plus/gi';
 import {BsCheckLg} from 'vue-icons-plus/bs';
 import {computed, ref} from 'vue';
 import {PermType, Role, Server, User} from '@/types';
-import {Link, router, usePage} from '@inertiajs/vue3';
+import pb from '@/pocketbase';
 import {server} from '@/routes/home';
-import {addUser, removeUser as roles_removeUser} from '@/routes/roles';
-import {removeUser as server_removeUser} from '@/routes/server';
 
 interface customUser extends User {
     rolesWithServer: Role[]
@@ -42,23 +40,33 @@ const filteredMembers = computed(() => {
     return members;
 });
 
-const toggleRole = (roleId: string, userId: string, state: boolean) => {
-    if (state) {
-        router.post(addUser.url({role: roleId, user: userId}), {}, {
-            onSuccess: () => router.reload({only: ['selected_server']})
+const toggleRole = async (roleId: string, userId: string, state: boolean) => {
+    try {
+        const members = await pb.collection('members').getList(1, 1, {
+            filter: `server = "${selectedServer.id}" && user = "${userId}"`
         });
-    } else {
-        router.delete(roles_removeUser.url({role: roleId, user: userId}), {
-            onSuccess: () => router.reload({only: ['selected_server']})
-        });
+        if (members.items.length > 0) {
+            await pb.collection('members').update(members.items[0].id, {
+                role: state ? roleId : null
+            });
+        }
+    } catch (err: unknown) {
+        console.error('Error updating member role:', err);
     }
 };
 
-const kickMember = (userId: string) =>
-    router.delete(server_removeUser.url(selectedServer.route_key), {
-        data: {'user_id': userId},
-        onSuccess: () => router.reload({only: ['selected_server']})
-    });
+const kickMember = async (userId: string) => {
+    try {
+        const members = await pb.collection('members').getList(1, 1, {
+            filter: `server = "${selectedServer.id}" && user = "${userId}"`
+        });
+        if (members.items.length > 0) {
+            await pb.collection('members').delete(members.items[0].id);
+        }
+    } catch (err: unknown) {
+        console.error('Error kicking member:', err);
+    }
+};
 
 const generateInvite = async () => {
     try {
@@ -96,9 +104,9 @@ const generateInvite = async () => {
                             <p class="text-sm text-base-content/70 mt-1">Manage members and roles for this server.</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <Link :href="server.url(selectedServer.route_key)" class="btn btn-neutral px-6">
+                            <router-link :to="server.url(selectedServer.route_key)" class="btn btn-neutral px-6">
                                 ← Back to Server
-                            </Link>
+                            </router-link>
                             <button
                                 v-if="perms.has([PermType.CAN_INVITE, PermType.CAN_MANAGE_SERVER])"
                                 class="btn btn-primary" @click="generateInvite">
@@ -203,7 +211,7 @@ const generateInvite = async () => {
                                     </td>
                                     <td class="py-4 px-6 text-end">
                                         <ConfirmDialog
-                                            v-if="user.id !== usePage().props.user?.id"
+                                            v-if="user.id !== pb.authStore.model?.id"
                                             :class-name="`btn btn-ghost btn-sm text-error hover:bg-error/20 ${!perms.has([PermType.CAN_KICK]) ? 'btn-disabled opacity-50' : ''}`"
                                             :confirm="() => kickMember(user.id)"
                                             :description="`Are you sure you want to kick ${user.nickname}? This action cannot be undone.`"

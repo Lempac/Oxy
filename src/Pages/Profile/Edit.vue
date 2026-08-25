@@ -2,7 +2,6 @@
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
-import {Head, Link} from '@inertiajs/vue3';
 import {exportMethod} from '@/routes/profile';
 import {Server} from '@/types';
 
@@ -17,8 +16,6 @@ function exportTab() {
 </script>
 
 <template>
-    <Head title="Profile"/>
-
     <div class="flex h-screen bg-base-100 overflow-hidden">
         <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
             <div class="flex-1 overflow-y-auto p-6 md:p-10">
@@ -26,9 +23,9 @@ function exportTab() {
                     <div class="flex items-center justify-between">
                         <h1 class="text-3xl font-bold text-base-content">User Profile Settings</h1>
                         <div class="flex space-x-3">
-                            <Link class="btn btn-neutral px-6" href="/home">
+                            <router-link class="btn btn-neutral px-6" to="/home">
                                 ← Back to Home
-                            </Link>
+                            </router-link>
                         </div>
                     </div>
 

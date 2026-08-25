@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { update } from '@/routes/profile';
-import { useForm, usePage } from '@inertiajs/vue3';
-import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { ref } from "vue";
+import pb from "@/pocketbase";
+import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { resolveUrl } from "@/bootstrap";
 import { Themes, ThemeType } from "@/types";
 import { Io5AddOutline } from 'vue-icons-plus/io5';
@@ -13,23 +12,20 @@ defineProps<{
     status?: string;
 }>();
 
-const user = usePage().props.user!;
+const user = pb.authStore.model;
 
-const icon = ref<string | null>(user.icon ? resolveUrl(user.icon) : null);
-const inputFile = ref<File | null>();
+const nickname = ref(user?.name || user?.email || '');
+const aboutMe = ref(user?.about_me || '');
+const lightTheme = ref<ThemeType>((user?.light_theme as ThemeType) || Themes.Oxy);
+const darkTheme = ref<ThemeType>((user?.dark_theme as ThemeType) || Themes.Dark);
+const icon = ref<string | null>(user?.avatar ? resolveUrl(user.avatar) : null);
+const selectedFile = ref<File | null>(null);
 const isEditorOpen = ref(false);
 const editorImageSource = ref<File | null>(null);
 const isDraggingOver = ref(false);
-
-const form = useForm<{ nickname: string, about_me: string, icon: File | null, light_theme: ThemeType, dark_theme: ThemeType }>({
-    nickname: user.nickname,
-    about_me: user.about_me || '',
-    icon: null,
-    light_theme: user.light_theme || Themes.OXY,
-    dark_theme: user.dark_theme || Themes.DARK,
-});
-
-form.defaults();
+const processing = ref(false);
+const recentlySuccessful = ref(false);
+const error = ref<string | null>(null);
 
 const onFileSelected = (val: File) => {
     if (!val) return;
@@ -46,22 +42,34 @@ const onDropAvatar = (e: DragEvent) => {
 };
 
 const handleEditorSave = (editedFile: File) => {
-    inputFile.value = editedFile;
-    form.icon = editedFile;
+    selectedFile.value = editedFile;
     icon.value = URL.createObjectURL(editedFile);
-    form.recentlySuccessful = false;
 };
 
-const submit = () => {
-    form.post(update.url(), {
-        method: 'put',
-        preserveScroll: true,
-        onSuccess: () => {
-            form.defaults();
-        },
-    });
-};
+const submit = async () => {
+    if (!user?.id) return;
+    processing.value = true;
+    error.value = null;
 
+    try {
+        const formData = new FormData();
+        formData.append('name', nickname.value);
+        formData.append('about_me', aboutMe.value);
+        formData.append('light_theme', lightTheme.value);
+        formData.append('dark_theme', darkTheme.value);
+        if (selectedFile.value) {
+            formData.append('avatar', selectedFile.value);
+        }
+
+        await pb.collection('users').update(user.id, formData);
+        recentlySuccessful.value = true;
+        setTimeout(() => { recentlySuccessful.value = false; }, 3000);
+    } catch (err: unknown) {
+        error.value = (err as { message?: string })?.message || 'Failed to update profile.';
+    } finally {
+        processing.value = false;
+    }
+};
 </script>
 
 <template>
@@ -91,7 +99,6 @@ const submit = () => {
                 </label>
                 <input
                     id="profilePicture"
-                    ref="inputFile"
                     accept="image/png, image/jpeg, image/webp"
                     autocomplete="off"
                     class="hidden"
@@ -100,7 +107,6 @@ const submit = () => {
                     @input="onFileSelected((<HTMLInputElement>$event.target).files![0])"
                 />
             </div>
-            <ErrorAlert v-if="form.errors.icon" :message="form.errors.icon" class="mt-2"/>
 
             <ImageEditorModal
                 v-model="isEditorOpen"
@@ -117,7 +123,7 @@ const submit = () => {
                     <RiUser3Line class="h-4 w-4 opacity-70"/>
                     <input
                         id="profile-nickname"
-                        v-model="form.nickname"
+                        v-model="nickname"
                         autocomplete="username"
                         autofocus
                         class="mt-1 block w-full"
@@ -126,19 +132,17 @@ const submit = () => {
                         type="text"
                     />
                 </label>
-                <ErrorAlert :message="form.errors.nickname" class="mt-2"/>
             </div>
 
             <div class="form-control">
                 <label class="block font-medium text-sm text-base-content/90" for="about_me">About Me</label>
                 <textarea
                     id="about_me"
-                    v-model="form.about_me"
+                    v-model="aboutMe"
                     class="textarea textarea-bordered mt-1 block w-full resize-none"
                     rows="3"
                     placeholder="Tell others a little about yourself..."
                 />
-                <ErrorAlert :message="form.errors.about_me" class="mt-2"/>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,33 +150,33 @@ const submit = () => {
                     <label class="block font-medium text-sm text-base-content/90" for="light_theme">Light Theme</label>
                     <select
                         id="light_theme"
-                        v-model="form.light_theme"
+                        v-model="lightTheme"
                         class="select select-bordered mt-1 block w-full"
                     >
                         <option v-for="theme in Themes" :key="theme" :value="theme">
                             {{ theme.charAt(0).toUpperCase() + theme.slice(1) }}
                         </option>
                     </select>
-                    <ErrorAlert :message="form.errors.light_theme" class="mt-2"/>
                 </div>
 
                 <div class="form-control">
                     <label class="block font-medium text-sm text-base-content/90" for="dark_theme">Dark Theme</label>
                     <select
                         id="dark_theme"
-                        v-model="form.dark_theme"
+                        v-model="darkTheme"
                         class="select select-bordered mt-1 block w-full"
                     >
                         <option v-for="theme in Themes" :key="theme" :value="theme">
                             {{ theme.charAt(0).toUpperCase() + theme.slice(1) }}
                         </option>
                     </select>
-                    <ErrorAlert :message="form.errors.dark_theme" class="mt-2"/>
                 </div>
             </div>
 
+            <ErrorAlert v-if="error" :message="error" class="mt-2"/>
+
             <div class="flex items-center gap-4">
-                <button :disabled="form.processing" class="btn">Save</button>
+                <button :disabled="processing" class="btn btn-primary">Save</button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
@@ -180,7 +184,7 @@ const submit = () => {
                     leave-active-class="transition ease-in-out"
                     leave-to-class="opacity-0"
                 >
-                    <p v-if="form.recentlySuccessful && !form.isDirty" class="text-sm text-base-content/70">Saved.</p>
+                    <p v-if="recentlySuccessful" class="text-sm text-success font-bold">Saved successfully.</p>
                 </Transition>
             </div>
         </form>

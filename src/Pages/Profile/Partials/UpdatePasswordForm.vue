@@ -1,37 +1,41 @@
 <script lang="ts" setup>
-import { update } from '@/routes/password';
-import {useForm} from '@inertiajs/vue3';
-import {ref} from 'vue';
+import { ref } from 'vue';
+import pb from '@/pocketbase';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { MdKey } from 'vue-icons-plus/md';
 
+const oldPassword = ref('');
+const password = ref('');
+const passwordConfirm = ref('');
+const processing = ref(false);
+const recentlySuccessful = ref(false);
+const error = ref<string | null>(null);
 
-const passwordInput = ref<HTMLInputElement | null>(null);
-const currentPasswordInput = ref<HTMLInputElement | null>(null);
+const updatePassword = async () => {
+    if (!pb.authStore.model?.id) return;
+    if (password.value !== passwordConfirm.value) {
+        error.value = 'Passwords do not match.';
+        return;
+    }
 
-const form = useForm({
-    current_password: '',
-    password: '',
-    password_confirmation: '',
-});
-
-const updatePassword = () => {
-    form.put(update.url(), {
-        preserveScroll: true,
-        onSuccess: () => {
-            form.reset();
-        },
-        onError: () => {
-            if (form.errors.password) {
-                form.reset('password', 'password_confirmation');
-                passwordInput.value?.focus();
-            }
-            if (form.errors.current_password) {
-                form.reset('current_password');
-                currentPasswordInput.value?.focus();
-            }
-        },
-    });
+    processing.value = true;
+    error.value = null;
+    try {
+        await pb.collection('users').update(pb.authStore.model.id, {
+            oldPassword: oldPassword.value,
+            password: password.value,
+            passwordConfirm: passwordConfirm.value,
+        });
+        recentlySuccessful.value = true;
+        oldPassword.value = '';
+        password.value = '';
+        passwordConfirm.value = '';
+        setTimeout(() => { recentlySuccessful.value = false; }, 3000);
+    } catch (err: unknown) {
+        error.value = (err as { message?: string })?.message || 'Failed to update password.';
+    } finally {
+        processing.value = false;
+    }
 };
 </script>
 
@@ -50,16 +54,14 @@ const updatePassword = () => {
                     <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="current_password"
-                        ref="currentPasswordInput"
-                        v-model="form.current_password"
+                        v-model="oldPassword"
                         autocomplete="current-password"
                         class="mt-1 block w-full"
                         name="current_password"
                         type="password"
+                        required
                     />
                 </label>
-
-                <ErrorAlert :message="form.errors.current_password" class="mt-2"/>
             </div>
 
             <div>
@@ -70,16 +72,14 @@ const updatePassword = () => {
                     <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="update-password"
-                        ref="passwordInput"
-                        v-model="form.password"
+                        v-model="password"
                         autocomplete="new-password"
                         class="mt-1 block w-full"
                         name="password"
                         type="password"
+                        required
                     />
                 </label>
-
-                <ErrorAlert :message="form.errors.password" class="mt-2"/>
             </div>
 
             <div>
@@ -90,19 +90,20 @@ const updatePassword = () => {
                     <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="update-password_confirmation"
-                        v-model="form.password_confirmation"
+                        v-model="passwordConfirm"
                         autocomplete="new-password"
                         class="mt-1 block w-full"
                         name="password_confirmation"
                         type="password"
+                        required
                     />
                 </label>
-
-                <ErrorAlert :message="form.errors.password_confirmation" class="mt-2"/>
             </div>
 
+            <ErrorAlert v-if="error" :message="error" class="mt-2"/>
+
             <div class="flex items-center gap-4">
-                <button :disabled="form.processing" class="btn">Save</button>
+                <button :disabled="processing" class="btn btn-primary">Save</button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
@@ -110,7 +111,7 @@ const updatePassword = () => {
                     leave-active-class="transition ease-in-out"
                     leave-to-class="opacity-0"
                 >
-                    <p v-if="form.recentlySuccessful" class="text-sm text-base-content/70">Saved.</p>
+                    <p v-if="recentlySuccessful" class="text-sm text-success font-bold">Saved successfully.</p>
                 </Transition>
             </div>
         </form>

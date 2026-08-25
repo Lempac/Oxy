@@ -3,14 +3,14 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import ChannelSidebar from "@/Components/ChannelSidebar.vue";
 import {Channel, Message, PermType, Server, Whiteboard} from "@/types";
 import WhiteboardBoard from "./WhiteboardBoard.vue";
-import {computed, nextTick, onMounted, onUnmounted, ref, watch} from "vue";
-import {router, useForm} from "@inertiajs/vue3";
+import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
+import pb from "@/pocketbase";
 import {defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from "@/bootstrap";
 import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';
 import {MdOutlineDeleteForever, MdOutlineFileUpload, MdOutlineModeEdit, MdDragIndicator, MdClose, MdArrowDownward} from 'vue-icons-plus/md';
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
-import {create, deleteMethod, edit} from "@/routes/message";
+import {create} from "@/routes/message";
 import {usePaneDrag} from "@/composables/usePaneDrag";
 import {useRecentUploads} from "@/composables/useRecentUploads";
 import FilePreviewCard from "@/Components/FilePreviewCard.vue";
@@ -66,13 +66,18 @@ const editorImageSource = ref<File | null>(null);
 const validationError = ref<string | null>(null);
 const loading = ref(false);
 
-const form = useForm<{ content: string; attachments: File[] }>({
+const form = reactive({
     content: '',
-    attachments: []
+    attachments: [] as File[],
+    processing: false,
+    reset() { this.content = ''; this.attachments = []; },
+    post(_url?: string, _opts?: unknown) { this.processing = false; }
 });
 
-const editForm = useForm<{ content: string }>({
-    content: ''
+const editForm = reactive({
+    content: '',
+    processing: false,
+    reset() { this.content = ''; },
 });
 
 const clearValidation = () => {
@@ -338,10 +343,6 @@ onMounted(() => {
     setTimeout(restoreScrollOrBottom, 350);
     setTimeout(restoreScrollOrBottom, 600);
 
-    router.on('finish', () => {
-        setTimeout(restoreScrollOrBottom, 50);
-    });
-
     window.addEventListener('paste', handlePaste);
 });
 
@@ -437,19 +438,25 @@ const createMessage = async () => {
 };
 
 const deleteMessage = async (messageId: string) => {
-    router.delete(deleteMethod.url(messageId), {preserveScroll: true});
+    try {
+        await pb.collection('messages').delete(messageId);
+    } catch (err: unknown) {
+        console.error('Error deleting message:', err);
+    }
 };
 
 const editMessage = async () => {
     if (messageIdToEdit.value !== null) {
-        editForm.patch(edit.url(messageIdToEdit.value), {
-            preserveScroll: true,
-            onSuccess: () => {
-                messageModal.value?.close();
-                editForm.reset();
-                messageIdToEdit.value = null;
-            }
-        });
+        try {
+            await pb.collection('messages').update(messageIdToEdit.value, {
+                content: editForm.content,
+                status: 'edited',
+            });
+            messageIdToEdit.value = null;
+            editForm.content = '';
+        } catch (err: unknown) {
+            console.error('Error editing message:', err);
+        }
     }
 };
 
@@ -540,7 +547,7 @@ function formatDate(dateString: string): string {
                     <div v-if="messages && messages.length > 0">
                         <div
                             v-for="message in messages" :key="message.id"
-                            :class="{'chat chat-start': message.user_id !== $page.props.user?.id, 'chat chat-end': message.user_id === $page.props.user?.id}"
+                            :class="{'chat chat-start': message.user_id !== pb.authStore.model?.id, 'chat chat-end': message.user_id === pb.authStore.model?.id}"
                         >
                             <div class="chat-image avatar">
                                 <div class="w-8 rounded-full">
@@ -569,7 +576,7 @@ function formatDate(dateString: string): string {
                                 <!-- Message Actions -->
                                 <div class="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-base-300/80 rounded-md p-0.5">
                                     <button
-                                        v-if="message.user_id === $page.props.user?.id"
+                                        v-if="message.user_id === pb.authStore.model?.id"
                                         class="btn btn-ghost btn-xs btn-circle p-0"
                                         title="Edit text"
                                         @click="openEditModal(message.id, message.content)"
@@ -577,7 +584,7 @@ function formatDate(dateString: string): string {
                                         <MdOutlineModeEdit class="size-3 text-warning" />
                                     </button>
                                     <ConfirmDialog
-                                        v-if="message.user_id === $page.props.user?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
+                                        v-if="message.user_id === pb.authStore.model?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
                                         :confirm="() => deleteMessage(message.id)"
                                         class-name="btn btn-ghost btn-xs btn-circle p-0"
                                         description="Are you sure you want to delete this message?"

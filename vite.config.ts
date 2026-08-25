@@ -24,9 +24,7 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@": path.resolve(import.meta.dirname, "./src"),
-            "@inertiajs/vue3": path.resolve(import.meta.dirname, "./src/inertia-compat.ts"),
-            "@inertiajs/core": path.resolve(import.meta.dirname, "./src/inertia-compat.ts")
+            "@": path.resolve(import.meta.dirname, "./src")
         }
     },
     optimizeDeps: {

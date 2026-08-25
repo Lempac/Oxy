@@ -1,22 +1,23 @@
 <script lang="ts" setup>
 import {usePerms} from '@/bootstrap';
-import {create, deleteMethod, edit} from '@/routes/channel';
 import {channel as textChannelRoute} from '@/routes/home/text';
 import {channel as whiteboardChannelRoute} from '@/routes/home/whiteboard';
-import {Link, router, useForm} from "@inertiajs/vue3";
-import {computed, ref} from "vue";
+import {useRoute} from 'vue-router';
+import pb from '@/pocketbase';
+import {computed, reactive, ref} from "vue";
 import {Channel, ChannelType, PermType, Server} from "@/types";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {BsChatText, BsEasel} from 'vue-icons-plus/bs';
 import {RiChatVoiceLine, RiPencilFill} from 'vue-icons-plus/ri';
-import {MdOutlineDeleteForever, MdOutlineModeEdit, MdDragIndicator} from 'vue-icons-plus/md';
+import {MdDragIndicator, MdOutlineDeleteForever, MdOutlineModeEdit} from 'vue-icons-plus/md';
 import {GoPlus} from 'vue-icons-plus/go';
 import {useChannelEvents} from "@/composables/useChannelEvents";
 import {useVoiceCallStateMachine} from "@/composables/useVoiceCallStateMachine";
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
+const route = useRoute();
 const {selectedServer, channels} = defineProps<{
     selectedServer?: Server,
     channels?: Channel[]
@@ -75,9 +76,13 @@ const onChannelDrop = (e: DragEvent, targetChannel: Channel, typeList: Channel[]
     onChannelDragEnd();
 
     if (selectedServer) {
-        router.post(`/api/channel/${selectedServer.route_key}/reorder`, {
-            channel_ids: allChannelIds,
-        }, { preserveScroll: true });
+        try {
+            allChannelIds.forEach(async (id, idx) => {
+                await pb.collection('channels').update(id, { position: idx });
+            });
+        } catch (err: unknown) {
+            console.error('Error reordering channels:', err);
+        }
     }
 };
 
@@ -87,9 +92,11 @@ const pinnedExpanded = ref<'text' | 'voice' | 'whiteboard' | null>(null);
 const displayMode = computed(() => pinnedExpanded.value || activeExpanded.value);
 const isWhiteboardEnabled = computed(() => selectedServer?.enable_whiteboard !== false);
 
-const textChannels = computed(() => channels?.filter(c => c.type === ChannelType.Text) || []);
-const voiceChannels = computed(() => channels?.filter(c => c.type === ChannelType.Voice) || []);
-const whiteboardChannels = computed(() => channels?.filter(c => c.type === ChannelType.Whiteboard) || []);
+const textChannels = computed(() => channels?.filter((c: { type: string; }) => c.type === ChannelType.Text) || []);
+const voiceChannels = computed(() => channels?.filter((c: { type: string; }) => c.type === ChannelType.Voice) || []);
+const whiteboardChannels = computed(() => channels?.filter((c: {
+    type: string;
+}) => c.type === ChannelType.Whiteboard) || []);
 
 const isEditMode = ref(false);
 
@@ -97,7 +104,7 @@ const isChannelModalOpen = ref(false);
 const isEditing = ref(false);
 const editCurrent = ref<() => void>();
 
-const form = useForm({
+const form = reactive({
     type: ChannelType.Text as string,
     name: ''
 });
@@ -118,44 +125,52 @@ const openModal = (type: string, channel?: Channel) => {
 const loading = ref(false);
 
 const createChannel = async () => {
-    if (loading.value) return;
+    if (loading.value || !selectedServer?.id) return;
     loading.value = true;
-    form.post(create.url(selectedServer!.route_key), {
-        onSuccess: () => {
-            isChannelModalOpen.value = false;
-            router.reload();
-            form.reset();
-        },
-        onError: (errors) => {
-            console.error('Error creating channel:', errors);
-        },
-        onFinish: () => {
-            loading.value = false;
-        }
-    });
+    try {
+        await pb.collection('channels').create({
+            server: selectedServer.id,
+            name: form.name,
+            slug: form.name.toLowerCase().replace(/\s+/g, '-'),
+            type: form.type,
+            position: channels?.length || 0,
+        });
+        isChannelModalOpen.value = false;
+        form.name = '';
+    } catch (err: unknown) {
+        console.error('Error creating channel:', err);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const deleteChannel = async (channel: Channel) => {
-    router.delete(deleteMethod.url({server: selectedServer!.route_key, channel: channel.route_key}));
+    try {
+        await pb.collection('channels').delete(channel.id);
+    } catch (err: unknown) {
+        console.error('Error deleting channel:', err);
+    }
 };
 
 const editChannel = async (channelKey: string) => {
-    if (loading.value) return;
+    if (loading.value || !selectedServer?.id) return;
     loading.value = true;
 
-    form.patch(edit.url({server: selectedServer!.route_key, channel: channelKey}), {
-        onSuccess: () => {
-            isChannelModalOpen.value = false;
-            router.reload();
-            form.reset();
-        },
-        onError: (errors) => {
-            console.error('Error editing channel:', errors);
-        },
-        onFinish: () => {
-            loading.value = false;
+    try {
+        const channelRecord = channels?.find(c => c.route_key === channelKey || c.id === channelKey);
+        if (channelRecord) {
+            await pb.collection('channels').update(channelRecord.id, {
+                name: form.name,
+                slug: form.name.toLowerCase().replace(/\s+/g, '-'),
+            });
         }
-    });
+        isChannelModalOpen.value = false;
+        form.name = '';
+    } catch (err: unknown) {
+        console.error('Error editing channel:', err);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const togglePin = (type: 'text' | 'voice' | 'whiteboard') => {
@@ -194,24 +209,24 @@ useChannelEvents(selectedServer?.id, ['channels']);
                     </button>
                     <div
                         v-for="channel in textChannels" :key="channel.id"
-                        class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
                         :class="[
                             hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id ? 'ring-2 ring-primary ring-offset-1 rounded-lg bg-primary/15' : ''
                         ]"
                         :draggable="isEditMode"
-                        @dragstart="onChannelDragStart($event, channel)"
-                        @dragenter.prevent="onChannelDragEnter(channel)"
-                        @dragleave="onChannelDragLeave(channel)"
-                        @dragover.prevent
+                        class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
                         @dragend="onChannelDragEnd"
+                        @dragleave="onChannelDragLeave(channel)"
+                        @dragstart="onChannelDragStart($event, channel)"
                         @drop="onChannelDrop($event, channel, textChannels)"
+                        @dragenter.prevent="onChannelDragEnter(channel)"
+                        @dragover.prevent
                     >
                         <div
                             v-if="isEditMode"
                             class="indicator-item indicator-bottom indicator-center cursor-grab active:cursor-grabbing text-primary bg-base-300 rounded p-0.5"
                             title="Drag to reorder"
                         >
-                            <MdDragIndicator class="size-3" />
+                            <MdDragIndicator class="size-3"/>
                         </div>
                         <div
                             v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
@@ -234,14 +249,14 @@ useChannelEvents(selectedServer?.id, ['channels']);
                                 <MdOutlineModeEdit/>
                             </button>
                         </div>
-                        <Link
-                            :href="textChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
+                        <router-link
+                            :to="textChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
                             <button
-                                :class="{'btn-primary': $page.url.includes(`/text/${channel.route_key}`)}"
+                                :class="{'btn-primary': route.path.includes(`/text/${channel.route_key}`)}"
                                 class="btn btn-outline btn-sm">
                                 # {{ channel.name }}
                             </button>
-                        </Link>
+                        </router-link>
                     </div>
                 </div>
             </div>
@@ -294,24 +309,24 @@ useChannelEvents(selectedServer?.id, ['channels']);
                     <template v-if="displayMode === 'voice'">
                         <div
                             v-for="channel in voiceChannels" :key="channel.id"
-                            class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
                             :class="[
                                 hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id ? 'ring-2 ring-primary ring-offset-1 rounded-lg bg-primary/15' : ''
                             ]"
                             :draggable="isEditMode"
-                            @dragstart="onChannelDragStart($event, channel)"
-                            @dragenter.prevent="onChannelDragEnter(channel)"
-                            @dragleave="onChannelDragLeave(channel)"
-                            @dragover.prevent
+                            class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
                             @dragend="onChannelDragEnd"
+                            @dragleave="onChannelDragLeave(channel)"
+                            @dragstart="onChannelDragStart($event, channel)"
                             @drop="onChannelDrop($event, channel, voiceChannels)"
+                            @dragenter.prevent="onChannelDragEnter(channel)"
+                            @dragover.prevent
                         >
                             <div
                                 v-if="isEditMode"
                                 class="indicator-item indicator-bottom indicator-center cursor-grab active:cursor-grabbing text-secondary bg-base-300 rounded p-0.5"
                                 title="Drag to reorder"
                             >
-                                <MdDragIndicator class="size-3" />
+                                <MdDragIndicator class="size-3"/>
                             </div>
                             <div
                                 v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
@@ -353,24 +368,24 @@ useChannelEvents(selectedServer?.id, ['channels']);
                     <template v-if="displayMode === 'whiteboard' && isWhiteboardEnabled">
                         <div
                             v-for="channel in whiteboardChannels" :key="channel.id"
-                            class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
                             :class="[
                                 hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id ? 'ring-2 ring-primary ring-offset-1 rounded-lg bg-primary/15' : ''
                             ]"
                             :draggable="isEditMode"
-                            @dragstart="onChannelDragStart($event, channel)"
-                            @dragenter.prevent="onChannelDragEnter(channel)"
-                            @dragleave="onChannelDragLeave(channel)"
-                            @dragover.prevent
+                            class="indicator relative group whitespace-nowrap shrink-0 transition-all duration-150"
                             @dragend="onChannelDragEnd"
+                            @dragleave="onChannelDragLeave(channel)"
+                            @dragstart="onChannelDragStart($event, channel)"
                             @drop="onChannelDrop($event, channel, whiteboardChannels)"
+                            @dragenter.prevent="onChannelDragEnter(channel)"
+                            @dragover.prevent
                         >
                             <div
                                 v-if="isEditMode"
                                 class="indicator-item indicator-bottom indicator-center cursor-grab active:cursor-grabbing text-accent bg-base-300 rounded p-0.5"
                                 title="Drag to reorder"
                             >
-                                <MdDragIndicator class="size-3" />
+                                <MdDragIndicator class="size-3"/>
                             </div>
                             <div
                                 v-if="isEditMode && perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_DELETE_CHANNEL])"
@@ -393,14 +408,14 @@ useChannelEvents(selectedServer?.id, ['channels']);
                                     <MdOutlineModeEdit/>
                                 </button>
                             </div>
-                            <Link
-                                :href="whiteboardChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
+                            <router-link
+                                :to="whiteboardChannelRoute.url({server: selectedServer.route_key, channel: channel.route_key})">
                                 <button
-                                    :class="{'btn-accent': $page.url.includes(`/whiteboard/${channel.route_key}`)}"
+                                    :class="{'btn-accent': route.path.includes(`/whiteboard/${channel.route_key}`)}"
                                     class="btn btn-outline btn-sm">
                                     🎨 {{ channel.name }}
                                 </button>
-                            </Link>
+                            </router-link>
                         </div>
                         <button
                             v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"
@@ -450,7 +465,8 @@ useChannelEvents(selectedServer?.id, ['channels']);
                                 }} Channel Name
                             </legend>
                             <input
-                                v-model="form.name" autocomplete="off" class="input input-bordered w-full" data-bwignore="true" placeholder="Enter channel name"
+                                v-model="form.name" autocomplete="off" class="input input-bordered w-full"
+                                data-bwignore="true" placeholder="Enter channel name"
                                 type="text"/>
                             <ErrorAlert v-if="form.errors.name" :message="form.errors.name" class="mt-2"/>
                         </fieldset>

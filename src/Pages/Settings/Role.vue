@@ -2,8 +2,14 @@
 import {bigIntToPerms, defaultIcon, fetchJson, resolveUrl, usePerms} from '@/bootstrap';
 import {server} from '@/routes/home';
 import {create, deleteMethod, edit, index} from '@/routes/roles';
+import pb from '@/pocketbase';
 import {computed, ref} from 'vue';
-import {Link} from '@inertiajs/vue3';
+
+const authUser = computed(() => pb.authStore.model ? {
+    id: pb.authStore.model.id,
+    nickname: pb.authStore.model.name || pb.authStore.model.email || 'User',
+    icon: pb.authStore.model.avatar || null,
+} : null);
 import {PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
@@ -297,9 +303,9 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
         <!-- Sidebar for Navigation -->
         <div class="w-80 bg-base-200 border-r border-base-300 flex flex-col h-full shrink-0">
             <div class="p-4 border-b border-base-300">
-                <Link :href="server.url(selectedServer?.route_key)" class="btn btn-neutral w-full mb-4">
+                <router-link :to="server.url(selectedServer?.route_key)" class="btn btn-neutral w-full mb-4">
                     ← Back to Server
-                </Link>
+                </router-link>
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-base-content">Roles</h2>
                     <button
@@ -427,17 +433,17 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                                     <span class="label-text font-medium">Preview</span>
                                     <div
                                         class="mt-1 p-4 bg-base-100 rounded-lg border border-base-300 flex items-center gap-3">
-                                        <div :class="{ placeholder: !$page.props.user?.icon }" class="avatar">
+                                        <div :class="{ placeholder: !authUser?.icon }" class="avatar">
                                             <div class="w-8 h-8 rounded-full bg-base-300">
                                                 <img
-                                                    v-if="$page.props.user?.icon"
-                                                    :alt="$page.props.user?.nickname || 'User'"
-                                                    :src="resolveUrl($page.props.user.icon)"/>
+                                                    v-if="authUser?.icon"
+                                                    :alt="authUser?.nickname || 'User'"
+                                                    :src="resolveUrl(authUser.icon)"/>
                                                 <img v-else :src="defaultIcon" alt="User"/>
                                             </div>
                                         </div>
                                         <span :style="{ color: newRole.color }" class="text-sm font-bold">
-                                            {{ $page.props.user?.nickname || 'SampleUser' }}
+                                            {{ authUser?.nickname || 'SampleUser' }}
                                         </span>
                                     </div>
                                 </div>
@@ -561,16 +567,16 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                     <div class="mt-3">
                         <span class="label-text font-medium">Preview</span>
                         <div class="mt-1 p-4 bg-base-100 rounded-lg border border-base-300 flex items-center gap-3">
-                            <div :class="{ placeholder: !$page.props.user?.icon }" class="avatar">
+                            <div :class="{ placeholder: !authUser?.icon }" class="avatar">
                                 <div class="w-8 h-8 rounded-full bg-base-300">
                                     <img
-                                        v-if="$page.props.user?.icon" :alt="$page.props.user?.nickname || 'User'"
-                                        :src="resolveUrl($page.props.user.icon)"/>
+                                        v-if="authUser?.icon" :alt="authUser?.nickname || 'User'"
+                                        :src="resolveUrl(authUser.icon)"/>
                                     <img v-else :src="defaultIcon" alt="User"/>
                                 </div>
                             </div>
                             <span :style="{ color: newRoleForm.color }" class="text-sm font-bold">
-                                {{ $page.props.user?.nickname || 'SampleUser' }}
+                                {{ authUser?.nickname || 'SampleUser' }}
                             </span>
                         </div>
                     </div>

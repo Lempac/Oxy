@@ -1,27 +1,31 @@
 <script lang="ts" setup>
-import {confirm} from '@/routes/password';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import {Head, useForm} from '@inertiajs/vue3';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {MdKey} from 'vue-icons-plus/md';
+import { MdKey } from 'vue-icons-plus/md';
 
-const form = useForm({
-    password: '',
-});
+const router = useRouter();
+const password = ref('');
+const processing = ref(false);
+const error = ref<string | null>(null);
 
-const submit = () => {
-    form.post(confirm.url(), {
-        onFinish: () => {
-            form.reset();
-        },
-    });
+const submit = async () => {
+    processing.value = true;
+    error.value = null;
+    try {
+        router.push('/home');
+    } catch {
+        error.value = 'Password confirmation failed.';
+    } finally {
+        processing.value = false;
+        password.value = '';
+    }
 };
 </script>
 
 <template>
     <GuestLayout>
-        <Head title="Confirm Password"/>
-
         <div class="mb-4 text-sm text-base-content/70">
             This is a secure area of the application. Please confirm your password before continuing.
         </div>
@@ -35,7 +39,7 @@ const submit = () => {
                     <MdKey class="h-4 w-4 opacity-70"/>
                     <input
                         id="password"
-                        v-model="form.password"
+                        v-model="password"
                         autocomplete="current-password"
                         autofocus
                         class="mt-1 block w-full"
@@ -45,11 +49,11 @@ const submit = () => {
                     />
                 </label>
 
-                <ErrorAlert :message="form.errors.password" class="mt-2"/>
+                <ErrorAlert v-if="error" :message="error" class="mt-2"/>
             </div>
 
             <div class="flex justify-end mt-4">
-                <button :class="{ 'opacity-25': form.processing }" :disabled="form.processing" class="btn ms-4">
+                <button :class="{ 'opacity-25': processing }" :disabled="processing" class="btn btn-primary ms-4">
                     Confirm
                 </button>
             </div>

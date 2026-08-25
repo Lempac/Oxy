@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { home, login, manual, register } from '@/routes';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { onMounted, ref } from 'vue';
+import { home, manual } from '@/routes';
+import { useRouter } from 'vue-router';
+import pb from '@/pocketbase';
+import { onMounted, reactive, ref } from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import { MdMessage, MdCall, MdScreenShare } from 'vue-icons-plus/md';
 import { FaBook } from 'vue-icons-plus/fa';
@@ -10,6 +11,7 @@ import ImageEditorModal from "@/Components/ImageEditorModal.vue";
 
 const loginModel = ref<HTMLDialogElement>();
 const registerModel = ref<HTMLDialogElement>();
+const router = useRouter();
 
 const isEditorOpen = ref(false);
 const editorImageSource = ref<File | null>(null);
@@ -23,27 +25,32 @@ const onDropRegisterIcon = (e: DragEvent) => {
     }
 };
 
-const loginForm = useForm({
+const loginForm = reactive({
     nickname: '',
     password: '',
     remember: false,
+    processing: false,
+    error: null as string | null,
+    errors: {} as Record<string, string>,
+    clearErrors(_field?: string) { this.error = null; this.errors = {}; },
+    setError(field: string, msg: string) { this.error = msg; this.errors[field] = msg; }
 });
 
 const iconPreview = ref<string | null>(null);
 const serverInfo = ref<{ name: string; description: string; icon: string; members_count: number; online_count: number } | null>(null);
 
-const registerForm = useForm<{
-    server_code: string;
-    nickname: string;
-    password: string;
-    password_confirmation: string;
-    icon: File | null;
-}>({
+const registerForm = reactive({
     server_code: '',
     nickname: '',
+    email: '',
     password: '',
     password_confirmation: '',
-    icon: null,
+    icon: null as File | null,
+    processing: false,
+    error: null as string | null,
+    errors: {} as Record<string, string>,
+    clearErrors(_field?: string) { this.error = null; this.errors = {}; },
+    setError(field: string, msg: string) { this.error = msg; this.errors[field] = msg; }
 });
 
 const checkServerCode = async () => {
@@ -79,22 +86,57 @@ const handleEditorSave = (editedFile: File) => {
     iconPreview.value = URL.createObjectURL(editedFile);
 };
 
-const submitLogin = () => {
-    loginForm.post(login.url(), {
-        onFinish: () => {
-            loginForm.reset('password');
-        },
-    });
+const submitLogin = async () => {
+    loginForm.error = null;
+    try {
+        await pb.collection('users').authWithPassword(loginForm.nickname, loginForm.password);
+        loginModel.value?.close();
+        router.push('/home');
+    } catch (err: unknown) {
+        loginForm.error = (err as { message?: string })?.message || 'Invalid credentials.';
+    } finally {
+        loginForm.password = '';
+    }
 };
 
-const submitRegister = () => {
-    registerForm.post(register.url(), {
-        onError: (errors) => {
-            if (errors.password || errors.password_confirmation) {
-                registerForm.reset('password', 'password_confirmation');
+const submitRegister = async () => {
+    if (registerForm.password !== registerForm.password_confirmation) {
+        registerForm.error = 'Passwords do not match.';
+        return;
+    }
+    registerForm.error = null;
+    try {
+        const formData = new FormData();
+        formData.append('name', registerForm.nickname);
+        formData.append('email', registerForm.email || `${registerForm.nickname.toLowerCase()}@oxy.local`);
+        formData.append('password', registerForm.password);
+        formData.append('passwordConfirm', registerForm.password_confirmation);
+        if (registerForm.icon) {
+            formData.append('avatar', registerForm.icon);
+        }
+
+        await pb.collection('users').create(formData);
+        await pb.collection('users').authWithPassword(registerForm.email || `${registerForm.nickname.toLowerCase()}@oxy.local`, registerForm.password);
+
+        if (registerForm.server_code) {
+            try {
+                await pb.send('/api/invites/join', {
+                    method: 'POST',
+                    body: JSON.stringify({ code: registerForm.server_code })
+                });
+            } catch {
+                // Ignore join invite error on registration
             }
         }
-    });
+
+        registerModel.value?.close();
+        router.push('/home');
+    } catch (err: unknown) {
+        registerForm.error = (err as { message?: string })?.message || 'Registration failed.';
+    } finally {
+        registerForm.password = '';
+        registerForm.password_confirmation = '';
+    }
 };
 
 onMounted(() => {
@@ -112,7 +154,6 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Welcome"/>
     <body class="bg-base-100 text-base-content min-h-screen">
     <div class="flex flex-col min-h-screen p-6">
         <header>
@@ -122,9 +163,9 @@ onMounted(() => {
                 </div>
                 <ApplicationLogo class="navbar-center mb-1.5"/>
                 <div class="navbar-end mr-5">
-                    <Link v-if="$page.props.user" :href="home.url()" class="btn btn-lg btn-primary">
+                    <router-link v-if="$page.props.user" :to="home.url()" class="btn btn-lg btn-primary">
                         Home
-                    </Link>
+                    </router-link>
                     <template v-else>
                         <button
                             class="btn btn-lg btn-primary"
@@ -164,9 +205,9 @@ onMounted(() => {
                     <p class="text-base-content text-xl">
                         Join now!!!
                     </p>
-                    <Link v-if="$page.props.user" :href="home.url()" class="btn btn-lg btn-primary">
+                    <router-link v-if="$page.props.user" :to="home.url()" class="btn btn-lg btn-primary">
                         Home
-                    </Link>
+                    </router-link>
                     <template v-else>
                         <button
                             class="btn btn-lg btn-primary"
@@ -182,13 +223,13 @@ onMounted(() => {
             <div class="rounded-full p-4">
                 © {{ new Date().getFullYear() }} Oxy
             </div>
-            <Link
-                :href="manual.url()" class="left-2 mt-3 absolute btn btn-ghost tooltip tooltip-right"
+            <router-link
+                :to="manual.url()" class="left-2 mt-3 absolute btn btn-ghost tooltip tooltip-right"
                 data-tip="FAQ">
                 <button class="flex items-center justify-center h-10 w-5">
                     <FaBook class="w-8 h-8" />
                 </button>
-            </Link>
+            </router-link>
         </footer>
     </div>
     <dialog ref="loginModel" class="modal">

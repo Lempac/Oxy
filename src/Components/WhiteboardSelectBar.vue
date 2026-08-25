@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import {usePerms} from '@/bootstrap';
-import {create, deleteMethod, edit} from '@/routes/channel';
 import {channel as channelRoute} from '@/routes/home/whiteboard';
-import {Link, router, useForm} from "@inertiajs/vue3";
-import {ref} from "vue";
+import pb from '@/pocketbase';
+import {reactive, ref} from "vue";
 import {Channel, ChannelType, PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
@@ -13,7 +12,7 @@ import {useChannelEvents} from "@/composables/useChannelEvents";
 
 const loading = ref(false);
 const perms = usePerms();
-const {selectedServer} = defineProps<{
+const {selectedServer, channels, selectedChannel} = defineProps<{
     channels?: Channel[],
     selectedServer?: Server,
     selectedChannel?: Channel,
@@ -23,7 +22,7 @@ const channelModal = ref<HTMLDialogElement>();
 const isEditing = ref(false);
 const editCurrent = ref<() => void>();
 
-const form = useForm({
+const form = reactive({
     type: ChannelType.Whiteboard,
     name: ''
 });
@@ -41,44 +40,52 @@ const openModal = (channel?: Channel) => {
 };
 
 const createChannel = async () => {
-    if (loading.value) return;
+    if (loading.value || !selectedServer?.id) return;
     loading.value = true;
-    form.post(create.url(selectedServer!.route_key), {
-        onSuccess: () => {
-            channelModal.value?.close();
-            router.reload();
-            form.reset();
-        },
-        onError: (errors) => {
-            console.error('Error creating channel:', errors);
-        },
-        onFinish: () => {
-            loading.value = false;
-        }
-    });
+    try {
+        await pb.collection('channels').create({
+            server: selectedServer.id,
+            name: form.name,
+            slug: form.name.toLowerCase().replace(/\s+/g, '-'),
+            type: form.type,
+            position: channels?.length || 0,
+        });
+        channelModal.value?.close();
+        form.name = '';
+    } catch (err: unknown) {
+        console.error('Error creating channel:', err);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const deleteChannel = async (channel: Channel) => {
-    router.delete(deleteMethod.url({server: selectedServer!.route_key, channel: channel.route_key}));
+    try {
+        await pb.collection('channels').delete(channel.id);
+    } catch (err: unknown) {
+        console.error('Error deleting channel:', err);
+    }
 };
 
 const editChannel = async (channelKey: string) => {
-    if (loading.value) return;
+    if (loading.value || !selectedServer?.id) return;
     loading.value = true;
 
-    form.patch(edit.url({server: selectedServer!.route_key, channel: channelKey}), {
-        onSuccess: () => {
-            channelModal.value?.close();
-            router.reload();
-            form.reset();
-        },
-        onError: (errors) => {
-            console.error('Error editing channel:', errors);
-        },
-        onFinish: () => {
-            loading.value = false;
+    try {
+        const channelRecord = channels?.find(c => c.route_key === channelKey || c.id === channelKey);
+        if (channelRecord) {
+            await pb.collection('channels').update(channelRecord.id, {
+                name: form.name,
+                slug: form.name.toLowerCase().replace(/\s+/g, '-'),
+            });
         }
-    });
+        channelModal.value?.close();
+        form.name = '';
+    } catch (err: unknown) {
+        console.error('Error editing channel:', err);
+    } finally {
+        loading.value = false;
+    }
 };
 
 useChannelEvents(selectedServer?.id, ['channels', 'selected_channel']);
@@ -111,13 +118,13 @@ useChannelEvents(selectedServer?.id, ['channels', 'selected_channel']);
                 </button>
             </div>
 
-            <Link :href="channelRoute.url({server : selectedServer?.route_key!, channel : channel.route_key})">
+            <router-link :to="channelRoute.url({server : selectedServer?.route_key!, channel : channel.route_key})">
                 <button
                     :class="{'bg-base-300 text-base-content' : selectedChannel?.id === channel.id}"
                     class="btn btn-outline btn-sm">
                     {{ channel.name }}
                 </button>
-            </Link>
+            </router-link>
         </div>
         <button
             v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_CREATE_CHANNEL])"

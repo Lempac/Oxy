@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import {logout} from '@/routes';
 import {text} from '@/routes/home';
-import {edit} from '@/routes/profile';
-import {create, leave} from '@/routes/server';
 import {server as settingsServer} from '@/routes/settings';
-import {Link, router, useForm, usePage} from "@inertiajs/vue3";
+import {useRouter, useRoute} from 'vue-router';
+import pb from '@/pocketbase';
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import {computed, ref} from 'vue';
+import {computed, reactive, ref} from 'vue';
 import {defaultIcon, joinServer, resolveUrl, usePerms} from "@/bootstrap";
 import {PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -20,7 +18,20 @@ import ImageEditorModal from '@/Components/ImageEditorModal.vue';
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
-const isHomePage = computed(() => usePage().component !== 'Profile/Edit');
+const routerInstance = useRouter();
+const authUser = computed(() => pb.authStore.model ? {
+    id: pb.authStore.model.id,
+    nickname: pb.authStore.model.name || pb.authStore.model.email || 'User',
+    icon: pb.authStore.model.avatar || null,
+    status: pb.authStore.model.status || 'online',
+} : null);
+const route = useRoute();
+const isHomePage = computed(() => route.path !== '/profile');
+
+const handleLogout = () => {
+    pb.authStore.clear();
+    routerInstance.push('/login');
+};
 
 const {servers, selectedServer} = defineProps<{
     servers?: Server[];
@@ -69,36 +80,54 @@ const checkServerCode = () => {
     }, 300);
 };
 
-const form = useForm<{ name: string, description: string, icon: File | null }>({
+const form = reactive({
     name: '',
     description: '',
-    icon: null
+    icon: null as File | null,
+    error: null as string | null,
 });
 
 const loading = ref(false);
+
 const createServer = async () => {
-    if (loading.value) return;
+    if (loading.value || !pb.authStore.model?.id) return;
     loading.value = true;
-    form.post(create.url(), {
-        onSuccess: () => {
-            serverModal.value?.close();
-            router.reload({only: ['servers', 'user']});
-            form.reset();
-        },
-        onError: (errors) => {
-            console.error('Error creating server:', errors);
-        },
-        onFinish: () => {
-            loading.value = false;
+    try {
+        const formData = new FormData();
+        formData.append('name', form.name);
+        formData.append('slug', form.name.toLowerCase().replace(/\s+/g, '-'));
+        formData.append('description', form.description);
+        formData.append('owner', pb.authStore.model.id);
+        formData.append('enable_whiteboard', 'true');
+        if (form.icon) {
+            formData.append('icon', form.icon);
         }
-    });
+
+        const serverRecord = await pb.collection('servers').create(formData);
+        await pb.collection('members').create({
+            server: serverRecord.id,
+            user: pb.authStore.model.id,
+        });
+
+        serverModal.value?.close();
+        form.name = '';
+        form.description = '';
+        form.icon = null;
+    } catch (err: unknown) {
+        console.error('Error creating server:', err);
+    } finally {
+        loading.value = false;
+    }
 };
 
-function leaveServer() {
-    if (!selectedServer) return;
-    router.delete(leave.url(selectedServer.route_key), {
-        onSuccess: () => router.visit('/home')
-    });
+async function leaveServer() {
+    if (!selectedServer?.id || !pb.authStore.model?.id) return;
+    try {
+        await pb.send(`/api/server/${selectedServer.id}/leave`, { method: 'POST' });
+        routerInstance.push('/home');
+    } catch (err: unknown) {
+        console.error('Error leaving server:', err);
+    }
 }
 
 const icon = ref<string | null>(null);
@@ -130,16 +159,16 @@ const handleEditorSave = (editedFile: File) => {
     <div class="relative flex items-center justify-between h-16 bg-base-100 px-4 w-full select-none">
         <!-- Left Side: Logo -->
         <div class="flex items-center shrink-0 z-10">
-            <Link href="/">
+            <router-link to="/">
                 <ApplicationLogo class="block h-10 w-auto fill-current ml-1"/>
-            </Link>
+            </router-link>
         </div>
 
         <!-- Center: Server Icons (Absolute Centered so it NEVER shifts when voice pill appears) -->
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[calc(100%-480px)] overflow-x-auto overflow-y-hidden px-2 scrollbar-hide pointer-events-auto z-0">
             <div class="flex items-center gap-3 min-w-max h-full">
                 <div v-for="server in servers" :key="server.id" class="shrink-0">
-                    <Link :href="text.url(server.route_key)">
+                    <router-link :to="text.url(server.route_key)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div
                                 :class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}"
@@ -153,10 +182,10 @@ const handleEditorSave = (editedFile: File) => {
                                 </div>
                             </div>
                         </div>
-                    </Link>
+                    </router-link>
                 </div>
 
-                <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="serverModal?.showModal">
+                <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="serverModal?.showModal()">
                     <GoPlus scale="1.5"/>
                 </button>
             </div>
@@ -191,7 +220,7 @@ const handleEditorSave = (editedFile: File) => {
                         :class="voiceState.isAfk.value ? 'btn-warning' : 'btn-ghost'"
                         class="btn btn-xs btn-square"
                         title="Toggle AFK"
-                        @click="voiceState.toggleAfk($page.props.user?.status)">
+                        @click="voiceState.toggleAfk(authUser?.status)">
                         <TbKeyboardOff v-if="voiceState.isAfk.value" />
                         <TbKeyboard v-else />
                     </button>
@@ -205,21 +234,21 @@ const handleEditorSave = (editedFile: File) => {
             </div>
 
             <!-- Server Settings -->
-            <Link
+            <router-link
                 v-if="selectedServer && perms.hasAny([PermType.CAN_MANAGE_SERVER, PermType.CAN_MANAGE_ROLE, PermType.CAN_MANAGE_MEMBERS])"
-                :href="settingsServer.url(selectedServer?.route_key)"
+                :to="settingsServer.url(selectedServer?.route_key)"
                 class="btn btn-ghost btn-circle tooltip tooltip-left" data-tip="Server settings">
                 <BsGearFill animation="spin-hover" scale="1.2"/>
-            </Link>
+            </router-link>
 
             <!-- User Profile -->
             <div class="dropdown dropdown-end">
                 <div class="flex items-center btn btn-ghost px-2" role="button" tabindex="0">
-                    <div class="mr-2 hidden md:block">{{ $page.props.user?.nickname }}</div>
+                    <div class="mr-2 hidden md:block">{{ authUser?.nickname }}</div>
                     <div class="avatar">
                         <div class="w-10 rounded-full">
                             <img
-                                :src="resolveUrl($page.props.user?.icon) || defaultIcon"
+                                :src="resolveUrl(authUser?.icon) || defaultIcon"
                                 @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
                                 alt="User Avatar"/>
                         </div>
@@ -227,7 +256,7 @@ const handleEditorSave = (editedFile: File) => {
                 </div>
                 <ul class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow" tabindex="0">
                     <li>
-                        <Link :href="edit.url()">Profile</Link>
+                        <router-link to="/profile">Profile</router-link>
                     </li>
                     <li v-if="selectedServer">
                         <ConfirmDialog
@@ -242,7 +271,7 @@ const handleEditorSave = (editedFile: File) => {
                     </li>
                     <div class="divider my-0"></div>
                     <li>
-                        <Link :href="logout.url()" as="button" method="post">Log Out</Link>
+                        <button type="button" @click="handleLogout">Log Out</button>
                     </li>
                 </ul>
             </div>
