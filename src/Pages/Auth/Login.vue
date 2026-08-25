@@ -25,7 +25,7 @@ const handleLogin = async (userEmail?: string, userPass?: string) => {
 };
 
 const quickTestLogin = () => {
-    handleLogin('testuser@oxy.local', 'password123');
+    handleLogin('testuser', 'password123');
 };
 </script>
 
@@ -36,8 +36,8 @@ const quickTestLogin = () => {
             <ErrorAlert v-if="error" :message="error" class="mb-4" />
             <form @submit.prevent="handleLogin()" class="space-y-4">
                 <div>
-                    <label class="label"><span class="label-text">Email or Username</span></label>
-                    <input v-model="identity" type="text" required class="input input-bordered w-full" placeholder="user@example.com" />
+                    <label class="label"><span class="label-text">Username</span></label>
+                    <input v-model="identity" type="text" required class="input input-bordered w-full" placeholder="username" />
                 </div>
                 <div>
                     <label class="label"><span class="label-text">Password</span></label>

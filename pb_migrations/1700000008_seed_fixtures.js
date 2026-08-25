@@ -9,12 +9,10 @@ migrate((app) => {
   // 1. Seed Core Test Users (testuser, moderator, member)
   let testUser;
   try {
-    testUser = app.findFirstRecordByData("_pb_users_auth_", "email", "testuser@oxy.local");
+    testUser = app.findFirstRecordByData("_pb_users_auth_", "username", "testuser");
   } catch {
     testUser = new Record(usersCol, {
       username: "testuser",
-      email: "testuser@oxy.local",
-      emailVisibility: true,
       name: "testuser",
       status: "online"
     });
@@ -24,12 +22,10 @@ migrate((app) => {
 
   let modUser;
   try {
-    modUser = app.findFirstRecordByData("_pb_users_auth_", "email", "moderator@oxy.local");
+    modUser = app.findFirstRecordByData("_pb_users_auth_", "username", "moderator");
   } catch {
     modUser = new Record(usersCol, {
       username: "moderator",
-      email: "moderator@oxy.local",
-      emailVisibility: true,
       name: "moderator",
       status: "online"
     });
@@ -39,12 +35,10 @@ migrate((app) => {
 
   let memberUser;
   try {
-    memberUser = app.findFirstRecordByData("_pb_users_auth_", "email", "member@oxy.local");
+    memberUser = app.findFirstRecordByData("_pb_users_auth_", "username", "member");
   } catch {
     memberUser = new Record(usersCol, {
       username: "member",
-      email: "member@oxy.local",
-      emailVisibility: true,
       name: "member",
       status: "idle"
     });

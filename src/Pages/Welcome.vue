@@ -89,7 +89,7 @@ const handleEditorSave = (editedFile: File) => {
 
 const quickDemoLogin = async () => {
     try {
-        await pb.collection('users').authWithPassword('testuser@oxy.local', 'password123');
+        await pb.collection('users').authWithPassword('testuser', 'password123');
         router.push('/home');
     } catch (err: unknown) {
         console.error('Demo login error:', err);
@@ -116,9 +116,10 @@ const submitRegister = async () => {
     }
     registerForm.error = null;
     try {
+        const cleanUser = registerForm.nickname.trim().toLowerCase().replace(/\s+/g, '_');
         const formData = new FormData();
+        formData.append('username', cleanUser);
         formData.append('name', registerForm.nickname);
-        formData.append('email', registerForm.email || `${registerForm.nickname.toLowerCase()}@oxy.local`);
         formData.append('password', registerForm.password);
         formData.append('passwordConfirm', registerForm.password_confirmation);
         if (registerForm.icon) {
@@ -126,7 +127,7 @@ const submitRegister = async () => {
         }
 
         await pb.collection('users').create(formData);
-        await pb.collection('users').authWithPassword(registerForm.email || `${registerForm.nickname.toLowerCase()}@oxy.local`, registerForm.password);
+        await pb.collection('users').authWithPassword(cleanUser, registerForm.password);
 
         if (registerForm.server_code) {
             try {
