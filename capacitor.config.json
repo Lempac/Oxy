@@ -1,0 +1,13 @@
+{
+  "appId": "dev.oxy.app",
+  "appName": "Oxy",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorCookies": {
+      "enabled": true
+    }
+  }
+}

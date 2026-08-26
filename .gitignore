@@ -1,4 +1,6 @@
 /dist
+/dist-electron
+/electron-dist
 /pb_data
 /.phpunit.cache
 /bootstrap/ssr
