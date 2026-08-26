@@ -1,4 +1,12 @@
 {
+    "name": "oxy",
+    "version": "0.1.0",
+    "description": "Real-time communication and whiteboard app",
+    "homepage": "https://github.com/lempac/Oxy",
+    "author": {
+        "name": "Oxy Team",
+        "email": "dev@oxy.app"
+    },
     "private": true,
     "type": "module",
     "main": "electron-dist/main.cjs",

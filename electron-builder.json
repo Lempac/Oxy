@@ -17,7 +17,8 @@
     "target": ["nsis", "portable"]
   },
   "linux": {
-    "target": ["AppImage", "deb"],
-    "category": "Network"
+    "target": ["AppImage"],
+    "category": "Network",
+    "maintainer": "Oxy Team <dev@oxy.app>"
   }
 }
