@@ -13,7 +13,6 @@ migrate((app) => {
   } catch {
     testUser = new Record(usersCol, {
       username: "testuser",
-      email: "testuser@oxy.local",
       name: "testuser",
       status: "online"
     });
@@ -27,7 +26,6 @@ migrate((app) => {
   } catch {
     modUser = new Record(usersCol, {
       username: "moderator",
-      email: "moderator@oxy.local",
       name: "moderator",
       status: "online"
     });
@@ -41,7 +39,6 @@ migrate((app) => {
   } catch {
     memberUser = new Record(usersCol, {
       username: "member",
-      email: "member@oxy.local",
       name: "member",
       status: "idle"
     });

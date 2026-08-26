@@ -24,7 +24,7 @@ routerAdd("POST", "/api/livekit/token", (e) => {
   const apiSecret = process.env.LIVEKIT_API_SECRET || "secretsecretsecretsecretsecretsecret";
   const roomName = `room-${serverId}-${channelId}`;
   const identity = userId;
-  const username = info.authRecord.getString("name") || info.authRecord.getString("email") || userId;
+  const username = info.authRecord.getString("name") || info.authRecord.getString("username") || userId;
 
   // Simple LiveKit JWT claims
   const now = Math.floor(Date.now() / 1000);

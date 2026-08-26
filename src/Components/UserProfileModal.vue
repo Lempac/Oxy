@@ -31,7 +31,7 @@ const showKickConfirm = ref(false);
 
 const currentUser = computed(() => (pb.authStore.model ? {
     id: pb.authStore.model.id,
-    nickname: pb.authStore.model.name || pb.authStore.model.email || 'User',
+    nickname: pb.authStore.model.name || pb.authStore.model.username || 'User',
     icon: pb.authStore.model.avatar || null,
     status: pb.authStore.model.status || 'online',
     light_theme: 'oxy',

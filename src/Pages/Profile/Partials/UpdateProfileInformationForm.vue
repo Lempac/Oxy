@@ -14,7 +14,7 @@ defineProps<{
 
 const user = pb.authStore.model;
 
-const nickname = ref(user?.name || user?.email || '');
+const nickname = ref(user?.name || user?.username || '');
 const aboutMe = ref(user?.about_me || '');
 const lightTheme = ref<ThemeType>((user?.light_theme as ThemeType) || Themes.Oxy);
 const darkTheme = ref<ThemeType>((user?.dark_theme as ThemeType) || Themes.Dark);

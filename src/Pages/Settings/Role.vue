@@ -7,7 +7,7 @@ import {computed, ref} from 'vue';
 
 const authUser = computed(() => pb.authStore.model ? {
     id: pb.authStore.model.id,
-    nickname: pb.authStore.model.name || pb.authStore.model.email || 'User',
+    nickname: pb.authStore.model.name || pb.authStore.model.username || 'User',
     icon: pb.authStore.model.avatar || null,
 } : null);
 import {PermType, Role, Server} from "@/types";

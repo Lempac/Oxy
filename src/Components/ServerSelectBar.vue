@@ -21,7 +21,7 @@ const voiceState = useVoiceCallStateMachine();
 const routerInstance = useRouter();
 const authUser = computed(() => pb.authStore.model ? {
     id: pb.authStore.model.id,
-    nickname: pb.authStore.model.name || pb.authStore.model.email || 'User',
+    nickname: pb.authStore.model.name || pb.authStore.model.username || 'User',
     icon: pb.authStore.model.avatar || null,
     status: pb.authStore.model.status || 'online',
 } : null);
