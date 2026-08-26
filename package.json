@@ -1,13 +1,13 @@
 {
     "private": true,
     "type": "module",
-    "main": "electron-dist/main.js",
+    "main": "electron-dist/main.cjs",
     "packageManager": "pnpm@11.18.0",
     "scripts": {
         "dev": "vite",
         "build:hooks": "esbuild src/hooks/invites.ts src/hooks/livekit_token.ts src/hooks/profile.ts src/hooks/servers.ts src/hooks/whiteboards.ts --outdir=pb_hooks --out-extension:.js=.pb.js",
         "watch:hooks": "esbuild src/hooks/invites.ts src/hooks/livekit_token.ts src/hooks/profile.ts src/hooks/servers.ts src/hooks/whiteboards.ts --outdir=pb_hooks --out-extension:.js=.pb.js --watch=forever",
-        "build:electron": "esbuild electron/main.ts electron/preload.ts --outdir=electron-dist --format=cjs --platform=node",
+        "build:electron": "esbuild electron/main.ts electron/preload.ts --outdir=electron-dist --out-extension:.js=.cjs --format=cjs --platform=node",
         "electron:dev": "pnpm build && pnpm build:electron && electron .",
         "electron:build": "pnpm build && pnpm build:electron && electron-builder",
         "cap:sync": "pnpm build && npx cap sync",

@@ -1,6 +1,13 @@
 import { app, BrowserWindow, ipcMain, systemPreferences, desktopCapturer } from 'electron';
 import path from 'path';
 
+// Disable hardware acceleration to prevent SIGILL crashes on non-standard GPU/CPU drivers on Linux/NixOS
+if (process.platform === 'linux') {
+  app.disableHardwareAcceleration();
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-gpu-sandbox');
+}
+
 let mainWindow: BrowserWindow | null = null;
 
 function createWindow() {
@@ -11,7 +18,7 @@ function createWindow() {
     minHeight: 600,
     title: 'Oxy',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: true,
