@@ -1,27 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import pb from '@/pocketbase';
 
-import Welcome from '@/Pages/Welcome.vue';
-import Home from '@/Pages/Home.vue';
-import Login from '@/Pages/Auth/Login.vue';
-import Register from '@/Pages/Auth/Register.vue';
-import Manual from '@/Pages/Manual.vue';
-import ProfileEdit from '@/Pages/Profile/Edit.vue';
-import ServerSettings from '@/Pages/Settings/Server.vue';
-import MembersSettings from '@/Pages/Settings/Members.vue';
-import RoleSettings from '@/Pages/Settings/Role.vue';
-
 const routes = [
-    { path: '/', name: 'welcome', component: Welcome },
-    { path: '/login', name: 'login', component: Login },
-    { path: '/register', name: 'register', component: Register },
-    { path: '/home', name: 'home', component: Home, meta: { requiresAuth: true } },
-    { path: '/channels/:serverId/:channelId', name: 'channel', component: Home, meta: { requiresAuth: true } },
-    { path: '/manual', name: 'manual', component: Manual },
-    { path: '/profile', name: 'profile', component: ProfileEdit, meta: { requiresAuth: true } },
-    { path: '/settings/server/:serverId', name: 'settings.server', component: ServerSettings, meta: { requiresAuth: true } },
-    { path: '/settings/members/:serverId', name: 'settings.members', component: MembersSettings, meta: { requiresAuth: true } },
-    { path: '/settings/roles/:serverId', name: 'settings.roles', component: RoleSettings, meta: { requiresAuth: true } },
+    { path: '/', name: 'welcome', component: () => import('@/Pages/Welcome.vue') },
+    { path: '/login', name: 'login', component: () => import('@/Pages/Auth/Login.vue') },
+    { path: '/register', name: 'register', component: () => import('@/Pages/Auth/Register.vue') },
+    { path: '/home', name: 'home', component: () => import('@/Pages/Home.vue'), meta: { requiresAuth: true } },
+    { path: '/channels/:serverId/:channelId', name: 'channel', component: () => import('@/Pages/Home.vue'), meta: { requiresAuth: true } },
+    { path: '/manual', name: 'manual', component: () => import('@/Pages/Manual.vue') },
+    { path: '/profile', name: 'profile', component: () => import('@/Pages/Profile/Edit.vue'), meta: { requiresAuth: true } },
+    { path: '/settings/server/:serverId', name: 'settings.server', component: () => import('@/Pages/Settings/Server.vue'), meta: { requiresAuth: true } },
+    { path: '/settings/members/:serverId', name: 'settings.members', component: () => import('@/Pages/Settings/Members.vue'), meta: { requiresAuth: true } },
+    { path: '/settings/roles/:serverId', name: 'settings.roles', component: () => import('@/Pages/Settings/Role.vue'), meta: { requiresAuth: true } },
 ];
 
 export const router = createRouter({
