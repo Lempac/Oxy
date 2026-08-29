@@ -4,7 +4,7 @@ import {server as settingsServer} from '@/routes/settings';
 import {useRouter, useRoute} from 'vue-router';
 import pb from '@/pocketbase';
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
-import {computed, reactive, ref} from 'vue';
+import {computed, onMounted, reactive, ref} from 'vue';
 import {defaultIcon, joinServer, resolveUrl, usePerms} from "@/bootstrap";
 import {PermType, Server} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
@@ -33,10 +33,64 @@ const handleLogout = () => {
     routerInstance.push('/login');
 };
 
-const {servers, selectedServer} = defineProps<{
+const props = defineProps<{
     servers?: Server[];
     selectedServer?: Server;
 }>();
+
+const localServers = ref<Server[]>([]);
+
+const fetchUserServers = async () => {
+    if (!pb.authStore.model?.id) return;
+    try {
+        const memberRecords = await pb.collection('members').getFullList({
+            filter: `user = "${pb.authStore.model.id}"`,
+            expand: 'server'
+        });
+        const list: Server[] = [];
+        for (const m of memberRecords) {
+            if (m.expand?.server) {
+                const s = m.expand.server;
+                list.push({
+                    id: s.id,
+                    name: s.name,
+                    slug: s.slug,
+                    description: s.description,
+                    owner: s.owner,
+                    enable_whiteboard: s.enable_whiteboard,
+                    icon: s.icon,
+                    route_key: s.id
+                } as unknown as Server);
+            }
+        }
+        const owned = await pb.collection('servers').getFullList({
+            filter: `owner = "${pb.authStore.model.id}"`
+        });
+        for (const s of owned) {
+            if (!list.some(existing => existing.id === s.id)) {
+                list.push({
+                    id: s.id,
+                    name: s.name,
+                    slug: s.slug,
+                    description: s.description,
+                    owner: s.owner,
+                    enable_whiteboard: s.enable_whiteboard,
+                    icon: s.icon,
+                    route_key: s.id
+                } as unknown as Server);
+            }
+        }
+        localServers.value = list;
+    } catch (err) {
+        console.error('Failed to fetch user servers:', err);
+    }
+};
+
+onMounted(() => {
+    fetchUserServers();
+});
+
+const displayedServers = computed(() => (props.servers && props.servers.length > 0) ? props.servers : localServers.value);
 
 
 const serverModal = ref<HTMLDialogElement>();
@@ -122,9 +176,9 @@ const createServer = async () => {
 };
 
 async function leaveServer() {
-    if (!selectedServer?.id || !pb.authStore.model?.id) return;
+    if (!props.selectedServer?.id || !pb.authStore.model?.id) return;
     try {
-        await pb.send(`/api/server/${selectedServer.id}/leave`, { method: 'POST' });
+        await pb.send(`/api/server/${props.selectedServer.id}/leave`, { method: 'POST' });
         routerInstance.push('/home');
     } catch (err: unknown) {
         console.error('Error leaving server:', err);
@@ -168,7 +222,7 @@ const handleEditorSave = (editedFile: File) => {
         <!-- Center: Server Icons (Absolute Centered so it NEVER shifts when voice pill appears) -->
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[calc(100%-480px)] overflow-x-auto overflow-y-hidden px-2 scrollbar-hide pointer-events-auto z-0">
             <div class="flex items-center gap-3 min-w-max h-full">
-                <div v-for="server in servers" :key="server.id" class="shrink-0">
+                <div v-for="server in displayedServers" :key="server.id" class="shrink-0">
                     <router-link :to="text.url(server.route_key)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div

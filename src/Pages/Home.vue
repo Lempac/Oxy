@@ -6,6 +6,10 @@ import {computed, onMounted, ref} from "vue";
 import {Server, Channel} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {usePaneDrag} from "@/composables/usePaneDrag";
+import pb from '@/pocketbase';
+import {useRouter} from 'vue-router';
+
+const router = useRouter();
 
 const {
     draggedPaneId,
@@ -54,13 +58,40 @@ const checkServerCode = () => {
     }, 300);
 };
 
-onMounted(() => {
+onMounted(async () => {
     if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const invite = params.get('invite') || params.get('code');
         if (invite) {
             joinCodeInput.value = invite;
             checkServerCode();
+        }
+    }
+    if (!props.selectedServer && pb.authStore.model?.id) {
+        try {
+            const members = await pb.collection('members').getFullList({
+                filter: `user = "${pb.authStore.model.id}"`,
+                expand: 'server'
+            });
+            let targetServerId = members.find(m => m.expand?.server)?.expand?.server?.id;
+            if (!targetServerId) {
+                const owned = await pb.collection('servers').getFullList({
+                    filter: `owner = "${pb.authStore.model.id}"`
+                });
+                targetServerId = owned[0]?.id;
+            }
+            if (targetServerId) {
+                const channels = await pb.collection('channels').getFullList({
+                    filter: `server = "${targetServerId}"`,
+                    sort: 'position'
+                });
+                const firstChannel = channels[0];
+                if (firstChannel) {
+                    router.push(`/channels/${targetServerId}/${firstChannel.id}`);
+                }
+            }
+        } catch (err) {
+            console.error('Error auto-selecting server:', err);
         }
     }
 });

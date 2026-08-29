@@ -65,7 +65,7 @@ migrate((app) => {
   const userIds = [testUser.id, modUser.id, memberUser.id];
   for (const uid of userIds) {
     try {
-      app.findFirstRecordByData("members", "server", oxyHq.id);
+      app.findFirstRecordByFilter("members", `server = "${oxyHq.id}" && user = "${uid}"`);
     } catch {
       const memberRec = new Record(membersCol, {
         server: oxyHq.id,
