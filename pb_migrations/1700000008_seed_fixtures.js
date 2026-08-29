@@ -1,6 +1,7 @@
 migrate((app) => {
   const usersCol = app.findCollectionByNameOrId("_pb_users_auth_");
   const serversCol = app.findCollectionByNameOrId("servers");
+  const rolesCol = app.findCollectionByNameOrId("roles");
   const channelsCol = app.findCollectionByNameOrId("channels");
   const membersCol = app.findCollectionByNameOrId("members");
   const messagesCol = app.findCollectionByNameOrId("messages");
@@ -58,15 +59,61 @@ migrate((app) => {
     app.save(oxyHq);
   }
 
+  // 3. Seed Roles for Oxy HQ
+  let adminRole, modRole, memberRole;
+  try {
+    adminRole = app.findFirstRecordByFilter("roles", `server = "${oxyHq.id}" && name = "Admin"`);
+  } catch {
+    adminRole = new Record(rolesCol, {
+      server: oxyHq.id,
+      name: "Admin",
+      color: "#ef4444",
+      importance: 1,
+      perms: ["ADMINISTRATOR"]
+    });
+    app.save(adminRole);
+  }
+
+  try {
+    modRole = app.findFirstRecordByFilter("roles", `server = "${oxyHq.id}" && name = "Moderator"`);
+  } catch {
+    modRole = new Record(rolesCol, {
+      server: oxyHq.id,
+      name: "Moderator",
+      color: "#3b82f6",
+      importance: 2,
+      perms: ["KICK_MEMBERS", "BAN_MEMBERS"]
+    });
+    app.save(modRole);
+  }
+
+  try {
+    memberRole = app.findFirstRecordByFilter("roles", `server = "${oxyHq.id}" && name = "Member"`);
+  } catch {
+    memberRole = new Record(rolesCol, {
+      server: oxyHq.id,
+      name: "Member",
+      color: "#10b981",
+      importance: 3,
+      perms: ["SEND_MESSAGES", "ATTACH_FILES", "CONNECT_VOICE", "SPEAK_VOICE"]
+    });
+    app.save(memberRole);
+  }
+
   // Members for Oxy HQ
-  const userIds = [testUser.id, modUser.id, memberUser.id];
-  for (const uid of userIds) {
+  const memberRoleMap = [
+    { uid: testUser.id, roleId: adminRole.id },
+    { uid: modUser.id, roleId: modRole.id },
+    { uid: memberUser.id, roleId: memberRole.id }
+  ];
+  for (const m of memberRoleMap) {
     try {
-      app.findFirstRecordByFilter("members", `server = "${oxyHq.id}" && user = "${uid}"`);
+      app.findFirstRecordByFilter("members", `server = "${oxyHq.id}" && user = "${m.uid}"`);
     } catch {
       const memberRec = new Record(membersCol, {
         server: oxyHq.id,
-        user: uid
+        user: m.uid,
+        role: m.roleId
       });
       app.save(memberRec);
     }

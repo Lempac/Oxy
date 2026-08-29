@@ -89,6 +89,29 @@ const checkServerCode = () => {
     }, 300);
 };
 
+const handleServerClick = async (serverItem: Server, e: Event) => {
+    if (props.selectedServer?.id === serverItem.id) {
+        e.preventDefault();
+        return;
+    }
+    e.preventDefault();
+    try {
+        const chans = await pb.collection('channels').getFullList({
+            filter: `server = "${serverItem.id}"`,
+            sort: 'position',
+            requestKey: null
+        });
+        const firstChan = chans[0];
+        if (firstChan) {
+            routerInstance.push(`/channels/${serverItem.id}/${firstChan.id}`);
+        } else {
+            routerInstance.push(`/channels/${serverItem.id}`);
+        }
+    } catch {
+        routerInstance.push(`/channels/${serverItem.id}`);
+    }
+};
+
 const form = reactive({
     name: '',
     description: '',
@@ -178,7 +201,7 @@ const handleEditorSave = (editedFile: File) => {
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[calc(100%-480px)] overflow-x-auto overflow-y-hidden px-2 scrollbar-hide pointer-events-auto z-0">
             <div class="flex items-center gap-3 min-w-max h-full">
                 <div v-for="server in displayedServers" :key="server.id" class="shrink-0">
-                    <router-link :to="text.url(server.route_key)">
+                    <a href="#" @click="handleServerClick(server, $event)">
                         <div :data-tip="server.name" class="tooltip tooltip-bottom">
                             <div
                                 :class="{'ring ring-primary ring-offset-base-100 ring-offset-2': selectedServer?.id === server.id}"
@@ -192,7 +215,7 @@ const handleEditorSave = (editedFile: File) => {
                                 </div>
                             </div>
                         </div>
-                    </router-link>
+                    </a>
                 </div>
 
                 <button v-if="isHomePage" class="btn btn-circle btn-sm shrink-0" @click="() => serverModal?.showModal()">

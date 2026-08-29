@@ -24,7 +24,7 @@ const props = defineProps<{
 }>();
 
 const syncSM = useWhiteboardSyncStateMachine(
-    (props.whiteboard.sync_status as WhiteboardSyncStateType) || WhiteboardSyncState.Synced
+    (props.whiteboard?.sync_status as WhiteboardSyncStateType) || WhiteboardSyncState.Synced
 );
 
 const stageConfig = ref({

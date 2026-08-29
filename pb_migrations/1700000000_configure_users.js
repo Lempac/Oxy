@@ -1,6 +1,10 @@
 migrate((app) => {
   const usersCol = app.findCollectionByNameOrId("_pb_users_auth_");
   if (usersCol) {
+    // Allow authenticated users to list and view other users (usernames, avatars, status)
+    usersCol.listRule = "@request.auth.id != ''";
+    usersCol.viewRule = "@request.auth.id != ''";
+
     const emailField = usersCol.fields.getByName("email");
     if (emailField) {
       emailField.required = false;
