@@ -71,19 +71,22 @@ onMounted(async () => {
         try {
             const members = await pb.collection('members').getFullList({
                 filter: `user = "${pb.authStore.model.id}"`,
-                expand: 'server'
+                expand: 'server',
+                requestKey: null
             });
             let targetServerId = members.find(m => m.expand?.server)?.expand?.server?.id;
             if (!targetServerId) {
                 const owned = await pb.collection('servers').getFullList({
-                    filter: `owner = "${pb.authStore.model.id}"`
+                    filter: `owner = "${pb.authStore.model.id}"`,
+                    requestKey: null
                 });
                 targetServerId = owned[0]?.id;
             }
             if (targetServerId) {
                 const channels = await pb.collection('channels').getFullList({
                     filter: `server = "${targetServerId}"`,
-                    sort: 'position'
+                    sort: 'position',
+                    requestKey: null
                 });
                 const firstChannel = channels[0];
                 if (firstChannel) {

@@ -45,7 +45,8 @@ const fetchUserServers = async () => {
     try {
         const memberRecords = await pb.collection('members').getFullList({
             filter: `user = "${pb.authStore.model.id}"`,
-            expand: 'server'
+            expand: 'server',
+            requestKey: null
         });
         const list: Server[] = [];
         for (const m of memberRecords) {
@@ -64,7 +65,8 @@ const fetchUserServers = async () => {
             }
         }
         const owned = await pb.collection('servers').getFullList({
-            filter: `owner = "${pb.authStore.model.id}"`
+            filter: `owner = "${pb.authStore.model.id}"`,
+            requestKey: null
         });
         for (const s of owned) {
             if (!list.some(existing => existing.id === s.id)) {

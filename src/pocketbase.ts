@@ -14,4 +14,5 @@ export function getPocketBaseUrl(): string {
 }
 
 export const pb = new PocketBase(getPocketBaseUrl());
+pb.autoCancellation(false);
 export default pb;
