@@ -170,7 +170,7 @@ onMounted(() => {
         <header>
             <div class="navbar bg-base-200 rounded-box border border-base-300">
                 <div class="navbar-start ml-5">
-                    <img alt="" class="block h-16 w-auto" src="/images/oxy.png"/>
+                    <img alt="" class="block h-16 w-auto" src="images/oxy.png"/>
                 </div>
                 <ApplicationLogo class="navbar-center mb-1.5"/>
                 <div class="navbar-end mr-5">

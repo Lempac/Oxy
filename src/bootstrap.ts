@@ -2,16 +2,17 @@ import pb from '@/pocketbase';
 import { Perms, Role, Server, User } from "@/types";
 import { computed } from 'vue';
 
-export const defaultIcon = "/images/icon.svg";
+export const defaultIcon = "images/icon.svg";
 
-export const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+export const baseUrl = pb.baseUrl;
 
 export const resolveUrl = (pathOrUrl?: string | null): string => {
     if (!pathOrUrl) return '';
     if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://') || pathOrUrl.startsWith('blob:') || pathOrUrl.startsWith('data:')) {
         return pathOrUrl;
     }
-    return `${baseUrl}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}`;
+    const base = pb.baseUrl || '';
+    return `${base}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}`;
 };
 
 export const bigIntToPerms = (newPrem: string[]): Perms => ({

@@ -1,3 +1,3 @@
 <template>
-  <img alt="Application Logo" src="/images/icon.svg"/>
+  <img alt="Application Logo" src="images/icon.svg"/>
 </template>

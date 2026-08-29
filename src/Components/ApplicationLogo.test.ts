@@ -8,7 +8,7 @@ describe('ApplicationLogo', () => {
         const img = wrapper.find('img');
         
         expect(img.exists()).toBe(true);
-        expect(img.attributes('src')).toBe('/images/icon.svg');
+        expect(img.attributes('src')).toBe('images/icon.svg');
         expect(img.attributes('alt')).toBe('Application Logo');
     });
 });
