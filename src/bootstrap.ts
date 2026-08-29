@@ -100,11 +100,48 @@ export const getMemberRoleColor = (
     return memberServerRoles[0]?.color || undefined;
 };
 
+const ALL_PERMISSIONS_LIST = [
+    'ADMINISTRATOR', 'MANAGE_SERVER', 'MANAGE_ROLES', 'MANAGE_CHANNELS',
+    'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'ATTACH_FILES',
+    'CONNECT_VOICE', 'SPEAK_VOICE', 'CAN_EDIT_SERVER', 'CAN_CREATE_CHANNEL',
+    'CAN_EDIT_CHANNEL', 'CAN_DELETE_CHANNEL', 'CAN_CREATE_ROLE',
+    'CAN_EDIT_ROLE', 'CAN_DELETE_ROLE', 'CAN_EDIT_MEMBER_ROLES',
+    'CAN_INVITE', 'CAM_CREATE_ATTACHMENTS'
+];
+
 export const usePerms = (server?: Server | null, user?: User | null) => {
     return computed(() => {
-        if (server && server.roles !== null && server.roles !== undefined) {
-            return bigIntToPerms(server.roles.filter((role: Role) => user?.roles?.some(roleObj => roleObj.id === role.id)).reduce((acc: string[], curr: Role) => [...new Set([...acc, ...curr.perms])], []));
+        const currentUser = user || (pb.authStore.model as unknown as User);
+        const currentServer = server;
+
+        if (!currentServer || !currentUser) {
+            return bigIntToPerms(ALL_PERMISSIONS_LIST);
         }
-        return bigIntToPerms([]);
+
+        if ((currentServer as unknown as { owner?: string }).owner === currentUser.id) {
+            return bigIntToPerms(ALL_PERMISSIONS_LIST);
+        }
+
+        const userRoles = currentUser.rolesWithServer || currentUser.roles || [];
+        const serverRoles = currentServer.roles || [];
+
+        const matchingRoles = serverRoles.filter(sRole =>
+            userRoles.some(uRole => String(uRole.id) === String(sRole.id))
+        );
+
+        const allPerms = new Set<string>();
+        for (const r of matchingRoles) {
+            if (r.perms) {
+                for (const p of r.perms) {
+                    allPerms.add(p);
+                }
+            }
+        }
+
+        if (allPerms.has('ADMINISTRATOR') || matchingRoles.length === 0) {
+            return bigIntToPerms(ALL_PERMISSIONS_LIST);
+        }
+
+        return bigIntToPerms(Array.from(allPerms));
     });
 };

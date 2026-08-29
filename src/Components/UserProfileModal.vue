@@ -43,6 +43,48 @@ const currentUser = computed(() => (pb.authStore.model ? {
 const isEditingAboutMe = ref(false);
 const aboutMeInput = ref('');
 const isSavingAboutMe = ref(false);
+const modalRoles = ref<Role[]>([]);
+
+const loadModalUserData = async () => {
+    if (!localUser.value?.id) return;
+    try {
+        const sId = props.selectedServer?.id;
+        if (sId) {
+            const roleRecs = await pb.collection('roles').getFullList({
+                filter: `server = "${sId}"`,
+                sort: 'importance',
+                requestKey: null
+            });
+            modalRoles.value = roleRecs.map(r => ({
+                id: r.id,
+                server_id: r.server,
+                name: r.name,
+                color: r.color,
+                importance: r.importance,
+                perms: r.perms || []
+            })) as unknown as Role[];
+
+            const memberRecs = await pb.collection('members').getFullList({
+                filter: `server = "${sId}" && user = "${localUser.value.id}"`,
+                expand: 'role',
+                requestKey: null
+            });
+
+            if (memberRecs.length > 0 && memberRecs[0].expand?.role) {
+                const r = memberRecs[0].expand.role;
+                localUser.value.rolesWithServer = [{
+                    id: r.id,
+                    name: r.name,
+                    color: r.color,
+                    importance: r.importance,
+                    perms: r.perms || []
+                }] as unknown as Role[];
+            }
+        }
+    } catch (err) {
+        console.error('Error loading UserProfileModal roles:', err);
+    }
+};
 
 watch(
     () => props.user,
@@ -54,6 +96,7 @@ watch(
             };
             isEditingAboutMe.value = false;
             aboutMeInput.value = newUser.about_me || '';
+            loadModalUserData();
         } else {
             localUser.value = null;
             showKickConfirm.value = false;
@@ -98,10 +141,13 @@ const formatStatusText = (status?: string) => {
     }
 };
 
+const activeModalRoles = computed(() => (props.selectedServer?.roles && props.selectedServer.roles.length > 0) ? props.selectedServer.roles : modalRoles.value);
+
 const getUserServerRoles = (user?: User | null): Role[] => {
-    if (!user || !props.selectedServer?.roles) return [];
+    if (!user) return [];
     const userRoles = user.rolesWithServer || user.roles || [];
-    return props.selectedServer.roles
+    const rolesList = activeModalRoles.value;
+    return rolesList
         .filter((sRole) => userRoles.some((uRole) => String(uRole.id) === String(sRole.id)))
         .sort((a, b) => a.importance - b.importance);
 };
@@ -323,7 +369,7 @@ const saveAboutMe = async () => {
 
                         <!-- Nickname -->
                         <h3
-                            :style="{ color: getMemberRoleColor(localUser, selectedServer?.roles) }"
+                            :style="{ color: getMemberRoleColor(localUser, activeModalRoles) }"
                             class="text-xl font-bold mt-2 px-6"
                         >
                             {{ localUser.nickname }}

@@ -5,6 +5,7 @@ import {WebsocketProvider} from 'y-websocket';
 import {Whiteboard as WhiteboardType, WhiteboardSyncState, WhiteboardSyncStateType} from '@/types';
 import {save} from '@/routes/whiteboard';
 import { fetchJson } from '@/bootstrap';
+import pb from '@/pocketbase';
 import { useWhiteboardSyncStateMachine } from '@/composables/useWhiteboardSyncStateMachine';
 import { MdAdsClick, MdHorizontalRule, MdOutlineCircle, MdOutlineDelete, MdOutlineFormatColorFill, MdOutlineRectangle, MdRedo, MdUndo, MdCloudDone, MdCloudUpload, MdSyncProblem, MdOutlineCloudQueue, MdFullscreen, MdFullscreenExit, MdDragIndicator } from 'vue-icons-plus/md';
 import { BsEraser } from 'vue-icons-plus/bs';
@@ -119,7 +120,7 @@ const startHeartbeat = () => {
         }
         const start = Date.now();
         try {
-            await fetchJson('/up');
+            await pb.collection('whiteboards').getOne(props.whiteboard.id, { requestKey: null });
             latency.value = Date.now() - start;
         } catch (e) {
             console.error("Heartbeat failed", e);
@@ -468,11 +469,10 @@ const saveState = async () => {
         if (typeof localStorage !== 'undefined') {
             localStorage.setItem(`whiteboard_local_${props.whiteboard.id}`, state);
         }
-        await fetchJson(save.url(props.whiteboard.id), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({state})
-        });
+        await pb.collection('whiteboards').update(props.whiteboard.id, {
+            data: state,
+            sync_status: 'synced'
+        }, { requestKey: null });
         if (syncSM.canTransitionTo(WhiteboardSyncState.Synced)) {
             syncSM.transitionTo(WhiteboardSyncState.Synced);
         }
