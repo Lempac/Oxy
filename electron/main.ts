@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, systemPreferences, desktopCapturer } from 'electron';
+import { app, BrowserWindow, ipcMain, systemPreferences, desktopCapturer } from 'electron';
 import path from 'path';
 
 // Disable hardware acceleration to prevent SIGILL crashes on non-standard GPU/CPU drivers on Linux/NixOS
@@ -7,9 +7,6 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('no-sandbox');
   app.commandLine.appendSwitch('disable-gpu-sandbox');
 }
-
-// Remove default top menu bar (File, Edit, View, Window)
-Menu.setApplicationMenu(null);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -29,12 +26,30 @@ function createWindow() {
     },
   });
 
+  // Hide top menu bar visually on Linux & Windows without disabling keybindings
+  mainWindow.setMenuBarVisibility(false);
+
   const devServerUrl = process.env.VITE_DEV_SERVER_URL;
   if (devServerUrl) {
     mainWindow.loadURL(devServerUrl);
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
+
+  // Register keyboard shortcuts (F12, Ctrl+Shift+I for DevTools, Ctrl+R / F5 for reload)
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown') {
+      const isDevTools = input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i') || (input.meta && input.alt && input.key.toLowerCase() === 'i');
+      const isReload = (input.control && input.key.toLowerCase() === 'r') || input.key === 'F5' || (input.meta && input.key.toLowerCase() === 'r');
+      if (isDevTools) {
+        mainWindow?.webContents.toggleDevTools();
+        event.preventDefault();
+      } else if (isReload) {
+        mainWindow?.webContents.reload();
+        event.preventDefault();
+      }
+    }
+  });
 
   // Handle native media permission requests for LiveKit voice/video
   mainWindow.webContents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
