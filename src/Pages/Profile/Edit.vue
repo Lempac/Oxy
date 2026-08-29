@@ -2,8 +2,8 @@
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
-import {exportMethod} from '@/routes/profile';
-import {Server} from '@/types';
+import { Server } from '@/types';
+import pb from '@/pocketbase';
 
 defineProps<{
     status?: string;
@@ -11,7 +11,14 @@ defineProps<{
 }>();
 
 function exportTab() {
-    window.open(exportMethod.url(), '_blank');
+    if (!pb.authStore.model) return;
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pb.authStore.model, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `oxy_user_data_${pb.authStore.model.name || 'user'}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
 }
 </script>
 

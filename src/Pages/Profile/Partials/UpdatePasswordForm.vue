@@ -25,7 +25,7 @@ const updatePassword = async () => {
             oldPassword: oldPassword.value,
             password: password.value,
             passwordConfirm: passwordConfirm.value,
-        });
+        }, { requestKey: null });
         recentlySuccessful.value = true;
         oldPassword.value = '';
         password.value = '';

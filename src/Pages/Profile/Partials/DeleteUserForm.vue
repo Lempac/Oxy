@@ -24,7 +24,7 @@ const deleteUser = async () => {
     processing.value = true;
     error.value = null;
     try {
-        await pb.collection('users').delete(pb.authStore.model.id);
+        await pb.collection('users').delete(pb.authStore.model.id, { requestKey: null });
         pb.authStore.clear();
         toggleModal('close');
         router.push('/');
