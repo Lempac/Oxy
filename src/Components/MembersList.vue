@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from "vue";
 import { defaultIcon, getMemberRoleColor, resolveUrl } from "@/bootstrap";
-import { Server, User } from "@/types";
+import { Role, Server, User } from "@/types";
 import { HiUsers } from "vue-icons-plus/hi";
 import UserProfileModal from "@/Components/UserProfileModal.vue";
 
@@ -13,14 +13,31 @@ const props = defineProps<{
 
 const selectedProfileUser = ref<User | null>(null);
 const serverMembers = ref<User[]>([]);
+const serverRoles = ref<Role[]>([]);
 
-const fetchServerMembers = async () => {
+const fetchServerMembersAndRoles = async () => {
     const sId = props.selectedServer?.id;
     if (!sId) {
         serverMembers.value = [];
+        serverRoles.value = [];
         return;
     }
     try {
+        const roleRecs = await pb.collection('roles').getFullList({
+            filter: `server = "${sId}"`,
+            sort: 'importance',
+            requestKey: null
+        });
+
+        serverRoles.value = roleRecs.map(r => ({
+            id: r.id,
+            server_id: r.server,
+            name: r.name,
+            color: r.color,
+            importance: r.importance,
+            perms: r.perms || []
+        })) as unknown as Role[];
+
         const memberRecs = await pb.collection('members').getFullList({
             filter: `server = "${sId}"`,
             expand: 'user,role',
@@ -38,15 +55,22 @@ const fetchServerMembers = async () => {
                 color: m.expand.role.color,
                 importance: m.expand.role.importance,
                 perms: m.expand.role.perms || []
+            }] : [],
+            roles: m.expand?.role ? [{
+                id: m.expand.role.id,
+                name: m.expand.role.name,
+                color: m.expand.role.color,
+                importance: m.expand.role.importance,
+                perms: m.expand.role.perms || []
             }] : []
         })) as unknown as User[];
     } catch (err) {
-        console.error('Error fetching server members for MembersList:', err);
+        console.error('Error fetching server members & roles for MembersList:', err);
     }
 };
 
 watch(() => props.selectedServer?.id, () => {
-    fetchServerMembers();
+    fetchServerMembersAndRoles();
 }, { immediate: true });
 
 const displayUsers = computed(() => {
@@ -55,6 +79,8 @@ const displayUsers = computed(() => {
     }
     return serverMembers.value;
 });
+
+const activeRoles = computed(() => (props.selectedServer?.roles && props.selectedServer.roles.length > 0) ? props.selectedServer.roles : serverRoles.value);
 
 const openProfile = (user: User) => {
     selectedProfileUser.value = {
@@ -182,7 +208,7 @@ const formatStatusText = (status?: string) => {
                     </div>
                 </div>
                 <div
-                    :style="{ color: getMemberRoleColor(user, selectedServer?.roles) }"
+                    :style="{ color: getMemberRoleColor(user, activeRoles) }"
                     class="text-xs mt-1 font-medium truncate max-w-[5.5rem]"
                 >
                     {{ user.nickname }}
