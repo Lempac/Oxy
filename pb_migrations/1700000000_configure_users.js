@@ -6,14 +6,19 @@ migrate((app) => {
       emailField.required = false;
       emailField.hidden = true;
     }
-    const usernameField = usersCol.fields.getByName("username");
-    if (usernameField) {
-      usernameField.required = true;
+    const nameField = usersCol.fields.getByName("name");
+    if (nameField) {
+      nameField.required = true;
     }
-    // Remove unique constraint / index on email
+    // Remove email index
     usersCol.indexes = (usersCol.indexes || []).filter(
       (idx) => !idx.toLowerCase().includes("email")
     );
+    // Add unique index on name
+    const hasNameIdx = usersCol.indexes.some((idx) => idx.toLowerCase().includes("`name`"));
+    if (!hasNameIdx) {
+      usersCol.indexes.push("CREATE UNIQUE INDEX `idx_name__pb_users_auth_` ON `users` (`name`) WHERE `name` != ''");
+    }
     app.save(usersCol);
   }
 }, (app) => {
