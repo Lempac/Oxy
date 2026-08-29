@@ -13,7 +13,10 @@ migrate((app) => {
       { name: "name", type: "text", required: true },
       { name: "color", type: "text" },
       { name: "importance", type: "number" },
-      { name: "permissions", type: "json" }
+      { name: "perms", type: "json" },
+      { name: "permissions", type: "json" },
+      { name: "created", type: "autodate", onCreate: true },
+      { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
     ]
   });
   return app.save(collection);

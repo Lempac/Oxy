@@ -13,7 +13,9 @@ migrate((app) => {
       { name: "description", type: "text" },
       { name: "icon", type: "file", maxSelect: 1, mimeTypes: ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"] },
       { name: "owner", type: "relation", collectionId: "_pb_users_auth_", required: true, cascadeDelete: true },
-      { name: "enable_whiteboard", type: "bool" }
+      { name: "enable_whiteboard", type: "bool" },
+      { name: "created", type: "autodate", onCreate: true },
+      { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
     ]
   });
   return app.save(collection);

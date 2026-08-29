@@ -11,7 +11,9 @@ migrate((app) => {
     fields: [
       { name: "channel", type: "relation", collectionId: channels.id, required: true, cascadeDelete: true },
       { name: "state", type: "json" },
-      { name: "sync_status", type: "text" }
+      { name: "sync_status", type: "text" },
+      { name: "created", type: "autodate", onCreate: true },
+      { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
     ]
   });
   return app.save(collection);

@@ -65,8 +65,27 @@ const isFileDragging = ref(false);
 const validationError = ref<string | null>(null);
 let dragCounter = 0;
 
-function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+function formatDate(dateString?: string): string {
+    if (!dateString) {
+        const now = new Date();
+        const year = String(now.getFullYear());
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${day}-${month}-${year} ${hours}:${minutes}`;
+    }
+    const dateStr = dateString.includes('Z') || dateString.includes('T') ? dateString : dateString.replace(' ', 'T') + 'Z';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+        const now = new Date();
+        const year = String(now.getFullYear());
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${day}-${month}-${year} ${hours}:${minutes}`;
+    }
     const year = String(date.getFullYear());
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -106,7 +125,7 @@ const fetchChannelMessages = async () => {
     try {
         const records = await pb.collection('messages').getFullList({
             filter: `channel = "${props.selectedChannel.id}"`,
-            sort: '+id',
+            sort: 'created',
             expand: 'user',
             requestKey: null
         });

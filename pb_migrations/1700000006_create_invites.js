@@ -14,7 +14,9 @@ migrate((app) => {
       { name: "code", type: "text", required: true, unique: true },
       { name: "max_uses", type: "number" },
       { name: "uses", type: "number" },
-      { name: "expires_at", type: "date" }
+      { name: "expires_at", type: "date" },
+      { name: "created", type: "autodate", onCreate: true },
+      { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
     ]
   });
   return app.save(collection);

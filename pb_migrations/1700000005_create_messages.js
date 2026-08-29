@@ -13,7 +13,9 @@ migrate((app) => {
       { name: "user", type: "relation", collectionId: "_pb_users_auth_", required: true, cascadeDelete: true },
       { name: "content", type: "text" },
       { name: "status", type: "text" },
-      { name: "attachments", type: "file", maxSelect: 10 }
+      { name: "attachments", type: "file", maxSelect: 10 },
+      { name: "created", type: "autodate", onCreate: true },
+      { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
     ]
   });
   return app.save(collection);

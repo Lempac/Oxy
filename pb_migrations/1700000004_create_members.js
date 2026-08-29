@@ -12,7 +12,9 @@ migrate((app) => {
     fields: [
       { name: "server", type: "relation", collectionId: servers.id, required: true, cascadeDelete: true },
       { name: "user", type: "relation", collectionId: "_pb_users_auth_", required: true, cascadeDelete: true },
-      { name: "role", type: "relation", collectionId: roles.id }
+      { name: "role", type: "relation", collectionId: roles.id },
+      { name: "created", type: "autodate", onCreate: true },
+      { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
     ]
   });
   return app.save(collection);

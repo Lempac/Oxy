@@ -13,7 +13,9 @@ migrate((app) => {
       { name: "name", type: "text", required: true },
       { name: "slug", type: "text", required: true },
       { name: "type", type: "select", values: ["text", "voice", "whiteboard"], maxSelect: 1, required: true },
-      { name: "position", type: "number" }
+      { name: "position", type: "number" },
+      { name: "created", type: "autodate", onCreate: true },
+      { name: "updated", type: "autodate", onCreate: true, onUpdate: true }
     ]
   });
   return app.save(collection);
