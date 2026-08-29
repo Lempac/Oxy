@@ -10,6 +10,10 @@ migrate((app) => {
     if (nameField) {
       nameField.required = true;
     }
+    // Enable password auth and allow logging in by name or email
+    usersCol.passwordAuth.enabled = true;
+    usersCol.passwordAuth.identityFields = ["name", "email"];
+
     // Remove email index
     usersCol.indexes = (usersCol.indexes || []).filter(
       (idx) => !idx.toLowerCase().includes("email")

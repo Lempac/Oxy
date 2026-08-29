@@ -116,10 +116,9 @@ const submitRegister = async () => {
     }
     registerForm.error = null;
     try {
-        const cleanUser = registerForm.nickname.trim().toLowerCase().replace(/\s+/g, '_');
+        const nameVal = registerForm.nickname.trim();
         const formData = new FormData();
-        formData.append('username', cleanUser);
-        formData.append('name', registerForm.nickname);
+        formData.append('name', nameVal);
         formData.append('password', registerForm.password);
         formData.append('passwordConfirm', registerForm.password_confirmation);
         if (registerForm.icon) {
@@ -127,7 +126,7 @@ const submitRegister = async () => {
         }
 
         await pb.collection('users').create(formData);
-        await pb.collection('users').authWithPassword(cleanUser, registerForm.password);
+        await pb.collection('users').authWithPassword(nameVal, registerForm.password);
 
         if (registerForm.server_code) {
             try {

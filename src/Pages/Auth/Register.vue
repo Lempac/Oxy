@@ -21,14 +21,13 @@ const handleRegister = async () => {
     loading.value = true;
     error.value = null;
     try {
-        const cleanUser = username.value.trim().toLowerCase().replace(/\s+/g, '_');
+        const nameVal = username.value.trim();
         await pb.collection('users').create({
-            username: cleanUser,
-            name: username.value.trim(),
+            name: nameVal,
             password: password.value,
             passwordConfirm: passwordConfirm.value,
         });
-        await pb.collection('users').authWithPassword(cleanUser, password.value);
+        await pb.collection('users').authWithPassword(nameVal, password.value);
         router.push('/home');
     } catch (err: unknown) {
         error.value = (err as { message?: string })?.message || 'Registration failed.';
