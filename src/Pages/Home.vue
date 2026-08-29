@@ -6,10 +6,12 @@ import {computed, onMounted, ref} from "vue";
 import {Server, Channel} from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import {usePaneDrag} from "@/composables/usePaneDrag";
+import {useServerStore} from "@/composables/useServerStore";
 import pb from '@/pocketbase';
 import {useRouter} from 'vue-router';
 
 const router = useRouter();
+const serverStore = useServerStore();
 
 const {
     draggedPaneId,
@@ -68,21 +70,10 @@ onMounted(async () => {
         }
     }
     if (!props.selectedServer && pb.authStore.model?.id) {
-        try {
-            const members = await pb.collection('members').getFullList({
-                filter: `user = "${pb.authStore.model.id}"`,
-                expand: 'server',
-                requestKey: null
-            });
-            let targetServerId = members.find(m => m.expand?.server)?.expand?.server?.id;
-            if (!targetServerId) {
-                const owned = await pb.collection('servers').getFullList({
-                    filter: `owner = "${pb.authStore.model.id}"`,
-                    requestKey: null
-                });
-                targetServerId = owned[0]?.id;
-            }
-            if (targetServerId) {
+        await serverStore.fetchServers();
+        const targetServerId = serverStore.servers.value[0]?.id;
+        if (targetServerId) {
+            try {
                 const channels = await pb.collection('channels').getFullList({
                     filter: `server = "${targetServerId}"`,
                     sort: 'position',
@@ -92,9 +83,9 @@ onMounted(async () => {
                 if (firstChannel) {
                     router.push(`/channels/${targetServerId}/${firstChannel.id}`);
                 }
+            } catch (err) {
+                console.error('Error auto-selecting server channel:', err);
             }
-        } catch (err) {
-            console.error('Error auto-selecting server:', err);
         }
     }
 });

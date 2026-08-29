@@ -14,7 +14,10 @@ import {BsDoorOpen, BsGearFill} from 'vue-icons-plus/bs';
 import {MdMic, MdMicOff, MdHeadset, MdHeadsetOff, MdExitToApp} from 'vue-icons-plus/md';
 import {TbKeyboard, TbKeyboardOff} from 'vue-icons-plus/tb';
 import {useVoiceCallStateMachine} from '@/composables/useVoiceCallStateMachine';
+import {useServerStore} from '@/composables/useServerStore';
 import ImageEditorModal from '@/Components/ImageEditorModal.vue';
+
+const serverStore = useServerStore();
 
 const perms = usePerms();
 const voiceState = useVoiceCallStateMachine();
@@ -38,61 +41,11 @@ const props = defineProps<{
     selectedServer?: Server;
 }>();
 
-const localServers = ref<Server[]>([]);
-
-const fetchUserServers = async () => {
-    if (!pb.authStore.model?.id) return;
-    try {
-        const memberRecords = await pb.collection('members').getFullList({
-            filter: `user = "${pb.authStore.model.id}"`,
-            expand: 'server',
-            requestKey: null
-        });
-        const list: Server[] = [];
-        for (const m of memberRecords) {
-            if (m.expand?.server) {
-                const s = m.expand.server;
-                list.push({
-                    id: s.id,
-                    name: s.name,
-                    slug: s.slug,
-                    description: s.description,
-                    owner: s.owner,
-                    enable_whiteboard: s.enable_whiteboard,
-                    icon: s.icon,
-                    route_key: s.id
-                } as unknown as Server);
-            }
-        }
-        const owned = await pb.collection('servers').getFullList({
-            filter: `owner = "${pb.authStore.model.id}"`,
-            requestKey: null
-        });
-        for (const s of owned) {
-            if (!list.some(existing => existing.id === s.id)) {
-                list.push({
-                    id: s.id,
-                    name: s.name,
-                    slug: s.slug,
-                    description: s.description,
-                    owner: s.owner,
-                    enable_whiteboard: s.enable_whiteboard,
-                    icon: s.icon,
-                    route_key: s.id
-                } as unknown as Server);
-            }
-        }
-        localServers.value = list;
-    } catch (err) {
-        console.error('Failed to fetch user servers:', err);
-    }
-};
-
 onMounted(() => {
-    fetchUserServers();
+    serverStore.fetchServers();
 });
 
-const displayedServers = computed(() => (props.servers && props.servers.length > 0) ? props.servers : localServers.value);
+const displayedServers = computed(() => (props.servers && props.servers.length > 0) ? props.servers : serverStore.servers.value);
 
 
 const serverModal = ref<HTMLDialogElement>();
