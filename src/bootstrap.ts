@@ -15,7 +15,7 @@ export const resolveUrl = (pathOrUrl?: string | null): string => {
     return `${base}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}`;
 };
 
-export const bigIntToPerms = (newPrem: string[]): Perms => {
+export const createPerms = (newPrem: string[]): Perms => {
     const permSet = new Set<string>(newPrem || []);
     return {
         perms: Array.from(permSet),
@@ -113,11 +113,11 @@ export const usePerms = (server?: Server | null, user?: User | null) => {
         const currentServer = server;
 
         if (!currentServer || !currentUser) {
-            return bigIntToPerms(['ADMINISTRATOR']);
+            return createPerms(['ADMINISTRATOR']);
         }
 
         if ((currentServer as unknown as { owner?: string }).owner === currentUser.id) {
-            return bigIntToPerms(['ADMINISTRATOR']);
+            return createPerms(['ADMINISTRATOR']);
         }
 
         const userRoles = currentUser.rolesWithServer || currentUser.roles || [];
@@ -128,7 +128,7 @@ export const usePerms = (server?: Server | null, user?: User | null) => {
         );
 
         if (matchingRoles.length === 0) {
-            return bigIntToPerms(['ADMINISTRATOR']);
+            return createPerms(['ADMINISTRATOR']);
         }
 
         const allPerms = new Set<string>();
@@ -140,6 +140,6 @@ export const usePerms = (server?: Server | null, user?: User | null) => {
             }
         }
 
-        return bigIntToPerms(Array.from(allPerms));
+        return createPerms(Array.from(allPerms));
     });
 };

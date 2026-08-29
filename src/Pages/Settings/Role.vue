@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {bigIntToPerms, defaultIcon, fetchJson, resolveUrl, usePerms} from '@/bootstrap';
+import {createPerms, defaultIcon, fetchJson, resolveUrl, usePerms} from '@/bootstrap';
 import {server} from '@/routes/home';
 import {create, deleteMethod, edit, index} from '@/routes/roles';
 import pb from '@/pocketbase';
@@ -265,7 +265,7 @@ const togglePerm = (perm: string, state: boolean) => {
     if (!newRole.value) return;
 
     // We should not modify the reactive `editingRole` directly, but `newRole`.
-    const currentPerm = bigIntToPerms(newRole.value.perms || []);
+    const currentPerm = createPerms(newRole.value.perms || []);
 
     if (state) currentPerm.add(perm);
     else currentPerm.remove(perm);
@@ -505,7 +505,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
                                                     {{ perm.description }}</p>
                                             </div>
                                             <input
-                                                :checked="bigIntToPerms(newRole.perms).has(perm.name)"
+                                                :checked="createPerms(newRole.perms).has(perm.name)"
                                                 :disabled="!perms.has([PermType.CAN_EDIT_ROLE])"
                                                 class="toggle toggle-primary mt-1"
                                                 type="checkbox"
