@@ -87,15 +87,6 @@ const handleEditorSave = (editedFile: File) => {
     iconPreview.value = URL.createObjectURL(editedFile);
 };
 
-const quickDemoLogin = async () => {
-    try {
-        await pb.collection('users').authWithPassword('testuser', 'password123');
-        router.push('/home');
-    } catch (err: unknown) {
-        console.error('Demo login error:', err);
-    }
-};
-
 const submitLogin = async () => {
     loginForm.error = null;
     try {
@@ -150,6 +141,9 @@ const submitRegister = async () => {
 };
 
 onMounted(() => {
+    if (import.meta.env.DEV) {
+        console.log('[Oxy Dev Mode] Seed test accounts available: testuser / moderator / member (password: password123)');
+    }
     if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const invite = params.get('invite') || params.get('code');
@@ -178,11 +172,6 @@ onMounted(() => {
                     </router-link>
                     <template v-else>
                         <div class="flex gap-2">
-                            <button
-                                class="btn btn-lg btn-outline btn-accent"
-                                @click="quickDemoLogin">
-                                Demo Login
-                            </button>
                             <button
                                 class="btn btn-lg btn-primary"
                                 @click="() => {loginForm.clearErrors(); loginModel?.showModal()}">

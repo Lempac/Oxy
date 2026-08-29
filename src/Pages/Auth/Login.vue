@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import pb from '@/pocketbase';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
@@ -11,21 +11,23 @@ const password = ref('');
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-const handleLogin = async (userEmail?: string, userPass?: string) => {
+onMounted(() => {
+    if (import.meta.env.DEV) {
+        console.log('[Oxy Dev Mode] Seed test accounts available: testuser / moderator / member (password: password123)');
+    }
+});
+
+const handleLogin = async () => {
     loading.value = true;
     error.value = null;
     try {
-        await pb.collection('users').authWithPassword(userEmail || identity.value, userPass || password.value);
+        await pb.collection('users').authWithPassword(identity.value, password.value);
         router.push('/home');
     } catch (err: unknown) {
         error.value = (err as { message?: string })?.message || 'Failed to sign in. Please check your credentials.';
     } finally {
         loading.value = false;
     }
-};
-
-const quickTestLogin = () => {
-    handleLogin('testuser', 'password123');
 };
 </script>
 
@@ -48,12 +50,6 @@ const quickTestLogin = () => {
                     Sign In
                 </button>
             </form>
-
-            <div class="divider my-4">OR</div>
-
-            <button type="button" class="btn btn-outline btn-accent w-full" :disabled="loading" @click="quickTestLogin">
-                🚀 One-Click Demo Login (testuser)
-            </button>
 
             <div class="mt-4 text-center text-sm">
                 Don't have an account?
