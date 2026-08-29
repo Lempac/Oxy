@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, systemPreferences, desktopCapturer } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, systemPreferences, desktopCapturer } from 'electron';
 import path from 'path';
 
 // Disable hardware acceleration to prevent SIGILL crashes on non-standard GPU/CPU drivers on Linux/NixOS
@@ -7,6 +7,9 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('no-sandbox');
   app.commandLine.appendSwitch('disable-gpu-sandbox');
 }
+
+// Remove default top menu bar (File, Edit, View, Window)
+Menu.setApplicationMenu(null);
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -17,6 +20,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     title: 'Oxy',
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
