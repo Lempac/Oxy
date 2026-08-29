@@ -3,13 +3,8 @@ import {bigIntToPerms, defaultIcon, fetchJson, resolveUrl, usePerms} from '@/boo
 import {server} from '@/routes/home';
 import {create, deleteMethod, edit, index} from '@/routes/roles';
 import pb from '@/pocketbase';
-import {computed, ref} from 'vue';
-
-const authUser = computed(() => pb.authStore.model ? {
-    id: pb.authStore.model.id,
-    nickname: pb.authStore.model.name || pb.authStore.model.username || 'User',
-    icon: pb.authStore.model.avatar || null,
-} : null);
+import {computed, onMounted, ref} from 'vue';
+import {useRoute} from 'vue-router';
 import {PermType, Role, Server} from "@/types";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
@@ -17,10 +12,35 @@ import {BiDownArrowAlt, BiUpArrowAlt} from 'vue-icons-plus/bi';
 import {HiClipboardCopy} from 'vue-icons-plus/hi';
 
 const perms = usePerms();
-const {selectedServer, allPermissions} = defineProps<{
-    selectedServer: Server,
-    allPermissions: { name: string, title: string, description: string, category?: string }[]
+const route = useRoute();
+
+const authUser = computed(() => pb.authStore.model ? {
+    id: pb.authStore.model.id,
+    nickname: pb.authStore.model.name || pb.authStore.model.username || 'User',
+    icon: pb.authStore.model.avatar || null,
+} : null);
+
+const props = defineProps<{
+    selectedServer?: Server,
+    allPermissions?: { name: string, title: string, description: string, category?: string }[]
 }>();
+
+const currentServer = ref<Server | undefined>(props.selectedServer);
+
+const defaultPermissionsList = [
+    { name: 'ADMINISTRATOR', title: 'Administrator', description: 'Full access to all server settings and channels.', category: 'General' },
+    { name: 'MANAGE_SERVER', title: 'Manage Server', description: 'Edit server settings, name, and icon.', category: 'General' },
+    { name: 'MANAGE_ROLES', title: 'Manage Roles', description: 'Create and edit server roles.', category: 'General' },
+    { name: 'MANAGE_CHANNELS', title: 'Manage Channels', description: 'Create, edit, and delete channels.', category: 'General' },
+    { name: 'KICK_MEMBERS', title: 'Kick Members', description: 'Remove members from the server.', category: 'General' },
+    { name: 'BAN_MEMBERS', title: 'Ban Members', description: 'Ban members from rejoining.', category: 'General' },
+    { name: 'SEND_MESSAGES', title: 'Send Messages', description: 'Post text messages in text channels.', category: 'Text' },
+    { name: 'ATTACH_FILES', title: 'Attach Files', description: 'Upload images and file attachments.', category: 'Text' },
+    { name: 'CONNECT_VOICE', title: 'Connect to Voice', description: 'Join voice call channels.', category: 'Voice' },
+    { name: 'SPEAK_VOICE', title: 'Speak in Voice', description: 'Transmit audio in voice channels.', category: 'Voice' }
+];
+
+const availablePermissions = computed(() => props.allPermissions || defaultPermissionsList);
 
 const roles = ref<Role[]>([]);
 const newRole = ref({
@@ -37,21 +57,62 @@ const searchRoles = ref('');
 const searchPermissions = ref('');
 const openCategories = ref<Record<string, boolean>>({});
 
+const loadRolesData = async () => {
+    const serverId = (route.params.serverId as string) || props.selectedServer?.id;
+    if (!serverId) return;
+    try {
+        const s = await pb.collection('servers').getOne(serverId, { requestKey: null });
+        currentServer.value = {
+            id: s.id,
+            name: s.name,
+            slug: s.slug,
+            description: s.description,
+            owner: s.owner,
+            enable_whiteboard: s.enable_whiteboard,
+            icon: s.icon,
+            route_key: s.id
+        } as unknown as Server;
+
+        const roleRecs = await pb.collection('roles').getFullList({
+            filter: `server = "${serverId}"`,
+            sort: 'importance',
+            requestKey: null
+        });
+
+        roles.value = roleRecs.map(r => ({
+            id: r.id,
+            server_id: r.server,
+            name: r.name,
+            color: r.color,
+            importance: r.importance,
+            perms: r.perms || []
+        })) as unknown as Role[];
+    } catch (err) {
+        console.error('Error loading roles data:', err);
+    }
+};
+
+onMounted(() => {
+    loadRolesData();
+});
+
 const filteredRoles = computed(() => {
     if (!searchRoles.value) return roles.value;
     return roles.value.filter(role => role.name.toLowerCase().includes(searchRoles.value.toLowerCase()));
 });
 
 const filteredPermissions = computed(() => {
-    if (!searchPermissions.value) return allPermissions;
-    return allPermissions.filter(perm =>
-        (perm.title || perm.name).toLowerCase().includes(searchPermissions.value.toLowerCase()) ||
-        (perm.description || '').toLowerCase().includes(searchPermissions.value.toLowerCase())
+    const list = availablePermissions.value;
+    if (!searchPermissions.value) return list;
+    const q = searchPermissions.value.toLowerCase();
+    return list.filter(perm =>
+        (perm.title || perm.name).toLowerCase().includes(q) ||
+        (perm.description || '').toLowerCase().includes(q)
     );
 });
 
 const groupedPermissions = computed(() => {
-    const groups: Record<string, typeof allPermissions> = {};
+    const groups: Record<string, { name: string; title: string; description: string; category?: string }[]> = {};
     for (const perm of filteredPermissions.value) {
         const cat = perm.category || 'Other Permissions';
         if (!groups[cat]) groups[cat] = [];
@@ -62,7 +123,8 @@ const groupedPermissions = computed(() => {
 
 const fetchRoles = async () => {
     try {
-        const response = await fetchJson(index.url(selectedServer?.route_key));
+        const sId = currentServer.value?.id || props.selectedServer?.id || '';
+        const response = await fetchJson(index.url(sId));
         roles.value = response.data ?? [];
         roles.value.sort((a, b) => a.importance - b.importance);
 
@@ -95,24 +157,25 @@ const selectRole = (role: Role) => {
 
 const updateRole = async () => {
     if (editingRole.value) {
-        const response = await fetchJson(edit.url(editingRole.value.id), {
-            method: 'PATCH',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(newRole.value)
-        });
+        try {
+            await pb.collection('roles').update(editingRole.value.id, {
+                name: newRole.value.name,
+                color: newRole.value.color,
+                perms: newRole.value.perms || []
+            }, { requestKey: null });
 
-        const index = roles.value.findIndex(r => r.id === editingRole.value?.id);
-        roles.value[index] = response.data.role;
-
-        // Keep it selected after save
-        selectRole(response.data.role);
-        await fetchRoles();
+            await fetchRoles();
+        } catch (err) {
+            console.error('Error updating role:', err);
+        }
     }
 };
 
 const newRoleForm = ref({name: '', color: '#ffffff'});
 
 const addRole = async () => {
+    const sId = currentServer.value?.id || props.selectedServer?.id;
+    if (!sId) return;
     try {
         let importance = 1;
         if (roles.value.length > 0) {
@@ -120,16 +183,13 @@ const addRole = async () => {
             importance = maxImportance + 1;
         }
 
-        await fetchJson(create.url(selectedServer?.route_key), {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                name: newRoleForm.value.name,
-                color: newRoleForm.value.color,
-                perms: [],
-                importance: importance,
-            })
-        });
+        await pb.collection('roles').create({
+            server: sId,
+            name: newRoleForm.value.name || 'New Role',
+            color: newRoleForm.value.color || '#ffffff',
+            perms: [],
+            importance: importance
+        }, { requestKey: null });
 
         closeModal();
         newRoleForm.value.name = '';
@@ -144,8 +204,9 @@ const duplicateRole = async (roleToDuplicate?: Role, event?: Event) => {
     if (event) {
         event.stopPropagation();
     }
+    const sId = currentServer.value?.id || props.selectedServer?.id;
     const targetRole = roleToDuplicate || editingRole.value;
-    if (!targetRole || !perms.value.has([PermType.CAN_CREATE_ROLE])) return;
+    if (!targetRole || !sId) return;
     try {
         let importance = 1;
         if (roles.value && roles.value.length > 0) {
@@ -155,50 +216,17 @@ const duplicateRole = async (roleToDuplicate?: Role, event?: Event) => {
             }
         }
 
-        const rawName = targetRole.id === editingRole.value?.id ? (newRole.value.name || targetRole.name) : targetRole.name;
-        const rawColor = targetRole.id === editingRole.value?.id ? (newRole.value.color || targetRole.color) : targetRole.color;
-        const rawPerms = targetRole.id === editingRole.value?.id ? (newRole.value.perms || targetRole.perms || []) : (targetRole.perms || []);
-
-        let name = (rawName || 'Role').trim();
-        if (name.length > 245) {
-            name = name.substring(0, 245);
-        }
-        name = `${name} Copy`;
-
-        let color = (rawColor || '#ffffff').trim();
-        if (!color.startsWith('#')) {
-            color = '#' + color;
-        }
-        if (color.length === 4) {
-            color = '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
-        }
-        if (color.length !== 7) {
-            color = '#ffffff';
-        }
-
-        let permsArray: string[] = [];
-        if (Array.isArray(rawPerms)) {
-            permsArray = rawPerms.map((p: unknown) => typeof p === 'string' ? p : (p && typeof p === 'object' && 'name' in p ? String((p as { name?: unknown }).name) : String(p))).filter(Boolean);
-        }
-
-        const response = await fetchJson(create.url(selectedServer?.route_key), {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                name: name,
-                color: color,
-                perms: permsArray,
-                importance: importance,
-            })
-        });
+        await pb.collection('roles').create({
+            server: sId,
+            name: `${targetRole.name} Copy`,
+            color: targetRole.color || '#ffffff',
+            perms: targetRole.perms || [],
+            importance: importance
+        }, { requestKey: null });
 
         await fetchRoles();
-        if (response.data?.role) {
-            const duplicatedRole = roles.value.find(r => r.id === response.data.role.id) || response.data.role;
-            selectRole(duplicatedRole);
-        }
-    } catch (error: unknown) {
-        console.error('Error duplicating role:', (error as { response?: { data?: unknown } })?.response?.data || error);
+    } catch (error) {
+        console.error('Error duplicating role:', error);
     }
 };
 
@@ -206,27 +234,9 @@ const deleteRole = async () => {
     if (!editingRole.value) return;
     const role = editingRole.value;
     try {
-        await fetchJson(deleteMethod.url(role.id), {method: 'DELETE'});
-
-        roles.value = roles.value.filter(r => r.id !== role.id);
-
-        roles.value.forEach(r => {
-            if (r.importance > role.importance) {
-                r.importance -= 1;
-                fetchJson(edit.url(r.id), {
-                    method: 'PATCH',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({importance: r.importance})
-                });
-            }
-        });
-
-        roles.value.sort((a, b) => a.importance - b.importance);
+        await pb.collection('roles').delete(role.id, { requestKey: null });
         editingRole.value = null;
-        if (roles.value.length > 0) {
-            selectRole(roles.value[0]);
-        }
-
+        await fetchRoles();
     } catch (error) {
         console.error('Error deleting role:', error);
     }
@@ -303,7 +313,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
         <!-- Sidebar for Navigation -->
         <div class="w-80 bg-base-200 border-r border-base-300 flex flex-col h-full shrink-0">
             <div class="p-4 border-b border-base-300">
-                <router-link :to="server.url(selectedServer?.route_key)" class="btn btn-neutral w-full mb-4">
+                <router-link :to="server.url(currentServer?.id || selectedServer?.id || '')" class="btn btn-neutral w-full mb-4">
                     ← Back to Server
                 </router-link>
                 <div class="flex justify-between items-center mb-4">
@@ -365,7 +375,7 @@ const changeImportance = async (role: Role, direction: number, event: Event) => 
 
         <!-- Role Settings Content Section -->
         <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
-            <SettingsHeader :selected-server="selectedServer"/>
+            <SettingsHeader :selected-server="(currentServer || selectedServer) as Server"/>
 
             <div v-if="editingRole" class="flex-1 overflow-y-auto p-6 md:p-10">
                 <div class="max-w-4xl mx-auto space-y-8 pb-20">

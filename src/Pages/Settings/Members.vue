@@ -4,10 +4,11 @@ import SettingsHeader from "@/Components/SettingsHeader.vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {GiBootKick} from 'vue-icons-plus/gi';
 import {BsCheckLg} from 'vue-icons-plus/bs';
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {PermType, Role, Server, User} from '@/types';
 import pb from '@/pocketbase';
 import {server} from '@/routes/home';
+import {useRoute} from 'vue-router';
 
 interface customUser extends User {
     rolesWithServer: Role[]
@@ -18,37 +19,106 @@ interface customServer extends Server {
 }
 
 const perms = usePerms();
+const route = useRoute();
+
 const {selectedServer} = defineProps<{
-    selectedServer: customServer,
+    selectedServer?: customServer,
 }>();
+
+const serverData = ref<customServer | undefined>(selectedServer);
+
+const loadMembersData = async () => {
+    const serverId = (route.params.serverId as string) || selectedServer?.id;
+    if (!serverId) return;
+    try {
+        const s = await pb.collection('servers').getOne(serverId, { requestKey: null });
+        const memberRecs = await pb.collection('members').getFullList({
+            filter: `server = "${serverId}"`,
+            expand: 'user,role',
+            requestKey: null
+        });
+
+        const users: customUser[] = memberRecs.map(m => ({
+            id: m.expand?.user?.id || m.user,
+            nickname: m.expand?.user?.name || m.expand?.user?.username || 'User',
+            icon: m.expand?.user?.avatar || null,
+            status: m.expand?.user?.status || 'offline',
+            rolesWithServer: m.expand?.role ? [{
+                id: m.expand.role.id,
+                name: m.expand.role.name,
+                color: m.expand.role.color,
+                importance: m.expand.role.importance,
+                perms: m.expand.role.perms || []
+            }] : []
+        })) as unknown as customUser[];
+
+        const rolesRecs = await pb.collection('roles').getFullList({
+            filter: `server = "${serverId}"`,
+            sort: 'importance',
+            requestKey: null
+        });
+
+        const roles: Role[] = rolesRecs.map(r => ({
+            id: r.id,
+            server_id: r.server,
+            name: r.name,
+            color: r.color,
+            importance: r.importance,
+            perms: r.perms || []
+        })) as unknown as Role[];
+
+        serverData.value = {
+            id: s.id,
+            name: s.name,
+            slug: s.slug,
+            description: s.description,
+            owner: s.owner,
+            enable_whiteboard: s.enable_whiteboard,
+            icon: s.icon,
+            users: users,
+            roles: roles
+        } as unknown as customServer;
+    } catch (err) {
+        console.error('Error loading members data:', err);
+    }
+};
+
+onMounted(() => {
+    loadMembersData();
+});
 
 const createdInviteCode = ref<string | null>(null);
 const searchMembers = ref('');
 const filterRoleId = ref<string | null>(null);
 
 const filteredMembers = computed(() => {
-    let members = selectedServer.users;
+    if (!serverData.value?.users) return [];
+    let members = serverData.value.users;
     if (searchMembers.value) {
         const query = searchMembers.value.toLowerCase();
-        members = members.filter(user => user.nickname.toLowerCase().includes(query));
+        members = members.filter(user => (user.nickname || '').toLowerCase().includes(query));
     }
     if (filterRoleId.value) {
         members = members.filter(user =>
-            user.rolesWithServer.some(role => role.id === filterRoleId.value)
+            user.rolesWithServer && user.rolesWithServer.some(role => role.id === filterRoleId.value)
         );
     }
     return members;
 });
 
 const toggleRole = async (roleId: string, userId: string, state: boolean) => {
+    const sId = serverData.value?.id || selectedServer?.id;
+    if (!sId) return;
     try {
         const members = await pb.collection('members').getList(1, 1, {
-            filter: `server = "${selectedServer.id}" && user = "${userId}"`
+            filter: `server = "${sId}" && user = "${userId}"`,
+            requestKey: null
         });
         if (members.items.length > 0) {
             await pb.collection('members').update(members.items[0].id, {
                 role: state ? roleId : null
             });
+            loadMembersData();
         }
     } catch (err: unknown) {
         console.error('Error updating member role:', err);
@@ -56,12 +126,16 @@ const toggleRole = async (roleId: string, userId: string, state: boolean) => {
 };
 
 const kickMember = async (userId: string) => {
+    const sId = serverData.value?.id || selectedServer?.id;
+    if (!sId) return;
     try {
         const members = await pb.collection('members').getList(1, 1, {
-            filter: `server = "${selectedServer.id}" && user = "${userId}"`
+            filter: `server = "${sId}" && user = "${userId}"`,
+            requestKey: null
         });
         if (members.items.length > 0) {
             await pb.collection('members').delete(members.items[0].id);
+            loadMembersData();
         }
     } catch (err: unknown) {
         console.error('Error kicking member:', err);
@@ -69,18 +143,18 @@ const kickMember = async (userId: string) => {
 };
 
 const generateInvite = async () => {
+    const sId = serverData.value?.id || selectedServer?.id;
+    if (!sId) return;
     try {
-        const {data} = await fetchJson(`/server/${selectedServer.id}/invites`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+        const inviteRec = await pb.collection('invites').create({
+            server: sId,
+            created_by_user: pb.authStore.model?.id,
+            code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+            uses: 0
         });
-        if (data && data.invite) {
-            createdInviteCode.value = data.invite.code;
-        }
-    } catch {
-        // Handle error
+        createdInviteCode.value = inviteRec.code;
+    } catch (err) {
+        console.error('Error generating invite:', err);
     }
 };
 </script>
@@ -89,7 +163,7 @@ const generateInvite = async () => {
     <div class="flex h-screen bg-base-100 overflow-hidden">
         <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
             <div class="px-6 pt-6 md:px-10 md:pt-10 max-w-6xl mx-auto w-full pb-0">
-                <SettingsHeader :selected-server="selectedServer">
+                <SettingsHeader :selected-server="(serverData || selectedServer) as Server">
                     <template #title>
                         Members
                     </template>
@@ -104,7 +178,7 @@ const generateInvite = async () => {
                             <p class="text-sm text-base-content/70 mt-1">Manage members and roles for this server.</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <router-link :to="server.url(selectedServer.route_key)" class="btn btn-neutral px-6">
+                            <router-link :to="server.url(serverData?.id || selectedServer?.id || '')" class="btn btn-neutral px-6">
                                 ← Back to Server
                             </router-link>
                             <button
@@ -132,7 +206,7 @@ const generateInvite = async () => {
                             v-model="filterRoleId"
                             class="select select-bordered select-sm w-full sm:w-48 bg-base-100">
                             <option :value="null">All Roles</option>
-                            <option v-for="role in selectedServer.roles" :key="role.id" :value="role.id">
+                            <option v-for="role in (serverData?.roles || selectedServer?.roles || [])" :key="role.id" :value="role.id">
                                 {{ role.name }}
                             </option>
                         </select>
@@ -173,7 +247,7 @@ const generateInvite = async () => {
                                                 </div>
                                             </div>
                                             <span
-                                                :style="{ color: getMemberRoleColor(user, selectedServer.roles) }"
+                                                :style="{ color: getMemberRoleColor(user, serverData?.roles || selectedServer?.roles) }"
                                                 class="font-medium">{{
                                                     user.nickname
                                                 }}</span>
@@ -182,8 +256,8 @@ const generateInvite = async () => {
                                     <td class="py-4 px-6 text-center">
                                         <div class="dropdown dropdown-top dropdown-end">
                                             <button
-                                                :class="selectedServer.roles?.length === 0 ? 'tooltip' : ''"
-                                                :disabled="selectedServer.roles?.length === 0"
+                                                :class="(serverData?.roles || selectedServer?.roles)?.length === 0 ? 'tooltip' : ''"
+                                                :disabled="(serverData?.roles || selectedServer?.roles)?.length === 0"
                                                 class="btn btn-sm bg-base-100 hover:bg-base-300 border-base-300"
                                                 data-tip="Your server doesnt have roles."
                                                 tabindex="0">
@@ -192,7 +266,7 @@ const generateInvite = async () => {
                                             <ul
                                                 class="dropdown-content menu bg-base-100 rounded-box z-50 w-52 p-2 shadow-lg gap-y-1 mb-2 border border-base-300"
                                                 tabindex="0">
-                                                <li v-for="role in selectedServer.roles" :key="role.id">
+                                                <li v-for="role in (serverData?.roles || selectedServer?.roles || [])" :key="role.id">
                                                     <button
                                                         :class="user.rolesWithServer.find(objRole => objRole.id === role.id) ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'hover:bg-base-200'"
                                                         :disabled="!perms.has([PermType.CAN_EDIT_MEMBER_ROLES])"

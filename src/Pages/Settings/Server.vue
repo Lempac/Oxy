@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { usePerms, fetchJson } from '@/bootstrap';
-import {ref, reactive} from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import {resolveUrl} from "@/bootstrap";
+import { resolveUrl } from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
 import { PermType, Server } from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';
@@ -11,23 +11,25 @@ import { BsCheckLg } from 'vue-icons-plus/bs';
 import { MdLink } from 'vue-icons-plus/md';
 import { server } from '@/routes/home';
 import ImageEditorModal from '@/Components/ImageEditorModal.vue';
+import pb from '@/pocketbase';
+import { useRoute, useRouter } from 'vue-router';
 
 const perms = usePerms();
+const route = useRoute();
+const router = useRouter();
+
 const {selectedServer, inviteCode} = defineProps<{
     selectedServer?: Server,
     inviteCode?: string,
 }>();
 
+const currentServer = ref<Server | undefined>(selectedServer);
+const code = ref<string>(inviteCode || '');
 const icon = ref<string | null>(selectedServer?.icon ? resolveUrl(selectedServer?.icon) : null);
 const inputFile = ref<File | null>(null);
 const isEditorOpen = ref(false);
 const editorImageSource = ref<File | null>(null);
 const isDraggingOver = ref(false);
-
-import pb from '@/pocketbase';
-import {useRouter} from 'vue-router';
-
-const router = useRouter();
 
 const form = reactive({
     name: selectedServer?.name || '',
@@ -37,6 +39,51 @@ const form = reactive({
     enable_whiteboard: selectedServer?.enable_whiteboard ?? true,
     isDirty: false,
     errors: {} as Record<string, string>,
+});
+
+const loadSettingsData = async () => {
+    const serverId = (route.params.serverId as string) || selectedServer?.id;
+    if (!serverId) return;
+    try {
+        const s = await pb.collection('servers').getOne(serverId, { requestKey: null });
+        currentServer.value = {
+            id: s.id,
+            name: s.name,
+            slug: s.slug,
+            description: s.description,
+            owner: s.owner,
+            enable_whiteboard: s.enable_whiteboard,
+            icon: s.icon,
+            route_key: s.id
+        } as unknown as Server;
+
+        form.name = s.name;
+        form.description = s.description || '';
+        form.enable_whiteboard = s.enable_whiteboard ?? true;
+
+        if (s.icon) {
+            icon.value = resolveUrl(s.icon);
+        }
+
+        try {
+            const invites = await pb.collection('invites').getList(1, 1, {
+                filter: `server = "${serverId}"`,
+                sort: '-created',
+                requestKey: null
+            });
+            if (invites.items.length > 0) {
+                code.value = invites.items[0].code;
+            }
+        } catch {
+            // ignore invite fetch error
+        }
+    } catch (err) {
+        console.error('Error loading server settings:', err);
+    }
+};
+
+onMounted(() => {
+    loadSettingsData();
 });
 
 const error = ref<string | null>(null);
@@ -67,7 +114,8 @@ async function handleSave() {
         error.value = "Server name cannot be empty.";
         return;
     }
-    if (!selectedServer?.id) return;
+    const targetId = currentServer.value?.id || selectedServer?.id;
+    if (!targetId) return;
     error.value = null;
 
     try {
@@ -79,16 +127,17 @@ async function handleSave() {
             formData.append('icon', form.icon);
         }
 
-        await pb.collection('servers').update(selectedServer.id, formData);
+        await pb.collection('servers').update(targetId, formData);
     } catch (err: unknown) {
         error.value = (err as { message?: string })?.message || 'Failed to update server.';
     }
 }
 
 async function deleteServer() {
-    if (!selectedServer?.id) return;
+    const targetId = currentServer.value?.id || selectedServer?.id;
+    if (!targetId) return;
     try {
-        await pb.collection('servers').delete(selectedServer.id);
+        await pb.collection('servers').delete(targetId);
         router.push('/home');
     } catch (err: unknown) {
         error.value = (err as { message?: string })?.message || 'Failed to delete server.';
@@ -98,9 +147,9 @@ async function deleteServer() {
 const copyCodeStatus = ref<Record<string, boolean>>({});
 const copyLinkStatus = ref<Record<string, boolean>>({});
 
-const getInviteLink = (code: string) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${origin}/?invite=${encodeURIComponent(code)}`;
+const getInviteLink = (inviteCodeString: string) => {
+    const base = pb.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+    return `${base}/?invite=${encodeURIComponent(inviteCodeString)}`;
 };
 
 const copyCodeToClipboard = (code: string) => {

@@ -1,16 +1,19 @@
 <script lang="ts" setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ChannelSidebar from '@/Components/ChannelSidebar.vue';
-import {joinServer} from "@/bootstrap";
-import {computed, onMounted, ref} from "vue";
-import {Server, Channel} from "@/types";
+import Texting from '@/Pages/Text/Texting.vue';
+import Whiteboarding from '@/Pages/Whiteboard/Whiteboarding.vue';
+import { joinServer } from "@/bootstrap";
+import { computed, onMounted, ref, watch } from "vue";
+import { Server, Channel, ChannelType } from "@/types";
 import ErrorAlert from "@/Components/ErrorAlert.vue";
-import {usePaneDrag} from "@/composables/usePaneDrag";
-import {useServerStore} from "@/composables/useServerStore";
+import { usePaneDrag } from "@/composables/usePaneDrag";
+import { useServerStore } from "@/composables/useServerStore";
 import pb from '@/pocketbase';
-import {useRouter} from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const serverStore = useServerStore();
 
 const {
@@ -60,7 +63,98 @@ const checkServerCode = () => {
     }, 300);
 };
 
-onMounted(async () => {
+const props = defineProps<{
+    servers?: Server[];
+    selectedServer?: Server;
+    channels?: Channel[];
+    inviteCode?: string;
+}>();
+
+const activeServer = ref<Server | undefined>(props.selectedServer);
+const serverChannels = ref<Channel[]>(props.channels || []);
+const activeChannel = ref<Channel | undefined>();
+const pageLoading = ref(false);
+
+const loadRouteData = async () => {
+    const serverId = route.params.serverId as string;
+    const channelId = route.params.channelId as string;
+
+    await serverStore.fetchServers();
+
+    if (!serverId) {
+        const firstServer = serverStore.servers.value[0];
+        if (firstServer) {
+            try {
+                const chans = await pb.collection('channels').getFullList({
+                    filter: `server = "${firstServer.id}"`,
+                    sort: 'position',
+                    requestKey: null
+                });
+                const firstChan = chans[0];
+                if (firstChan) {
+                    router.replace(`/channels/${firstServer.id}/${firstChan.id}`);
+                    return;
+                }
+            } catch (err) {
+                console.error('Error fetching initial server channels:', err);
+            }
+        }
+        activeServer.value = undefined;
+        serverChannels.value = [];
+        activeChannel.value = undefined;
+        return;
+    }
+
+    pageLoading.value = true;
+    try {
+        const serverRec = await pb.collection('servers').getOne(serverId, { requestKey: null });
+        activeServer.value = {
+            id: serverRec.id,
+            name: serverRec.name,
+            slug: serverRec.slug,
+            description: serverRec.description,
+            owner: serverRec.owner,
+            enable_whiteboard: serverRec.enable_whiteboard,
+            icon: serverRec.icon,
+            route_key: serverRec.id
+        } as unknown as Server;
+
+        const chanRecs = await pb.collection('channels').getFullList({
+            filter: `server = "${serverId}"`,
+            sort: 'position',
+            requestKey: null
+        });
+
+        serverChannels.value = chanRecs.map(c => ({
+            id: c.id,
+            server_id: c.server,
+            name: c.name,
+            slug: c.slug,
+            type: c.type,
+            position: c.position
+        })) as unknown as Channel[];
+
+        if (channelId) {
+            activeChannel.value = serverChannels.value.find(c => c.id === channelId) || serverChannels.value[0];
+        } else if (serverChannels.value.length > 0) {
+            activeChannel.value = serverChannels.value[0];
+            router.replace(`/channels/${serverId}/${serverChannels.value[0].id}`);
+        }
+    } catch (err) {
+        console.error('Error loading channel route data:', err);
+        activeServer.value = undefined;
+        serverChannels.value = [];
+        activeChannel.value = undefined;
+    } finally {
+        pageLoading.value = false;
+    }
+};
+
+watch(() => [route.params.serverId, route.params.channelId], () => {
+    loadRouteData();
+}, { immediate: true });
+
+onMounted(() => {
     if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const invite = params.get('invite') || params.get('code');
@@ -69,35 +163,9 @@ onMounted(async () => {
             checkServerCode();
         }
     }
-    if (!props.selectedServer && pb.authStore.model?.id) {
-        await serverStore.fetchServers();
-        const targetServerId = serverStore.servers.value[0]?.id;
-        if (targetServerId) {
-            try {
-                const channels = await pb.collection('channels').getFullList({
-                    filter: `server = "${targetServerId}"`,
-                    sort: 'position',
-                    requestKey: null
-                });
-                const firstChannel = channels[0];
-                if (firstChannel) {
-                    router.push(`/channels/${targetServerId}/${firstChannel.id}`);
-                }
-            } catch (err) {
-                console.error('Error auto-selecting server channel:', err);
-            }
-        }
-    }
 });
 
-const props = defineProps<{
-    servers: Server[],
-    selectedServer?: Server,
-    channels?: Channel[],
-    inviteCode?: string
-}>();
-
-const availablePanes = computed(() => props.selectedServer ? ['sidebar', 'main'] : ['main']);
+const availablePanes = computed(() => activeServer.value ? ['sidebar', 'main'] : ['main']);
 const activePanes = computed(() => getOrderedPanes(availablePanes.value));
 
 const onPaneDragEnter = (paneId: string) => {
@@ -121,15 +189,14 @@ const onPaneDragLeave = (e: DragEvent, paneId: string) => {
         }
     }
 };
-
 </script>
 
 <template>
-    <AuthenticatedLayout :invite-code="inviteCode" :selected-server="selectedServer" :servers="servers" :channels="channels">
+    <AuthenticatedLayout :invite-code="inviteCode" :selected-server="activeServer" :servers="serverStore.servers.value" :channels="serverChannels">
         <template v-for="(paneId, idx) in activePanes" :key="paneId">
             <!-- Sidebar Pane -->
             <div
-                v-if="paneId === 'sidebar' && selectedServer"
+                v-if="paneId === 'sidebar' && activeServer"
                 :style="getPaneStyle('sidebar', activePanes)"
                 :class="[
                     'flex flex-col overflow-hidden relative transition-all duration-75',
@@ -142,10 +209,10 @@ const onPaneDragLeave = (e: DragEvent, paneId: string) => {
                 @dragleave="onPaneDragLeave($event, 'sidebar')"
                 @drop="dropOnPane('sidebar')"
             >
-                <ChannelSidebar :channels="channels" :selected-server="selectedServer" />
+                <ChannelSidebar :channels="serverChannels" :selected-server="activeServer" :selected-channel="activeChannel" />
             </div>
 
-            <!-- Main Home Content Pane -->
+            <!-- Main Content Pane -->
             <div
                 v-else-if="paneId === 'chat' || paneId === 'main'"
                 :style="getPaneStyle('main', activePanes)"
@@ -160,12 +227,18 @@ const onPaneDragLeave = (e: DragEvent, paneId: string) => {
                 @dragleave="onPaneDragLeave($event, 'main')"
                 @drop="dropOnPane('main')"
             >
-                <div class="py-12">
+                <div v-if="activeChannel && activeChannel.type === ChannelType.Text" class="h-full flex flex-col">
+                    <Texting :servers="serverStore.servers.value" :selected-server="activeServer" :channels="serverChannels" :selected-channel="activeChannel" />
+                </div>
+                <div v-else-if="activeChannel && activeChannel.type === ChannelType.Whiteboard" class="h-full flex flex-col">
+                    <Whiteboarding :servers="serverStore.servers.value" :selected-server="activeServer" :channels="serverChannels" :selected-channel="(activeChannel as any)" />
+                </div>
+                <div v-else class="py-12">
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
                         <div
-                            v-if="selectedServer?.description"
+                            v-if="activeServer?.description"
                             class="card bg-base-100 shadow-sm sm:rounded-lg">
-                            <span class="card-body">{{ selectedServer?.description }}</span>
+                            <span class="card-body">{{ activeServer?.description }}</span>
                         </div>
                         <div class="bg-base-100 overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 text-base-content">
