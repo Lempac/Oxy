@@ -15,31 +15,36 @@ export const resolveUrl = (pathOrUrl?: string | null): string => {
     return `${base}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}`;
 };
 
-export const bigIntToPerms = (newPrem: string[]): Perms => ({
-    perms: [...newPrem],
-    add(addPerm) {
-        const permsToAdd = Array.isArray(addPerm) ? addPerm : [addPerm];
-        for (const p of permsToAdd) {
-            if (!this.perms.includes(p)) {
-                this.perms.push(p);
+export const bigIntToPerms = (newPrem: string[]): Perms => {
+    const permSet = new Set<string>(newPrem || []);
+    return {
+        perms: Array.from(permSet),
+        add(addPerm) {
+            const permsToAdd = Array.isArray(addPerm) ? addPerm : [addPerm];
+            for (const p of permsToAdd) {
+                permSet.add(p);
             }
+            this.perms = Array.from(permSet);
+        },
+        has(otherPerm) {
+            if (permSet.has('ADMINISTRATOR')) return true;
+            const permsToCheck = Array.isArray(otherPerm) ? otherPerm : [otherPerm];
+            return permsToCheck.every(p => permSet.has(p));
+        },
+        hasAny(otherPerm) {
+            if (permSet.has('ADMINISTRATOR')) return true;
+            const permsToCheck = Array.isArray(otherPerm) ? otherPerm : [otherPerm];
+            return permsToCheck.some(p => permSet.has(p));
+        },
+        remove(removePerm) {
+            const permsToRemove = Array.isArray(removePerm) ? removePerm : [removePerm];
+            for (const p of permsToRemove) {
+                permSet.delete(p);
+            }
+            this.perms = Array.from(permSet);
         }
-    },
-    has(otherPerm) {
-        if (this.perms.includes('ADMINISTRATOR')) return true;
-        const permsToCheck = Array.isArray(otherPerm) ? otherPerm : [otherPerm];
-        return permsToCheck.every(p => this.perms.includes(p));
-    },
-    hasAny(otherPerm) {
-        if (this.perms.includes('ADMINISTRATOR')) return true;
-        const permsToCheck = Array.isArray(otherPerm) ? otherPerm : [otherPerm];
-        return permsToCheck.some(p => this.perms.includes(p));
-    },
-    remove(removePerm) {
-        const permsToRemove = Array.isArray(removePerm) ? removePerm : [removePerm];
-        this.perms = this.perms.filter(p => !permsToRemove.includes(p));
-    }
-});
+    };
+};
 
 export const fetchJson = async (url: string, options: RequestInit = {}) => {
     const token = pb.authStore.token;
@@ -102,44 +107,17 @@ export const getMemberRoleColor = (
     return memberServerRoles[0]?.color || undefined;
 };
 
-const ALL_PERMISSIONS_LIST = [
-    'ADMINISTRATOR',
-    'CAN_DELETE_SERVER',
-    'CAN_EDIT_SERVER',
-    'CAN_CREATE_CHANNEL',
-    'CAN_DELETE_CHANNEL',
-    'CAN_EDIT_CHANNEL',
-    'CAN_CREATE_MESSAGE',
-    'CAM_CREATE_ATTACHMENTS',
-    'CAN_DELETE_MESSAGE',
-    'CAN_MANAGE_CHANNEL',
-    'CAN_CREATE_ROLE',
-    'CAN_DELETE_ROLE',
-    'CAN_EDIT_ROLE',
-    'CAN_MANAGE_MEMBERS',
-    'CAN_MANAGE_ROLE',
-    'CAN_MANAGE_SERVER',
-    'CAN_SEE_CHANNEL',
-    'CAN_INVITE',
-    'CAN_KICK',
-    'CAN_EDIT_MEMBER_ROLES',
-    'SEND_MESSAGES',
-    'ATTACH_FILES',
-    'CONNECT_VOICE',
-    'SPEAK_VOICE'
-];
-
 export const usePerms = (server?: Server | null, user?: User | null) => {
     return computed(() => {
         const currentUser = user || (pb.authStore.model as unknown as User);
         const currentServer = server;
 
         if (!currentServer || !currentUser) {
-            return bigIntToPerms(ALL_PERMISSIONS_LIST);
+            return bigIntToPerms(['ADMINISTRATOR']);
         }
 
         if ((currentServer as unknown as { owner?: string }).owner === currentUser.id) {
-            return bigIntToPerms(ALL_PERMISSIONS_LIST);
+            return bigIntToPerms(['ADMINISTRATOR']);
         }
 
         const userRoles = currentUser.rolesWithServer || currentUser.roles || [];
@@ -149,6 +127,10 @@ export const usePerms = (server?: Server | null, user?: User | null) => {
             userRoles.some(uRole => String(uRole.id) === String(sRole.id))
         );
 
+        if (matchingRoles.length === 0) {
+            return bigIntToPerms(['ADMINISTRATOR']);
+        }
+
         const allPerms = new Set<string>();
         for (const r of matchingRoles) {
             if (r.perms) {
@@ -156,10 +138,6 @@ export const usePerms = (server?: Server | null, user?: User | null) => {
                     allPerms.add(p);
                 }
             }
-        }
-
-        if (allPerms.has('ADMINISTRATOR') || matchingRoles.length === 0) {
-            return bigIntToPerms(ALL_PERMISSIONS_LIST);
         }
 
         return bigIntToPerms(Array.from(allPerms));
