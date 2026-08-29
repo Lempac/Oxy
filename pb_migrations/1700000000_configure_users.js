@@ -4,6 +4,7 @@ migrate((app) => {
     const emailField = usersCol.fields.getByName("email");
     if (emailField) {
       emailField.required = false;
+      emailField.hidden = true;
     }
     const usernameField = usersCol.fields.getByName("username");
     if (usernameField) {
