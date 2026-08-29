@@ -1,14 +1,19 @@
 <script lang="ts" setup>
 import {defaultIcon, getMemberRoleColor, resolveUrl, usePerms} from '@/bootstrap';
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import ChannelSidebar from "@/Components/ChannelSidebar.vue";
 import pb from "@/pocketbase";
 import {Channel, Message, PermType, Server} from "@/types";
 import {computed, nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 import ConfirmDialog from "@/Components/ConfirmDialog.vue";
 import {Filter} from 'bad-words';
 import {FaRegPaperPlane} from 'vue-icons-plus/fa';
-import {MdOutlineDeleteForever, MdOutlineModeEdit, MdDragIndicator, MdOutlineFileUpload, MdClose, MdArrowDownward} from 'vue-icons-plus/md';
+import {
+    MdArrowDownward,
+    MdClose,
+    MdDragIndicator,
+    MdOutlineDeleteForever,
+    MdOutlineFileUpload,
+    MdOutlineModeEdit
+} from 'vue-icons-plus/md';
 import {useMessageEvents} from "@/composables/useMessageEvents";
 import {usePaneDrag} from "@/composables/usePaneDrag";
 import {useRecentUploads} from "@/composables/useRecentUploads";
@@ -17,6 +22,7 @@ import FileAttachmentDisplay from "@/Components/FileAttachmentDisplay.vue";
 import RecentUploadsDropdown from "@/Components/RecentUploadsDropdown.vue";
 import ImageEditorModal from "@/Components/ImageEditorModal.vue";
 import {validateFilesBatch, validateMessageContent} from "@/utils/fileValidation";
+
 
 const {
     draggedPaneId,
@@ -29,7 +35,7 @@ const {
     dropOnPane,
     startGutterResize
 } = usePaneDrag();
-const { addRecentUpload } = useRecentUploads();
+const {addRecentUpload} = useRecentUploads();
 
 const filter = new Filter({placeHolder: '#'});
 filter.addWords();
@@ -73,14 +79,21 @@ const form = reactive({
     content: '',
     attachments: [] as File[],
     processing: false,
-    reset() { this.content = ''; this.attachments = []; },
-    post(_url?: string, _opts?: unknown) { this.processing = false; }
+    reset() {
+        this.content = '';
+        this.attachments = [];
+    },
+    post(_url?: string, _opts?: unknown) {
+        this.processing = false;
+    }
 });
 
 const editForm = reactive({
     content: '',
     processing: false,
-    reset() { this.content = ''; },
+    reset() {
+        this.content = '';
+    },
 });
 
 useMessageEvents(props.selectedChannel?.id);
@@ -322,7 +335,7 @@ const getMessagesContainer = (): HTMLElement | null => {
 const handleScroll = (e?: Event) => {
     const el = (e?.target as HTMLElement) || getMessagesContainer();
     if (!el || isRestoring) return;
-    const { scrollTop, scrollHeight, clientHeight } = el;
+    const {scrollTop, scrollHeight, clientHeight} = el;
     const maxScroll = scrollHeight - clientHeight;
 
     if (maxScroll <= 30) {
@@ -406,7 +419,9 @@ const restoreScrollOrBottom = () => {
 
 onMounted(() => {
     restoreScrollOrBottom();
-    nextTick(() => { restoreScrollOrBottom(); });
+    nextTick(() => {
+        restoreScrollOrBottom();
+    });
     setTimeout(restoreScrollOrBottom, 50);
     setTimeout(restoreScrollOrBottom, 150);
     setTimeout(restoreScrollOrBottom, 350);
@@ -422,7 +437,9 @@ onUnmounted(() => {
 watch(
     () => props.selectedChannel?.id,
     () => {
-        nextTick(() => { restoreScrollOrBottom(); });
+        nextTick(() => {
+            restoreScrollOrBottom();
+        });
         setTimeout(restoreScrollOrBottom, 100);
         setTimeout(restoreScrollOrBottom, 300);
     }
@@ -484,240 +501,224 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
 </script>
 
 <template>
-    <AuthenticatedLayout
-        :channels="channels" :invite-code="inviteCode" :selected-server="selectedServer"
-        :servers="servers">
-
-        <template v-for="(paneId, idx) in activePanes" :key="paneId">
-            <!-- Sidebar Pane -->
+    <div class="h-full flex flex-col w-full relative">
+        <!-- Chat Stream & Input Pane -->
+        <div
+            class="bg-base-100 flex-1 flex flex-col overflow-hidden relative min-w-[250px] h-full"
+            @dragleave="onChatDragLeave"
+            @drop="onDrop"
+            @paste="handlePaste"
+            @dragenter.prevent="onDragEnter($event)"
+            @dragover.prevent="onDragOver($event)"
+        >
+            <!-- Pane Swap Drag Hover Overlay -->
             <div
-                v-if="paneId === 'sidebar' && selectedServer"
-                :style="getPaneStyle('sidebar', activePanes)"
-                class="flex flex-col overflow-hidden relative transition-all duration-75"
-                @dragenter.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
-                @dragover.prevent="draggedPaneId ? setDragHoverPane('sidebar') : null"
-                @dragleave="onPaneDragLeave($event, 'sidebar')"
-                @drop="dropOnPane('sidebar')"
-            >
-                <ChannelSidebar :channels="channels" :selected-server="selectedServer" />
-
-                <!-- Pane Swap Drag Hover Overlay -->
+                v-if="dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'"
+                class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
+            />
+            <template v-if="selectedChannel">
+                <!-- File Drag & Drop Overlay -->
                 <div
-                    v-if="dragHoverPaneId === 'sidebar' && draggedPaneId && draggedPaneId !== 'sidebar'"
-                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
-                />
-            </div>
-
-            <!-- Chat Stream & Input Pane -->
-            <div
-                v-else-if="paneId === 'chat' || paneId === 'main'"
-                :style="getPaneStyle('chat', activePanes)"
-                class="bg-base-100 flex flex-col overflow-hidden relative transition-all duration-75 min-w-[250px]"
-                @dragenter.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragEnter($event)"
-                @dragover.prevent="draggedPaneId ? setDragHoverPane('chat') : onDragOver($event)"
-                @dragleave="onChatDragLeave"
-                @drop="onDrop"
-                @paste="handlePaste"
-            >
-                <!-- Pane Swap Drag Hover Overlay -->
-                <div
-                    v-if="dragHoverPaneId === 'chat' && draggedPaneId && draggedPaneId !== 'chat'"
-                    class="absolute inset-0 z-40 pointer-events-none border-2 border-dashed border-primary bg-primary/15 rounded-xl transition-all animate-fadeIn"
-                />
-                <template v-if="selectedChannel">
-                    <!-- File Drag & Drop Overlay -->
+                    v-if="isFileDragging"
+                    class="absolute inset-0 bg-base-100/90 backdrop-blur-xs border-2 border-dashed border-primary z-40 flex flex-col items-center justify-center pointer-events-none m-2 rounded-2xl animate-fadeIn"
+                >
                     <div
-                        v-if="isFileDragging"
-                        class="absolute inset-0 bg-base-100/90 backdrop-blur-xs border-2 border-dashed border-primary z-40 flex flex-col items-center justify-center pointer-events-none m-2 rounded-2xl animate-fadeIn"
+                        class="p-6 bg-base-200/80 rounded-2xl shadow-xl flex flex-col items-center gap-2 border border-base-300 text-center">
+                        <MdOutlineFileUpload class="size-12 text-primary animate-bounce"/>
+                        <p class="font-bold text-base text-base-content">Drop files here to upload</p>
+                        <p class="text-xs text-base-content/60">Images, PDFs, documents, archives, audio, video &
+                            software</p>
+                    </div>
+                </div>
+
+                <!-- Channel Header Bar with Drag Handle -->
+                <div
+                    class="h-12 px-4 bg-base-200/50 border-b border-base-300 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2 font-bold text-sm text-base-content">
+                        <span>#</span>
+                        <span>{{ selectedChannel.name }}</span>
+                    </div>
+                    <div
+                        class="cursor-grab active:cursor-grabbing text-base-content/70 hover:text-primary p-1 rounded hover:bg-base-300 transition-colors"
+                        draggable="true"
+                        title="Drag handle: Drag to swap pane position"
+                        @dragend="endPaneSwapDrag"
+                        @dragstart="startPaneSwapDrag('chat')"
                     >
-                        <div class="p-6 bg-base-200/80 rounded-2xl shadow-xl flex flex-col items-center gap-2 border border-base-300 text-center">
-                            <MdOutlineFileUpload class="size-12 text-primary animate-bounce" />
-                            <p class="font-bold text-base text-base-content">Drop files here to upload</p>
-                            <p class="text-xs text-base-content/60">Images, PDFs, documents, archives, audio, video & software</p>
-                        </div>
+                        <MdDragIndicator class="size-4"/>
                     </div>
+                </div>
 
-                    <!-- Channel Header Bar with Drag Handle -->
-                    <div class="h-12 px-4 bg-base-200/50 border-b border-base-300 flex items-center justify-between shrink-0">
-                        <div class="flex items-center gap-2 font-bold text-sm text-base-content">
-                            <span>#</span>
-                            <span>{{ selectedChannel.name }}</span>
-                        </div>
+                <!-- Messages Stream -->
+                <div
+ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10 relative"
+                     @scroll="handleScroll">
+                    <div v-if="messages && messages.length > 0" class="space-y-4">
                         <div
-                            draggable="true"
-                            class="cursor-grab active:cursor-grabbing text-base-content/70 hover:text-primary p-1 rounded hover:bg-base-300 transition-colors"
-                            title="Drag handle: Drag to swap pane position"
-                            @dragstart="startPaneSwapDrag('chat')"
-                            @dragend="endPaneSwapDrag"
+                            v-for="message in messages" :key="message.id"
+                            :class="{'chat chat-start': message.user_id !== pb.authStore.model?.id, 'chat chat-end': message.user_id === pb.authStore.model?.id}"
                         >
-                            <MdDragIndicator class="size-4" />
-                        </div>
-                    </div>
+                            <div class="chat-image avatar">
+                                <div class="w-10 rounded-full">
+                                    <img
+                                        :src="resolveUrl(message.sender?.icon) || defaultIcon"
+                                        alt="User Avatar"
+                                        @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"/>
+                                </div>
+                            </div>
+                            <div class="chat-header">
+                                <span
+:style="{ color: getMemberRoleColor(message.sender, selectedServer?.roles) }"
+                                      class="font-semibold">{{
+                                        message.sender?.nickname || message.sender?.name
+                                    }}</span>
+                                <time class="text-xs opacity-50 ml-1">{{ formatDate(message.created_at) }}</time>
+                            </div>
 
-                    <!-- Messages Stream -->
-                    <div ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10 relative" @scroll="handleScroll">
-                        <div v-if="messages && messages.length > 0" class="space-y-4">
-                            <div
-                                v-for="message in messages" :key="message.id"
-                                :class="{'chat chat-start': message.user_id !== pb.authStore.model?.id, 'chat chat-end': message.user_id === pb.authStore.model?.id}"
-                            >
-                                <div class="chat-image avatar">
-                                    <div class="w-10 rounded-full">
-                                        <img
-                                            :src="resolveUrl(message.sender?.icon) || defaultIcon"
-                                            @error="(e) => (e.target as HTMLImageElement).src = defaultIcon"
-                                            alt="User Avatar"/>
+                            <div class="indicator">
+                                <div
+                                    class="chat-bubble group max-w-full bg-base-200 text-base-content flex flex-col gap-1">
+                                    <!-- Message Text Body -->
+                                    <div
+v-if="message.content"
+                                         class="text-wrap break-words max-w-[40vw] whitespace-pre-wrap text-sm">
+                                        {{ filter.clean(message.content) }}
                                     </div>
-                                </div>
-                                <div class="chat-header">
-                                    <span class="font-semibold" :style="{ color: getMemberRoleColor(message.sender, selectedServer?.roles) }">{{ message.sender?.nickname || message.sender?.name }}</span>
-                                    <time class="text-xs opacity-50 ml-1">{{ formatDate(message.created_at) }}</time>
-                                </div>
 
-                                <div class="indicator">
-                                    <div class="chat-bubble group max-w-full bg-base-200 text-base-content flex flex-col gap-1">
-                                        <!-- Message Text Body -->
-                                        <div v-if="message.content" class="text-wrap break-words max-w-[40vw] whitespace-pre-wrap text-sm">
-                                            {{ filter.clean(message.content) }}
-                                        </div>
+                                    <!-- Message Attachments List -->
+                                    <div
+v-if="message.attachments && message.attachments.length > 0"
+                                         class="flex flex-col gap-1.5 mt-0.5">
+                                        <FileAttachmentDisplay
+                                            v-for="attachment in message.attachments"
+                                            :key="attachment.id"
+                                            :attachment="attachment"
+                                        />
+                                    </div>
 
-                                        <!-- Message Attachments List -->
-                                        <div v-if="message.attachments && message.attachments.length > 0" class="flex flex-col gap-1.5 mt-0.5">
-                                            <FileAttachmentDisplay
-                                                v-for="attachment in message.attachments"
-                                                :key="attachment.id"
-                                                :attachment="attachment"
-                                            />
-                                        </div>
-
-                                        <!-- Message Actions Hover Toolbar -->
-                                        <div
-                                            v-if="message.user_id === pb.authStore.model?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
-                                            class="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-base-300/90 backdrop-blur-xs rounded-md p-0.5 shadow-sm z-20"
+                                    <!-- Message Actions Hover Toolbar -->
+                                    <div
+                                        v-if="message.user_id === pb.authStore.model?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
+                                        class="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-base-300/90 backdrop-blur-xs rounded-md p-0.5 shadow-sm z-20"
+                                    >
+                                        <button
+                                            v-if="message.user_id === pb.authStore.model?.id"
+                                            class="btn btn-ghost btn-xs btn-circle p-0"
+                                            title="Edit text"
+                                            @click="openEditModal(message.id, message.content)"
                                         >
-                                            <button
-                                                v-if="message.user_id === pb.authStore.model?.id"
-                                                class="btn btn-ghost btn-xs btn-circle p-0"
-                                                title="Edit text"
-                                                @click="openEditModal(message.id, message.content)"
-                                            >
-                                                <MdOutlineModeEdit class="size-3.5 text-warning" />
-                                            </button>
-                                            <ConfirmDialog
-                                                v-if="message.user_id === pb.authStore.model?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
-                                                :confirm="() => deleteMessage(message.id)"
-                                                class-name="btn btn-ghost btn-xs btn-circle p-0"
-                                                description="Are you sure you want to delete this message?"
-                                                title="Delete Message"
-                                            >
-                                                <MdOutlineDeleteForever class="size-3.5 text-error" />
-                                            </ConfirmDialog>
-                                        </div>
+                                            <MdOutlineModeEdit class="size-3.5 text-warning"/>
+                                        </button>
+                                        <ConfirmDialog
+                                            v-if="message.user_id === pb.authStore.model?.id || perms.has([PermType.CAN_DELETE_MESSAGE])"
+                                            :confirm="() => deleteMessage(message.id)"
+                                            class-name="btn btn-ghost btn-xs btn-circle p-0"
+                                            description="Are you sure you want to delete this message?"
+                                            title="Delete Message"
+                                        >
+                                            <MdOutlineDeleteForever class="size-3.5 text-error"/>
+                                        </ConfirmDialog>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div v-else class="text-center text-base-content/50 py-8">
-                            <p>No messages yet in this channel.</p>
-                        </div>
                     </div>
-
-                    <!-- Floating Scroll to Bottom Button -->
-                    <Transition
-                        enter-active-class="transition duration-150 ease-out"
-                        enter-from-class="opacity-0 translate-y-3 scale-90"
-                        enter-to-class="opacity-100 translate-y-0 scale-100"
-                        leave-active-class="transition duration-100 ease-in"
-                        leave-from-class="opacity-100 translate-y-0 scale-100"
-                        leave-to-class="opacity-0 translate-y-3 scale-90"
-                    >
-                        <button
-                            v-if="isScrolledUp"
-                            type="button"
-                            class="btn btn-sm btn-circle btn-primary absolute bottom-20 right-8 shadow-2xl z-50 hover:scale-110 transition-transform"
-                            title="Jump to bottom"
-                            @click="scrollToBottomSmooth"
-                        >
-                            <MdArrowDownward class="size-5" />
-                        </button>
-                    </Transition>
-
-                    <!-- Validation Error Toast / Banner -->
-                    <div v-if="validationError" class="px-4 py-2 bg-error/15 text-error text-xs border-t border-error/30 flex items-center justify-between">
-                        <span>{{ validationError }}</span>
-                        <button class="btn btn-ghost btn-xs btn-circle" @click="clearValidation">
-                            <MdClose class="size-3.5" />
-                        </button>
+                    <div v-else class="text-center text-base-content/50 py-8">
+                        <p>No messages yet in this channel.</p>
                     </div>
-
-                    <!-- Staged File Previews Container (Supports Multiple Files) -->
-                    <div v-if="stagedFiles.length > 0" class="px-3 pt-2 pb-2 bg-base-100 border-t border-base-300 flex flex-wrap gap-2 max-h-36 overflow-y-auto shrink-0 z-10">
-                        <FilePreviewCard
-                            v-for="(file, index) in stagedFiles"
-                            :key="index + file.name"
-                            :file="file"
-                            @edit="openImageEditor(file, index)"
-                            @remove="removeStagedFile(index)"
-                        />
-                    </div>
-
-                    <!-- Send Message Form -->
-                    <form
-                        :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
-                        class="flex items-center gap-2 p-2 bg-base-100 shrink-0 z-10"
-                        @submit.prevent="createMessage"
-                    >
-                        <RecentUploadsDropdown
-                            :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
-                            @select-file="stageFiles"
-                            @open-file-picker="triggerFileInput"
-                        />
-                        <input
-                            id="message-file-input"
-                            ref="fileInput"
-                            :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
-                            autocomplete="off"
-                            class="hidden"
-                            data-bwignore="true"
-                            type="file"
-                            multiple
-                            @change="onFileInputChange"
-                        />
-
-                        <input
-                            v-model="form.content"
-                            :class="`input input-sm input-bordered flex-1 focus:outline-none ${validationError ? 'input-error' : ''}`"
-                            :disabled="loading || (!perms.has([PermType.CAN_CREATE_MESSAGE]) && stagedFiles.length === 0)"
-                            autocomplete="off"
-                            data-bwignore="true"
-                            :placeholder="stagedFiles.length > 0 ? `Add a message to ${stagedFiles.length} attachment${stagedFiles.length > 1 ? 's' : ''}... (optional)` : 'Type a message...'"
-                            type="text"
-                            @keydown.enter.prevent="createMessage"
-                        />
-                        <button
-                            :disabled="loading || (!form.content.trim() && stagedFiles.length === 0) || !perms.hasAny([PermType.CAN_CREATE_MESSAGE, PermType.CAM_CREATE_ATTACHMENTS])"
-                            class="btn btn-sm btn-square btn-primary shrink-0"
-                            type="submit"
-                            title="Send Message"
-                        >
-                            <FaRegPaperPlane class="size-3.5" />
-                        </button>
-                    </form>
-                </template>
-                <div v-else class="flex-grow flex items-center justify-center text-base-content/50 w-full h-full">
-                    <p>Select a channel to start texting!</p>
                 </div>
-            </div>
 
-            <!-- Gutter between adjacent panes -->
-            <div
-                v-if="idx < activePanes.length - 1"
-                class="w-1.5 hover:w-2 hover:bg-primary active:bg-primary cursor-col-resize z-30 transition-all bg-base-300/80 flex-shrink-0 self-stretch select-none"
-                :title="`Drag to resize`"
-                @pointerdown.prevent="startGutterResize($event, activePanes[idx], activePanes[idx + 1], activePanes)"
-            ></div>
-        </template>
-    </AuthenticatedLayout>
+                <!-- Floating Scroll to Bottom Button -->
+                <Transition
+                    enter-active-class="transition duration-150 ease-out"
+                    enter-from-class="opacity-0 translate-y-3 scale-90"
+                    enter-to-class="opacity-100 translate-y-0 scale-100"
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100 translate-y-0 scale-100"
+                    leave-to-class="opacity-0 translate-y-3 scale-90"
+                >
+                    <button
+                        v-if="isScrolledUp"
+                        class="btn btn-sm btn-circle btn-primary absolute bottom-20 right-8 shadow-2xl z-50 hover:scale-110 transition-transform"
+                        title="Jump to bottom"
+                        type="button"
+                        @click="scrollToBottomSmooth"
+                    >
+                        <MdArrowDownward class="size-5"/>
+                    </button>
+                </Transition>
+
+                <!-- Validation Error Toast / Banner -->
+                <div
+v-if="validationError"
+                     class="px-4 py-2 bg-error/15 text-error text-xs border-t border-error/30 flex items-center justify-between">
+                    <span>{{ validationError }}</span>
+                    <button class="btn btn-ghost btn-xs btn-circle" @click="clearValidation">
+                        <MdClose class="size-3.5"/>
+                    </button>
+                </div>
+
+                <!-- Staged File Previews Container (Supports Multiple Files) -->
+                <div
+v-if="stagedFiles.length > 0"
+                     class="px-3 pt-2 pb-2 bg-base-100 border-t border-base-300 flex flex-wrap gap-2 max-h-36 overflow-y-auto shrink-0 z-10">
+                    <FilePreviewCard
+                        v-for="(file, index) in stagedFiles"
+                        :key="index + file.name"
+                        :file="file"
+                        @edit="openImageEditor(file, index)"
+                        @remove="removeStagedFile(index)"
+                    />
+                </div>
+
+                <!-- Send Message Form -->
+                <form
+                    :class="{'border-t-0': stagedFiles.length > 0, 'border-t border-base-300': stagedFiles.length === 0}"
+                    class="flex items-center gap-2 p-2 bg-base-100 shrink-0 z-10"
+                    @submit.prevent="createMessage"
+                >
+                    <RecentUploadsDropdown
+                        :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
+                        @select-file="stageFiles"
+                        @open-file-picker="triggerFileInput"
+                    />
+                    <input
+                        id="message-file-input"
+                        ref="fileInput"
+                        :disabled="!perms.has([PermType.CAM_CREATE_ATTACHMENTS])"
+                        autocomplete="off"
+                        class="hidden"
+                        data-bwignore="true"
+                        multiple
+                        type="file"
+                        @change="onFileInputChange"
+                    />
+
+                    <input
+                        v-model="form.content"
+                        :class="`input input-sm input-bordered flex-1 focus:outline-none ${validationError ? 'input-error' : ''}`"
+                        :disabled="loading || (!perms.has([PermType.CAN_CREATE_MESSAGE]) && stagedFiles.length === 0)"
+                        :placeholder="stagedFiles.length > 0 ? `Add a message to ${stagedFiles.length} attachment${stagedFiles.length > 1 ? 's' : ''}... (optional)` : 'Type a message...'"
+                        autocomplete="off"
+                        data-bwignore="true"
+                        type="text"
+                        @keydown.enter.prevent="createMessage"
+                    />
+                    <button
+                        :disabled="loading || (!form.content.trim() && stagedFiles.length === 0) || !perms.hasAny([PermType.CAN_CREATE_MESSAGE, PermType.CAM_CREATE_ATTACHMENTS])"
+                        class="btn btn-sm btn-square btn-primary shrink-0"
+                        title="Send Message"
+                        type="submit"
+                    >
+                        <FaRegPaperPlane class="size-3.5"/>
+                    </button>
+                </form>
+            </template>
+            <div v-else class="flex-grow flex items-center justify-center text-base-content/50 w-full h-full">
+                <p>Select a channel to start texting!</p>
+            </div>
+        </div>
+    </div>
 
     <ImageEditorModal
         v-model="isEditorOpen"
@@ -743,7 +744,7 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                     ></textarea>
                 </div>
                 <div class="modal-action">
-                    <button class="btn btn-primary w-full" type="submit" :disabled="editForm.processing">
+                    <button :disabled="editForm.processing" class="btn btn-primary w-full" type="submit">
                         Save Changes
                     </button>
                 </div>

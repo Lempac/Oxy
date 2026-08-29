@@ -28,6 +28,15 @@ const props = defineProps<{
     selectedChannel?: Channel;
 }>();
 
+const isChannelRouteActive = (channelId: string) => {
+    return (route?.params?.channelId === channelId) || (props.selectedChannel?.id === channelId);
+};
+
+const getChannelPath = (channelId: string) => {
+    const sId = props.selectedServer?.id || (route?.params?.serverId as string) || '';
+    return `/channels/${sId}/${channelId}`;
+};
+
 const isEditMode = ref(false);
 const isChannelModalOpen = ref(false);
 const isEditing = ref(false);
@@ -292,7 +301,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                         :key="channel.id"
                         class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-all duration-150 relative border-2"
                         :class="[
-                            currentPath.includes(`/text/${channel.route_key}`) ? 'bg-primary text-primary-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
+                            isChannelRouteActive(channel.id) ? 'bg-primary text-primary-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
                             hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id
                                 ? 'border-dotted border-primary bg-primary/15'
                                 : 'border-transparent'
@@ -315,18 +324,11 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                         </div>
 
                         <router-link
-                            v-if="!currentPath.includes(`/text/${channel.route_key}`)"
-                            :to="textChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
+                            :to="getChannelPath(channel.id)"
                             class="flex-1 truncate text-sm"
                         >
                             # {{ channel.name }}
                         </router-link>
-                        <span
-                            v-else
-                            class="flex-1 truncate text-sm cursor-default"
-                        >
-                            # {{ channel.name }}
-                        </span>
                         <div v-if="isEditMode" class="flex items-center gap-1 shrink-0">
                             <button
                                 v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"
@@ -492,7 +494,7 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                         :key="channel.id"
                         class="flex items-center justify-between group/item rounded-lg px-2 py-1.5 transition-all duration-150 border-2"
                         :class="[
-                            currentPath.includes(`/whiteboard/${channel.route_key}`) ? 'bg-accent text-accent-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
+                            isChannelRouteActive(channel.id) ? 'bg-accent text-accent-content font-semibold' : 'hover:bg-base-200 text-base-content/80',
                             hoverChannelId === channel.id && draggedChannelId && draggedChannelId !== channel.id
                                 ? 'border-dotted border-primary bg-primary/15'
                                 : 'border-transparent'
@@ -515,20 +517,12 @@ useChannelEvents(props.selectedServer?.id, ['channels']);
                         </div>
 
                         <router-link
-                            v-if="!currentPath.includes(`/whiteboard/${channel.route_key}`)"
-                            :to="whiteboardChannelRoute.url({ server: selectedServer.route_key, channel: channel.route_key })"
+                            :to="getChannelPath(channel.id)"
                             class="flex-1 truncate text-sm flex items-center gap-1.5"
                         >
                             <span>🎨</span>
                             <span>{{ channel.name }}</span>
                         </router-link>
-                        <span
-                            v-else
-                            class="flex-1 truncate text-sm flex items-center gap-1.5 cursor-default"
-                        >
-                            <span>🎨</span>
-                            <span>{{ channel.name }}</span>
-                        </span>
                         <div v-if="isEditMode" class="flex items-center gap-1 shrink-0">
                             <button
                                 v-if="perms.has([PermType.CAN_MANAGE_CHANNEL, PermType.CAN_EDIT_CHANNEL])"

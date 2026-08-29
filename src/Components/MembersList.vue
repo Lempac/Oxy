@@ -5,11 +5,56 @@ import { Server, User } from "@/types";
 import { HiUsers } from "vue-icons-plus/hi";
 import UserProfileModal from "@/Components/UserProfileModal.vue";
 
+import pb from "@/pocketbase";
+
 const props = defineProps<{
     selectedServer?: Server;
 }>();
 
 const selectedProfileUser = ref<User | null>(null);
+const serverMembers = ref<User[]>([]);
+
+const fetchServerMembers = async () => {
+    const sId = props.selectedServer?.id;
+    if (!sId) {
+        serverMembers.value = [];
+        return;
+    }
+    try {
+        const memberRecs = await pb.collection('members').getFullList({
+            filter: `server = "${sId}"`,
+            expand: 'user,role',
+            requestKey: null
+        });
+
+        serverMembers.value = memberRecs.map(m => ({
+            id: m.expand?.user?.id || m.user,
+            nickname: m.expand?.user?.name || m.expand?.user?.username || 'User',
+            icon: m.expand?.user?.avatar || null,
+            status: m.expand?.user?.status || 'online',
+            rolesWithServer: m.expand?.role ? [{
+                id: m.expand.role.id,
+                name: m.expand.role.name,
+                color: m.expand.role.color,
+                importance: m.expand.role.importance,
+                perms: m.expand.role.perms || []
+            }] : []
+        })) as unknown as User[];
+    } catch (err) {
+        console.error('Error fetching server members for MembersList:', err);
+    }
+};
+
+watch(() => props.selectedServer?.id, () => {
+    fetchServerMembers();
+}, { immediate: true });
+
+const displayUsers = computed(() => {
+    if (props.selectedServer?.users && props.selectedServer.users.length > 0) {
+        return props.selectedServer.users;
+    }
+    return serverMembers.value;
+});
 
 const openProfile = (user: User) => {
     selectedProfileUser.value = {
@@ -26,8 +71,9 @@ const closeProfile = () => {
 watch(
     () => props.selectedServer,
     (newServer) => {
-        if (selectedProfileUser.value && newServer?.users) {
-            const updatedUser = newServer.users.find((u) => String(u.id) === String(selectedProfileUser.value?.id));
+        const usersList = displayUsers.value;
+        if (selectedProfileUser.value && usersList.length > 0) {
+            const updatedUser = usersList.find((u) => String(u.id) === String(selectedProfileUser.value?.id));
             if (updatedUser) {
                 const currentRoles = selectedProfileUser.value.rolesWithServer || [];
                 selectedProfileUser.value = {
@@ -42,11 +88,10 @@ watch(
     {deep: true}
 );
 
-const totalMembersCount = computed(() => props.selectedServer?.users?.length || 0);
+const totalMembersCount = computed(() => displayUsers.value.length);
 
 const onlineMembersCount = computed(() => {
-    if (!props.selectedServer?.users) return 0;
-    return props.selectedServer.users.filter(
+    return displayUsers.value.filter(
         (user) => user.status === 'online' || user.status === 'idle' || user.status === 'do_not_disturb'
     ).length;
 });
@@ -102,7 +147,7 @@ const formatStatusText = (status?: string) => {
 
         <!-- User Buttons List -->
         <div
-            v-for="(user, index) in selectedServer?.users"
+            v-for="(user, index) in displayUsers"
             :key="user.id"
             class="flex flex-row items-center shrink-0"
         >
@@ -145,7 +190,7 @@ const formatStatusText = (status?: string) => {
             </button>
 
             <div
-                v-if="index < ((selectedServer?.users?.length || 0) - 1)"
+                v-if="index < (displayUsers.length - 1)"
                 class="divider divider-horizontal px-0 mx-1"
             />
         </div>
