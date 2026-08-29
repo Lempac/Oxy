@@ -5,7 +5,7 @@ import ErrorAlert from "@/Components/ErrorAlert.vue";
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { resolveUrl } from "@/bootstrap";
 import SettingsHeader from "@/Components/SettingsHeader.vue";
-import { PermType, Server } from "@/types";
+import { PermType, Role, Server } from "@/types";
 import { HiClipboardCopy } from 'vue-icons-plus/hi';
 import { BsCheckLg } from 'vue-icons-plus/bs';
 import { MdLink } from 'vue-icons-plus/md';
@@ -41,6 +41,8 @@ const form = reactive({
     errors: {} as Record<string, string>,
 });
 
+const serverRoles = ref<Role[]>([]);
+
 const loadSettingsData = async () => {
     const serverId = (route.params.serverId as string) || selectedServer?.id;
     if (!serverId) return;
@@ -63,6 +65,24 @@ const loadSettingsData = async () => {
 
         if (s.icon) {
             icon.value = resolveUrl(s.icon);
+        }
+
+        try {
+            const roleRecs = await pb.collection('roles').getFullList({
+                filter: `server = "${serverId}"`,
+                sort: 'importance',
+                requestKey: null
+            });
+            serverRoles.value = roleRecs.map(r => ({
+                id: r.id,
+                server_id: r.server,
+                name: r.name,
+                color: r.color,
+                importance: r.importance,
+                perms: r.perms || []
+            })) as unknown as Role[];
+        } catch {
+            // ignore role fetch error
         }
 
         try {
@@ -192,7 +212,7 @@ const generateInvite = async () => {
     <div class="flex h-screen bg-base-100 overflow-hidden">
         <div class="flex-1 flex flex-col h-full overflow-hidden bg-base-100">
             <div class="px-6 pt-6 md:px-10 md:pt-10 max-w-6xl mx-auto w-full pb-0">
-                <SettingsHeader :selected-server="selectedServer!"/>
+                <SettingsHeader :selected-server="(currentServer || selectedServer) as Server"/>
             </div>
 
             <div class="flex-1 overflow-y-auto p-6 md:p-10 pt-0">
@@ -200,7 +220,7 @@ const generateInvite = async () => {
                     <div class="flex items-center justify-between">
                         <h1 class="text-3xl font-bold text-base-content">Server Settings</h1>
                         <div class="flex space-x-3">
-                            <router-link :to="server.url(selectedServer!.route_key)" class="btn btn-neutral px-6">
+                            <router-link :to="server.url((currentServer || selectedServer)?.id || '')" class="btn btn-neutral px-6">
                                 ← Back to Server
                             </router-link>
                             <button
@@ -290,7 +310,7 @@ const generateInvite = async () => {
                                                 :disabled="!perms.has([PermType.CAN_EDIT_SERVER])"
                                                 class="btn btn-sm bg-base-100 hover:bg-base-300 border-base-300 w-full justify-between font-normal h-10 min-h-0"
                                                 tabindex="0">
-                                                <span>{{ selectedServer?.roles?.find(r => r.id === form.default_role_id)?.name || 'None' }}</span>
+                                                <span>{{ (serverRoles.length > 0 ? serverRoles : selectedServer?.roles)?.find((r: Role) => r.id === form.default_role_id)?.name || 'None' }}</span>
                                                 <span class="opacity-50 text-xs">▲</span>
                                             </button>
                                             <ul
@@ -310,7 +330,7 @@ const generateInvite = async () => {
                                                         None
                                                     </button>
                                                 </li>
-                                                <li v-for="role in selectedServer?.roles" :key="role.id">
+                                                <li v-for="role in (serverRoles.length > 0 ? serverRoles : (selectedServer?.roles || []))" :key="role.id">
                                                     <button
                                                         type="button"
                                                         :class="form.default_role_id === role.id ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'hover:bg-base-200'"
