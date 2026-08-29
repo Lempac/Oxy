@@ -26,10 +26,12 @@ export const bigIntToPerms = (newPrem: string[]): Perms => ({
         }
     },
     has(otherPerm) {
+        if (this.perms.includes('ADMINISTRATOR')) return true;
         const permsToCheck = Array.isArray(otherPerm) ? otherPerm : [otherPerm];
         return permsToCheck.every(p => this.perms.includes(p));
     },
     hasAny(otherPerm) {
+        if (this.perms.includes('ADMINISTRATOR')) return true;
         const permsToCheck = Array.isArray(otherPerm) ? otherPerm : [otherPerm];
         return permsToCheck.some(p => this.perms.includes(p));
     },
@@ -101,12 +103,30 @@ export const getMemberRoleColor = (
 };
 
 const ALL_PERMISSIONS_LIST = [
-    'ADMINISTRATOR', 'MANAGE_SERVER', 'MANAGE_ROLES', 'MANAGE_CHANNELS',
-    'KICK_MEMBERS', 'BAN_MEMBERS', 'SEND_MESSAGES', 'ATTACH_FILES',
-    'CONNECT_VOICE', 'SPEAK_VOICE', 'CAN_EDIT_SERVER', 'CAN_CREATE_CHANNEL',
-    'CAN_EDIT_CHANNEL', 'CAN_DELETE_CHANNEL', 'CAN_CREATE_ROLE',
-    'CAN_EDIT_ROLE', 'CAN_DELETE_ROLE', 'CAN_EDIT_MEMBER_ROLES',
-    'CAN_INVITE', 'CAM_CREATE_ATTACHMENTS'
+    'ADMINISTRATOR',
+    'CAN_DELETE_SERVER',
+    'CAN_EDIT_SERVER',
+    'CAN_CREATE_CHANNEL',
+    'CAN_DELETE_CHANNEL',
+    'CAN_EDIT_CHANNEL',
+    'CAN_CREATE_MESSAGE',
+    'CAM_CREATE_ATTACHMENTS',
+    'CAN_DELETE_MESSAGE',
+    'CAN_MANAGE_CHANNEL',
+    'CAN_CREATE_ROLE',
+    'CAN_DELETE_ROLE',
+    'CAN_EDIT_ROLE',
+    'CAN_MANAGE_MEMBERS',
+    'CAN_MANAGE_ROLE',
+    'CAN_MANAGE_SERVER',
+    'CAN_SEE_CHANNEL',
+    'CAN_INVITE',
+    'CAN_KICK',
+    'CAN_EDIT_MEMBER_ROLES',
+    'SEND_MESSAGES',
+    'ATTACH_FILES',
+    'CONNECT_VOICE',
+    'SPEAK_VOICE'
 ];
 
 export const usePerms = (server?: Server | null, user?: User | null) => {
