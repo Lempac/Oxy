@@ -96,7 +96,52 @@ const editForm = reactive({
     },
 });
 
-useMessageEvents(props.selectedChannel?.id);
+const localMessages = ref<Message[]>([]);
+
+const fetchChannelMessages = async () => {
+    if (!props.selectedChannel?.id) {
+        localMessages.value = [];
+        return;
+    }
+    try {
+        const records = await pb.collection('messages').getFullList({
+            filter: `channel = "${props.selectedChannel.id}"`,
+            sort: 'created',
+            expand: 'user',
+            requestKey: null
+        });
+        localMessages.value = records.map(r => ({
+            id: r.id,
+            channel_id: r.channel,
+            user_id: r.user,
+            content: r.content,
+            status: r.status,
+            created_at: r.created,
+            updated_at: r.updated,
+            sender: r.expand?.user ? {
+                id: r.expand.user.id,
+                nickname: r.expand.user.name || r.expand.user.username || 'User',
+                icon: r.expand.user.avatar || null,
+                status: r.expand.user.status || 'online'
+            } : null
+        })) as unknown as Message[];
+    } catch (err) {
+        console.error('Error fetching messages:', err);
+    }
+};
+
+watch(() => props.selectedChannel?.id, () => {
+    fetchChannelMessages();
+}, { immediate: true });
+
+useMessageEvents(
+    props.selectedChannel?.id,
+    () => { fetchChannelMessages(); },
+    () => { fetchChannelMessages(); },
+    () => { fetchChannelMessages(); }
+);
+
+const activeMessages = computed(() => (props.messages && props.messages.length > 0) ? props.messages : localMessages.value);
 
 const clearValidation = () => {
     validationError.value = null;
@@ -292,21 +337,31 @@ const createMessage = async () => {
 
     loading.value = true;
     try {
-        const formData = new FormData();
-        formData.append('channel', props.selectedChannel!.id);
-        formData.append('user', pb.authStore.model!.id);
-        formData.append('content', form.content);
-        formData.append('status', 'sent');
+        if (stagedFiles.value.length > 0) {
+            const formData = new FormData();
+            formData.append('channel', props.selectedChannel!.id);
+            formData.append('user', pb.authStore.model!.id);
+            formData.append('content', form.content);
+            formData.append('status', 'sent');
 
-        stagedFiles.value.forEach(file => {
-            formData.append('attachments', file);
-        });
+            stagedFiles.value.forEach(file => {
+                formData.append('attachments', file);
+            });
 
-        await pb.collection('messages').create(formData);
+            await pb.collection('messages').create(formData, { requestKey: null });
+        } else {
+            await pb.collection('messages').create({
+                channel: props.selectedChannel!.id,
+                user: pb.authStore.model!.id,
+                content: form.content,
+                status: 'sent'
+            }, { requestKey: null });
+        }
 
         clearAllFiles();
         form.content = '';
         clearValidation();
+        await fetchChannelMessages();
         const key = getScrollStorageKey();
         if (key && typeof sessionStorage !== 'undefined') {
             sessionStorage.removeItem(key);
@@ -553,9 +608,9 @@ const openEditModal = (messageId: string, currentContent: string | null) => {
                 <div
 ref="messageContainer" class="overflow-y-auto grow p-3 mx-5 mt-5 pb-10 relative"
                      @scroll="handleScroll">
-                    <div v-if="messages && messages.length > 0" class="space-y-4">
+                    <div v-if="activeMessages && activeMessages.length > 0" class="space-y-4">
                         <div
-                            v-for="message in messages" :key="message.id"
+                            v-for="message in activeMessages" :key="message.id"
                             :class="{'chat chat-start': message.user_id !== pb.authStore.model?.id, 'chat chat-end': message.user_id === pb.authStore.model?.id}"
                         >
                             <div class="chat-image avatar">
