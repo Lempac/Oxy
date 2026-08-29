@@ -106,7 +106,7 @@ const fetchChannelMessages = async () => {
     try {
         const records = await pb.collection('messages').getFullList({
             filter: `channel = "${props.selectedChannel.id}"`,
-            sort: 'created',
+            sort: '+id',
             expand: 'user',
             requestKey: null
         });

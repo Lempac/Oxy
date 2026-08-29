@@ -88,7 +88,7 @@ const loadSettingsData = async () => {
         try {
             const invites = await pb.collection('invites').getList(1, 1, {
                 filter: `server = "${serverId}"`,
-                sort: '-created',
+                sort: '-id',
                 requestKey: null
             });
             if (invites.items.length > 0) {
