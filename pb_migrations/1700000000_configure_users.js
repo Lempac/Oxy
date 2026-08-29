@@ -10,6 +10,10 @@ migrate((app) => {
     if (usernameField) {
       usernameField.required = true;
     }
+    // Remove unique constraint / index on email
+    usersCol.indexes = (usersCol.indexes || []).filter(
+      (idx) => !idx.toLowerCase().includes("email")
+    );
     app.save(usersCol);
   }
 }, (app) => {
