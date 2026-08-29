@@ -122,27 +122,16 @@ const groupedPermissions = computed(() => {
 });
 
 const fetchRoles = async () => {
-    try {
-        const sId = currentServer.value?.id || props.selectedServer?.id || '';
-        const response = await fetchJson(index.url(sId));
-        roles.value = response.data ?? [];
-        roles.value.sort((a, b) => a.importance - b.importance);
-
-        // Update editingRole if it was already selected
-        if (editingRole.value) {
-            const updated = roles.value.find(r => r.id === editingRole.value?.id);
-            if (updated) {
-                editingRole.value = updated;
-                // Avoid overwriting newRole if they have unsaved changes?
-                // Actually it's fine, we should just update it if we fetched explicitly.
-            } else {
-                editingRole.value = null;
-            }
-        } else if (roles.value.length > 0) {
-            selectRole(roles.value[0]);
+    await loadRolesData();
+    if (editingRole.value) {
+        const updated = roles.value.find(r => r.id === editingRole.value?.id);
+        if (updated) {
+            editingRole.value = updated;
+        } else {
+            editingRole.value = null;
         }
-    } catch (error) {
-        console.error('Error fetching roles:', error);
+    } else if (roles.value.length > 0) {
+        selectRole(roles.value[0]);
     }
 };
 

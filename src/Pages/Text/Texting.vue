@@ -526,7 +526,8 @@ watch(
 
 const deleteMessage = async (messageId: string) => {
     try {
-        await pb.collection('messages').delete(messageId);
+        await pb.collection('messages').delete(messageId, { requestKey: null });
+        await fetchChannelMessages();
     } catch (err: unknown) {
         console.error('Error deleting message:', err);
     }
@@ -538,9 +539,10 @@ const editMessage = async () => {
             await pb.collection('messages').update(messageIdToEdit.value, {
                 content: editForm.content,
                 status: 'edited',
-            });
+            }, { requestKey: null });
             messageIdToEdit.value = null;
             editForm.content = '';
+            await fetchChannelMessages();
         } catch (err: unknown) {
             console.error('Error editing message:', err);
         }
