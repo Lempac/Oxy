@@ -16,9 +16,13 @@ export function useUserPresence(enabled: boolean = true) {
 
         currentStatus.value = status;
         try {
-            await pb.collection('users').update(pb.authStore.model.id, { status });
-        } catch {
-            // Ignore status report network errors silently
+            await pb.collection('users').update(pb.authStore.model.id, { status }, { requestKey: null });
+        } catch (err: unknown) {
+            const error = err as { status?: number };
+            if (error?.status === 404) {
+                // Stale auth token from re-seeded database; clear session
+                pb.authStore.clear();
+            }
         }
     };
 
