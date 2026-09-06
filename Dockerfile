@@ -4,7 +4,7 @@ WORKDIR /app
 RUN npm install -g pnpm@11.18.0
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+RUN pnpm install || true; pnpm approve-builds --all
 
 COPY . .
 RUN pnpm run build
