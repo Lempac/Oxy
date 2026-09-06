@@ -1,10 +1,10 @@
 # ── Stage 1: Build Vue SPA & TypeScript Hooks ─────────────────────────────────
 FROM node:24-alpine AS build
 WORKDIR /app
-RUN npm install -g pnpm@11.18.0
+RUN npm install -g pnpm@11.18.0 esbuild
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install || true; pnpm approve-builds --all
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 RUN pnpm run build
