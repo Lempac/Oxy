@@ -17,9 +17,15 @@ WORKDIR /pb
 
 # Download PocketBase binary
 ARG PB_VERSION=0.22.28
-RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip \
-    && unzip pocketbase_${PB_VERSION}_linux_amd64.zip \
-    && rm pocketbase_${PB_VERSION}_linux_amd64.zip
+ARG TARGETARCH
+RUN ARCH="${TARGETARCH:-arm64}" && \
+    case "$ARCH" in \
+        "amd64") ARCH="amd64" ;; \
+        "arm64"|"aarch64") ARCH="arm64" ;; \
+    esac && \
+    wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_${ARCH}.zip \
+    && unzip pocketbase_${PB_VERSION}_linux_${ARCH}.zip \
+    && rm pocketbase_${PB_VERSION}_linux_${ARCH}.zip
 
 # Copy built Vue SPA to pb_public and TS compiled hooks to pb_hooks
 COPY --from=build /app/dist /pb/pb_public
