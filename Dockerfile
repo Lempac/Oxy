@@ -1,10 +1,10 @@
 # ── Stage 1: Build Vue SPA & TypeScript Hooks ─────────────────────────────────
 FROM node:24-alpine AS build
 WORKDIR /app
-RUN npm install -g pnpm@11.18.0
+RUN npm install -g pnpm@11.18.0 esbuild
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 RUN pnpm run build
@@ -16,10 +16,16 @@ RUN apk add --no-cache ca-certificates unzip wget curl sqlite
 WORKDIR /pb
 
 # Download PocketBase binary
-ARG PB_VERSION=0.22.28
-RUN wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip \
-    && unzip pocketbase_${PB_VERSION}_linux_amd64.zip \
-    && rm pocketbase_${PB_VERSION}_linux_amd64.zip
+ARG PB_VERSION=0.25.9
+ARG TARGETARCH
+RUN ARCH="${TARGETARCH:-arm64}" && \
+    case "$ARCH" in \
+        "amd64") ARCH="amd64" ;; \
+        "arm64"|"aarch64") ARCH="arm64" ;; \
+    esac && \
+    wget https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_${ARCH}.zip \
+    && unzip pocketbase_${PB_VERSION}_linux_${ARCH}.zip \
+    && rm pocketbase_${PB_VERSION}_linux_${ARCH}.zip
 
 # Copy built Vue SPA to pb_public and TS compiled hooks to pb_hooks
 COPY --from=build /app/dist /pb/pb_public
