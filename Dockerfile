@@ -16,7 +16,7 @@ RUN apk add --no-cache ca-certificates unzip wget curl sqlite
 WORKDIR /pb
 
 # Download PocketBase binary
-ARG PB_VERSION=0.22.28
+ARG PB_VERSION=0.25.9
 ARG TARGETARCH
 RUN ARCH="${TARGETARCH:-arm64}" && \
     case "$ARCH" in \
