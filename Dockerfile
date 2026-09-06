@@ -4,7 +4,7 @@ WORKDIR /app
 RUN npm install -g pnpm@11.18.0
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm config set only-built-dependencies esbuild 2>/dev/null || true; pnpm install --frozen-lockfile
+RUN pnpm install
 
 COPY . .
 RUN pnpm run build

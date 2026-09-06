@@ -11,6 +11,12 @@
     "type": "module",
     "main": "electron-dist/main.cjs",
     "packageManager": "pnpm@11.18.0",
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "esbuild",
+            "electron-winstaller"
+        ]
+    },
     "scripts": {
         "dev": "vite",
         "build:hooks": "esbuild src/hooks/invites.ts src/hooks/livekit_token.ts src/hooks/profile.ts src/hooks/servers.ts src/hooks/whiteboards.ts --outdir=pb_hooks --out-extension:.js=.pb.js",
